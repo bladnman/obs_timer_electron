@@ -41,5 +41,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
       ipcRenderer.on('obs-recording-resumed', callback);
       return () => ipcRenderer.removeListener('obs-recording-resumed', callback);
     }
+  },
+
+  // Window state management
+  windowState: {
+    getDisplayMode: () => ipcRenderer.invoke('window-state-get-display-mode'),
+    saveDisplayMode: (isCurrentTimeFocused) => ipcRenderer.invoke('window-state-save-display-mode', isCurrentTimeFocused)
   }
 }); 

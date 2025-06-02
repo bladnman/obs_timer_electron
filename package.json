@@ -1,6 +1,6 @@
 {
     "name": "obs-timer",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "OBS Timer - A floating timer for OBS Studio recording sessions",
     "main": "src/main.js",
     "scripts": {
@@ -10,11 +10,18 @@
         "lint": "eslint .",
         "lint:fix": "eslint . --fix",
         "prestart": "npm run lint",
+        "clean": "node -e \"const fs = require('fs'); const path = require('path'); const dir = path.join(__dirname, 'dist'); if (fs.existsSync(dir)) { fs.rmSync(dir, { recursive: true, force: true }); console.log('✓ Cleaned dist directory'); } else { console.log('✓ No dist directory to clean'); }\"",
+        "prebuild": "npm run clean",
         "build": "electron-builder",
+        "prebuild:mac": "npm run clean",
         "build:mac": "electron-builder --mac",
+        "prebuild:win": "npm run clean",
         "build:win": "electron-builder --win",
+        "prebuild:linux": "npm run clean",
         "build:linux": "electron-builder --linux",
+        "predist": "npm run clean",
         "dist": "npm run build",
+        "prepack": "npm run clean",
         "pack": "electron-builder --dir",
         "postinstall": "electron-builder install-app-deps"
     },

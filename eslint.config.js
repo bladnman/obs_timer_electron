@@ -14,6 +14,7 @@ module.exports = [
         setInterval: 'readonly',
         clearInterval: 'readonly',
         setTimeout: 'readonly',
+        clearTimeout: 'readonly',
         Date: 'readonly',
         Math: 'readonly',
         parseInt: 'readonly',

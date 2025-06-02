@@ -100,6 +100,7 @@ class FloatingTimer {
     this.reconnectInterval = null;
 
     // Display state - true = current time focused, false = total time focused
+    // This will be loaded from saved state during initialization
     this.isCurrentTimeFocused = true;
 
     // Settings
@@ -123,6 +124,9 @@ class FloatingTimer {
 
       // Load settings and populate form
       this.loadSettings();
+
+      // Load display mode from saved state
+      await this.loadDisplayMode();
 
       // Set up event listeners
       this.setupEventListeners();
@@ -174,23 +178,23 @@ class FloatingTimer {
     this.eventCleanupFunctions.push(window.electronAPI.obs.onDisconnected(onDisconnected));
 
     // Connection error event
-    const onConnectionError = (event, error) => this.handleOBSConnectionFailed(error);
+    const onConnectionError = () => this.handleOBSConnectionFailed();
     this.eventCleanupFunctions.push(window.electronAPI.obs.onConnectionError(onConnectionError));
 
     // Recording started event
-    const onRecordingStarted = (event, data) => this.handleRecordingStarted(data);
+    const onRecordingStarted = () => this.handleRecordingStarted();
     this.eventCleanupFunctions.push(window.electronAPI.obs.onRecordingStarted(onRecordingStarted));
 
     // Recording stopped event
-    const onRecordingStopped = (event, data) => this.handleRecordingStopped(data);
+    const onRecordingStopped = () => this.handleRecordingStopped();
     this.eventCleanupFunctions.push(window.electronAPI.obs.onRecordingStopped(onRecordingStopped));
 
     // Recording paused event
-    const onRecordingPaused = (event, data) => this.handleRecordingPaused(data);
+    const onRecordingPaused = () => this.handleRecordingPaused();
     this.eventCleanupFunctions.push(window.electronAPI.obs.onRecordingPaused(onRecordingPaused));
 
     // Recording resumed event
-    const onRecordingResumed = (event, data) => this.handleRecordingResumed(data);
+    const onRecordingResumed = () => this.handleRecordingResumed();
     this.eventCleanupFunctions.push(window.electronAPI.obs.onRecordingResumed(onRecordingResumed));
   }
 
@@ -264,7 +268,7 @@ class FloatingTimer {
         this.isRecording = false;
       }
       // The polling will handle updating the display
-    } catch (error) {
+    } catch {
       this.setNotRecordingState();
     }
   }
@@ -272,7 +276,7 @@ class FloatingTimer {
   /**
    * Handle OBS connection failure
    */
-  handleOBSConnectionFailed(errorMessage) {
+  handleOBSConnectionFailed() {
     this.updateConnectionStatus('OBS WS ✕', 'disconnected');
     this.connectionStatus.classList.remove('hidden');
     this.setDisconnectedState();
@@ -302,14 +306,14 @@ class FloatingTimer {
   /**
    * Handle recording started event
    */
-  handleRecordingStarted(data) {
+  handleRecordingStarted() {
     this.startRecordingTimer();
   }
 
   /**
    * Handle recording stopped event
    */
-  handleRecordingStopped(data) {
+  handleRecordingStopped() {
     this.stopRecordingTimer();
     this.saveCurrentSession();
   }
@@ -317,14 +321,14 @@ class FloatingTimer {
   /**
    * Handle recording paused event
    */
-  handleRecordingPaused(data) {
+  handleRecordingPaused() {
     this.setPausedState();
   }
 
   /**
    * Handle recording resumed event
    */
-  handleRecordingResumed(data) {
+  handleRecordingResumed() {
     this.setRecordingState();
   }
 
@@ -443,7 +447,6 @@ class FloatingTimer {
         this.currentSessionSeconds = obsStatus.durationInSeconds;
         
         // Update recording state tracking
-        const wasRecording = this.isRecording;
         this.isRecording = obsStatus.recordingState === 'recording';
         
         // Update total display in real-time
@@ -525,6 +528,7 @@ class FloatingTimer {
   toggleDisplayFocus() {
     this.isCurrentTimeFocused = !this.isCurrentTimeFocused;
     this.updateDisplayFocus();
+    this.saveDisplayMode();
   }
 
   /**
@@ -606,6 +610,33 @@ class FloatingTimer {
     this.obsHostInput.value = settings.obsHost;
     this.obsPortInput.value = settings.obsPort;
     this.obsPasswordInput.value = settings.obsPassword;
+  }
+
+  /**
+   * Load display mode from saved window state
+   */
+  async loadDisplayMode() {
+    try {
+      if (window.electronAPI && window.electronAPI.windowState) {
+        this.isCurrentTimeFocused = await window.electronAPI.windowState.getDisplayMode();
+      }
+    } catch (error) {
+      console.warn('Failed to load display mode:', error);
+      // Keep default value
+    }
+  }
+
+  /**
+   * Save current display mode to window state
+   */
+  async saveDisplayMode() {
+    try {
+      if (window.electronAPI && window.electronAPI.windowState) {
+        await window.electronAPI.windowState.saveDisplayMode(this.isCurrentTimeFocused);
+      }
+    } catch (error) {
+      console.warn('Failed to save display mode:', error);
+    }
   }
 
   /**

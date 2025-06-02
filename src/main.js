@@ -1,15 +1,23 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
+const WindowStateManager = require('./utils/windowState');
+const { OBSWebSocket } = require('obs-websocket-js');
 
 let mainWindow;
 let obsWebSocket = null;
 let isOBSConnected = false;
+let windowStateManager;
 
 function createWindow() {
-  // Create the browser window with specified requirements
+  // Initialize window state manager
+  windowStateManager = new WindowStateManager();
+  
+  // Get window options with saved state
+  const windowOptions = windowStateManager.getWindowOptions();
+  
+  // Create the browser window with specified requirements and saved state
   mainWindow = new BrowserWindow({
-    width: 300,
-    height: 120,
+    ...windowOptions,
     minWidth: 200,
     minHeight: 80,
     alwaysOnTop: true,
@@ -32,12 +40,23 @@ function createWindow() {
   mainWindow.loadFile(path.join(__dirname, '../public/index.html'));
 
   // Set window to be visible on all workspaces and full screen
-  mainWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
+  // Note: On macOS, this might affect dock icon behavior
+  if (process.platform !== 'darwin') {
+    mainWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
+  } else {
+    // On macOS, use a more conservative approach to maintain dock icon
+    mainWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: false });
+  }
 
   // Show window when ready to prevent visual flash
   mainWindow.once('ready-to-show', () => {
+    // Apply any additional state (like maximized state)
+    windowStateManager.applyState(mainWindow);
     mainWindow.show();
   });
+
+  // Set up window state management
+  windowStateManager.manage(mainWindow);
 
   // Handle window closed
   mainWindow.on('closed', () => {
@@ -54,6 +73,11 @@ function createWindow() {
 
 // This method will be called when Electron has finished initialization
 app.whenReady().then(() => {
+  // Ensure the app shows in dock on macOS
+  if (process.platform === 'darwin') {
+    app.dock.show();
+  }
+  
   createWindow();
 
   app.on('activate', () => {
@@ -87,9 +111,6 @@ ipcMain.handle('get-app-version', () => {
 // OBS WebSocket IPC handlers
 ipcMain.handle('obs-connect', async (event, { address, password }) => {
   try {
-    // Dynamic import for obs-websocket-js
-    const OBSWebSocket = await import('obs-websocket-js').then(m => m.default || m);
-    
     if (obsWebSocket) {
       try {
         await obsWebSocket.disconnect();
@@ -195,5 +216,19 @@ ipcMain.handle('obs-get-recording-status', async () => {
     };
   } catch (error) {
     return { success: false, error: error.message };
+  }
+});
+
+// Window state management IPC handlers
+ipcMain.handle('window-state-get-display-mode', () => {
+  if (windowStateManager) {
+    return windowStateManager.getDisplayMode();
+  }
+  return true; // Default fallback
+});
+
+ipcMain.handle('window-state-save-display-mode', (event, isCurrentTimeFocused) => {
+  if (windowStateManager) {
+    windowStateManager.saveDisplayMode(isCurrentTimeFocused);
   }
 }); 

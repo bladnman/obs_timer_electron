@@ -1,0 +1,427 @@
+/* Reset and base styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Consolas', 'Monaco', 'Lucida Console', monospace;
+    background-color: rgba(30, 30, 30, 0.9);
+    color: #ffffff;
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+#app {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    position: relative;
+}
+
+/* Left menu bar */
+.menu-bar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    height: 100vh;
+    width: 2em;
+    background-color: rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 0.5em 0;
+    gap: 0.5em;
+    z-index: 10;
+}
+
+.menu-button {
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 1.2em;
+    width: 1.8em;
+    height: 1.8em;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: inherit;
+}
+
+.menu-button:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.timer-container {
+    text-align: center;
+    width: 100%;
+    padding: 0.8em;
+    padding-left: 1.5em; /* Make room for menu bar */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4em;
+    /* Base font size that scales well with container width */
+    font-size: max(8vw, 14px);
+    min-height: 100vh;
+    box-sizing: border-box;
+}
+
+/* Status timer section */
+.status-timer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4em;
+    position: relative;
+    width: 100%;
+}
+
+.status-icon {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #888888;
+    transition: color 0.3s ease;
+    min-width: 1em;
+    text-align: center;
+    line-height: 1;
+}
+
+.status-icon.recording {
+    color: #ff4444;
+}
+
+.status-icon.paused {
+    color: #ffcc00;
+}
+
+.status-icon.stopped {
+    color: #888888;
+}
+
+.status-icon.disconnected {
+    color: #ff8800;
+}
+
+.timer-icon {
+    font-size: 0.8em;
+    opacity: 0.7;
+    transition: opacity 0.3s ease;
+}
+
+.toggle-button {
+    position: absolute;
+    right: -0.5em;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.3);
+    font-size: 0.7em;
+    width: 1.2em;
+    height: 1.2em;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: inherit;
+}
+
+.toggle-button:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.main-timer {
+    font-size: 1.5em;
+    font-weight: bold;
+    letter-spacing: 0.05em;
+    color: #ffffff;
+    text-shadow: 0 0.05em 0.1em rgba(0, 0, 0, 0.5);
+    min-width: 0;
+    white-space: nowrap;
+    line-height: 1;
+    transition: all 0.3s ease;
+}
+
+.clickable-timer {
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.clickable-timer:hover {
+    opacity: 0.8;
+    transform: scale(1.02);
+}
+
+/* Toggle states for main timer */
+.main-timer.focused {
+    font-size: 1.5em;
+    color: #ffffff;
+}
+
+.main-timer.unfocused {
+    font-size: 0.9em;
+    color: #cccccc;
+}
+
+/* Total timer section */
+.total-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.3em;
+}
+
+.total-timer {
+    font-size: 0.9em;
+    color: #cccccc;
+    opacity: 0.8;
+    letter-spacing: 0.03em;
+    white-space: nowrap;
+    line-height: 1;
+    transition: all 0.3s ease;
+}
+
+/* Toggle states for total timer */
+.total-timer.focused {
+    font-size: 1.5em;
+    color: #ffffff;
+    opacity: 1;
+}
+
+.total-timer.unfocused {
+    font-size: 0.9em;
+    color: #cccccc;
+    opacity: 0.8;
+}
+
+
+
+/* Connection status */
+.connection-status {
+    position: absolute;
+    top: 0.2em;
+    right: 0.2em;
+    font-size: 0.5em;
+    opacity: 0.6;
+    color: #ffaa00;
+    background-color: rgba(0, 0, 0, 0.3);
+    padding: 0.1em 0.3em;
+    border-radius: 0.15em;
+    transition: opacity 0.3s ease;
+    line-height: 1;
+}
+
+.connection-status.connected {
+    color: #44ff44;
+}
+
+.connection-status.disconnected {
+    color: #ff4444;
+}
+
+.connection-status.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Error state */
+.error-text {
+    color: #ff6666;
+    font-size: 1em;
+    text-align: center;
+    line-height: 1;
+}
+
+
+
+/* Modal styles */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    font-size: 14px; /* Fixed font size for modal */
+}
+
+.modal.hidden {
+    display: none;
+}
+
+.modal-content {
+    background-color: #2a2a2a;
+    border-radius: 8px;
+    padding: 20px;
+    width: 90%;
+    max-width: 400px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #444;
+    padding-bottom: 10px;
+}
+
+.modal-header h3 {
+    color: #ffffff;
+    margin: 0;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.close-button {
+    background: none;
+    border: none;
+    color: #ccc;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 15px;
+    transition: background-color 0.2s;
+}
+
+.close-button:hover {
+    background-color: #ff4444;
+    color: #ffffff;
+}
+
+.modal-body {
+    color: #ffffff;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    color: #ccc;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #555;
+    border-radius: 4px;
+    background-color: #333;
+    color: #ffffff;
+    font-size: 14px;
+    transition: border-color 0.2s;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: #0084ff;
+    box-shadow: 0 0 0 2px rgba(0, 132, 255, 0.2);
+}
+
+.form-group input::placeholder {
+    color: #888;
+}
+
+.form-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+    justify-content: flex-end;
+}
+
+.save-button, .test-button {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background-color 0.2s;
+}
+
+.save-button {
+    background-color: #0084ff;
+    color: #ffffff;
+}
+
+.save-button:hover {
+    background-color: #0066cc;
+}
+
+.save-button:disabled {
+    background-color: #555;
+    cursor: not-allowed;
+}
+
+.test-button {
+    background-color: #333;
+    color: #ffffff;
+    border: 1px solid #555;
+}
+
+.test-button:hover {
+    background-color: #444;
+}
+
+.connection-result {
+    margin-top: 15px;
+    padding: 8px;
+    border-radius: 4px;
+    font-size: 14px;
+    text-align: center;
+}
+
+.connection-result.success {
+    background-color: rgba(68, 255, 68, 0.1);
+    color: #44ff44;
+    border: 1px solid #44ff44;
+}
+
+.connection-result.error {
+    background-color: rgba(255, 68, 68, 0.1);
+    color: #ff4444;
+    border: 1px solid #ff4444;
+}
+
+.connection-result.hidden {
+    display: none;
+}
+
+@media (-webkit-min-device-pixel-ratio: 2) {
+    .main-timer {
+        text-shadow: 0 0.05em 0.1em rgba(0, 0, 0, 0.7);
+    }
+} 

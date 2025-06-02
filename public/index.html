@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OBS Timer</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Left menu bar -->
+        <div class="menu-bar">
+            <button id="settings-button" class="menu-button" title="Settings">⚙</button>
+            <button id="reset-total" class="menu-button" title="Reset Total Time">↻</button>
+        </div>
+
+        <div class="timer-container">
+            <!-- Current recording time -->
+            <div class="status-timer">
+                <span id="status-icon" class="status-icon">■</span>
+                <span id="main-timer" class="main-timer clickable-timer">00:00:00</span>
+            </div>
+            
+            <!-- Total accumulated time -->
+            <div class="total-container">
+                <span id="total-icon" class="timer-icon">Σ</span>
+                <span id="total-timer" class="total-timer clickable-timer">00:00:00</span>
+                <button id="toggle-display" class="toggle-button" title="Toggle Focus">⇅</button>
+            </div>
+            
+            <!-- Connection status -->
+            <div id="connection-status" class="connection-status">
+                <span id="connection-text">Connecting to OBS...</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>OBS Connection Settings</h3>
+                <button id="close-modal" class="close-button">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="obs-host">OBS Host:</label>
+                    <input type="text" id="obs-host" value="localhost" placeholder="localhost">
+                </div>
+                <div class="form-group">
+                    <label for="obs-port">Port:</label>
+                    <input type="number" id="obs-port" value="4455" placeholder="4455">
+                </div>
+                <div class="form-group">
+                    <label for="obs-password">Password:</label>
+                    <input type="password" id="obs-password" placeholder="Enter OBS WebSocket password">
+                </div>
+                <div class="form-actions">
+                    <button id="save-settings" class="save-button">Save & Connect</button>
+                    <button id="test-connection" class="test-button">Test Connection</button>
+                </div>
+                <div id="connection-result" class="connection-result hidden"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load utility modules -->
+    <script src="../src/utils/timeUtils.js"></script>
+    <script src="../src/utils/settings.js"></script>
+    
+    <!-- Load main application script -->
+    <script src="renderer.js"></script>
+</body>
+</html> 

@@ -1,51 +1,12 @@
-const { contextBridge, ipcRenderer } = require('electron');
+const { contextBridge /*, ipcRenderer*/ } = require('electron');
 
-// Expose protected methods that allow the renderer process to use
-// the ipcRenderer without exposing the entire object
+// Expose a minimal or empty API if nothing else is needed from the main process.
+// This maintains contextIsolation and a clear boundary.
 contextBridge.exposeInMainWorld('electronAPI', {
-  getAppVersion: () => ipcRenderer.invoke('get-app-version'),
-  
-  // OBS WebSocket functionality via IPC
-  obs: {
-    connect: (address, password) => ipcRenderer.invoke('obs-connect', { address, password }),
-    disconnect: () => ipcRenderer.invoke('obs-disconnect'),
-    getVersion: () => ipcRenderer.invoke('obs-get-version'),
-    getRecordingStatus: () => ipcRenderer.invoke('obs-get-recording-status'),
-    
-    // Event listeners
-    onConnected: (callback) => {
-      ipcRenderer.on('obs-connected', callback);
-      return () => ipcRenderer.removeListener('obs-connected', callback);
-    },
-    onDisconnected: (callback) => {
-      ipcRenderer.on('obs-disconnected', callback);
-      return () => ipcRenderer.removeListener('obs-disconnected', callback);
-    },
-    onConnectionError: (callback) => {
-      ipcRenderer.on('obs-connection-error', callback);
-      return () => ipcRenderer.removeListener('obs-connection-error', callback);
-    },
-    onRecordingStarted: (callback) => {
-      ipcRenderer.on('obs-recording-started', callback);
-      return () => ipcRenderer.removeListener('obs-recording-started', callback);
-    },
-    onRecordingStopped: (callback) => {
-      ipcRenderer.on('obs-recording-stopped', callback);
-      return () => ipcRenderer.removeListener('obs-recording-stopped', callback);
-    },
-    onRecordingPaused: (callback) => {
-      ipcRenderer.on('obs-recording-paused', callback);
-      return () => ipcRenderer.removeListener('obs-recording-paused', callback);
-    },
-    onRecordingResumed: (callback) => {
-      ipcRenderer.on('obs-recording-resumed', callback);
-      return () => ipcRenderer.removeListener('obs-recording-resumed', callback);
-    }
-  },
+  // No methods exposed for now as settings are client-side
+  // and OBS connection is also client-side.
+  // This can be expanded if specific main-process features are required later
+  // (e.g., native dialogs, complex window manipulation beyond resize/alwaysOnTop).
+});
 
-  // Window state management
-  windowState: {
-    getDisplayMode: () => ipcRenderer.invoke('window-state-get-display-mode'),
-    saveDisplayMode: (isCurrentTimeFocused) => ipcRenderer.invoke('window-state-save-display-mode', isCurrentTimeFocused)
-  }
-}); 
+console.log('Preload script loaded. electronAPI context bridged (minimal).');

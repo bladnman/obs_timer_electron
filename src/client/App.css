@@ -1,0 +1,376 @@
+/* src/client/App.css - Revised styles */
+
+/* Reset and base styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body, html {
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden; /* Critical for frameless window feel */
+    font-family: 'Consolas', 'Monaco', 'Lucida Console', monospace; /* Original font */
+    background-color: rgba(30, 30, 30, 0.9); /* Original body background */
+    color: #ffffff;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+#root {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    /* Centering is handled by App or specific layout needs if body is the background */
+    /* justify-content: center; */
+    /* align-items: center; */
+}
+
+.App {
+    width: 100%;
+    height: 100%;
+    display: flex; /* Use flex for App's direct children if needed */
+    /* background-color: #1e1e1e; */ /* Original didn't have a separate .App background */
+    /* padding: 10px; */ /* Padding will be handled by .timer-container */
+    /* border-radius: 8px; */
+    /* box-shadow: 0 0 10px rgba(0,0,0,0.5); */
+    position: relative; /* For absolute positioning of some children like connection status */
+    align-items: stretch; /* Default, good for full height children */
+}
+
+/* Left menu bar - Adopt original fixed positioning and styling */
+.menu-bar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    height: 100vh;
+    width: 2.2em; /* Slightly wider to better fit icons */
+    background-color: rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 0.5em 0;
+    gap: 0.5em;
+    z-index: 100; /* Ensure it's above other content */
+}
+
+.menu-button {
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 1.2em; /* Original size */
+    width: 1.8em;
+    height: 1.8em;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: inherit; /* Important for symbols */
+}
+
+.menu-button:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.9);
+}
+
+/* Timer Container - Main content area */
+.timer-container {
+    text-align: center;
+    width: 100%;
+    height: 100%; /* Take full height */
+    padding: 0.8em;
+    padding-left: 2.5em; /* Make more room for the fixed menu bar */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center; /* Vertically center content */
+    gap: 0.4em; /* Original gap */
+    font-size: max(7vw, 16px); /* Responsive font, slightly adjusted from original's 8vw */
+    min-height: 0; /* Override potential min-height from elsewhere */
+    box-sizing: border-box;
+}
+
+/* Status Timer (Main/Current Timer) */
+.status-timer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4em; /* Original gap */
+    width: 100%; /* Ensure it can take width if needed */
+}
+
+.status-icon {
+    font-size: 1.2em; /* Original size */
+    font-weight: bold;
+    transition: color 0.3s ease;
+    min-width: 1em; /* Original */
+    text-align: center;
+    line-height: 1; /* Original */
+}
+/* Match original colors */
+.status-icon.recording { color: #ff4444; }
+.status-icon.paused { color: #ffcc00; }
+.status-icon.stopped { color: #888888; }
+.status-icon.disconnected { color: #ff8800; }
+.status-icon.connecting { color: #f0ad4e; } /* Added connecting state color */
+
+
+/* Generic TimerDisplay styling (wrapper for time-text) */
+.timer-display {
+  cursor: pointer;
+  line-height: 1; /* Important for consistent vertical alignment */
+  transition: all 0.2s ease; /* For hover effects */
+}
+.timer-display:hover {
+    opacity: 0.8;
+    /* transform: scale(1.02); */ /* Scale can be disruptive; opacity is safer */
+}
+
+.timer-display .time-text {
+  font-family: 'Consolas', 'Monaco', 'Lucida Console', monospace; /* Ensure monospace */
+  letter-spacing: 0.05em; /* Original */
+  text-shadow: 0 0.05em 0.1em rgba(0, 0, 0, 0.5); /* Original */
+  white-space: nowrap;
+}
+
+/* Focused/Unfocused styles based on original logic */
+.timer-display.main-timer-display.focused .time-text { /* Current timer focused */
+  font-size: 1.5em; /* Original focused size for main timer */
+  color: #ffffff;
+  font-weight: bold;
+}
+.timer-display.main-timer-display.unfocused .time-text { /* Current timer unfocused */
+  font-size: 0.9em; /* Original unfocused size for main timer */
+  color: #cccccc;
+  font-weight: normal; /* Ensure not bold */
+}
+
+.timer-display.total-timer-display.focused .time-text { /* Total timer focused */
+  font-size: 1.5em; /* Original focused size for total timer */
+  color: #ffffff;
+  font-weight: bold;
+  opacity: 1;
+}
+.timer-display.total-timer-display.unfocused .time-text { /* Total timer unfocused */
+  font-size: 0.9em; /* Original unfocused size for total timer */
+  color: #cccccc;
+  opacity: 0.8;
+  font-weight: normal;
+}
+
+
+/* Total Timer specific container */
+.total-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.3em; /* Original gap */
+    position: relative; /* For toggle button */
+    width: 100%;
+}
+
+.timer-label { /* For Sigma symbol (Σ) */
+  font-size: 0.8em; /* Original size */
+  opacity: 0.7;
+  color: #ccc; /* Match color of unfocused total timer */
+  margin-right: 0.1em; /* Adjust spacing */
+}
+
+.toggle-button {
+    position: absolute; /* Original positioning */
+    right: -0.2em; /* Adjusted from -0.5em to be closer */
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.3);
+    font-size: 0.7em; /* Original size */
+    width: 1.2em;
+    height: 1.2em;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: inherit;
+}
+.toggle-button:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.7);
+}
+
+/* Connection Status - Original positioning and style */
+.connection-status {
+    position: absolute;
+    top: 0.3em; /* Adjusted slightly */
+    right: 0.3em; /* Adjusted slightly */
+    font-size: 0.5em; /* Original font size relative to container */
+    opacity: 0.7; /* Slightly more visible than original 0.6 */
+    background-color: rgba(0, 0, 0, 0.4); /* Darker background */
+    padding: 0.2em 0.4em; /* Adjusted padding */
+    border-radius: 0.15em;
+    transition: opacity 0.3s ease, color 0.3s ease, background-color 0.3s ease;
+    line-height: 1.2; /* Adjusted for better readability */
+    z-index: 10; /* Ensure it's above timer text if overlapping */
+}
+.connection-status.connected { color: #44ff44; } /* Original green */
+.connection-status.disconnected { color: #ff4444; } /* Original red */
+.connection-status.error { color: #ff4444; } /* Error is like disconnected */
+.connection-status.connecting { color: #ffaa00; } /* Original connecting orange */
+.connection-status.hidden {
+    opacity: 0 !important; /* Ensure it hides */
+    pointer-events: none;
+}
+
+
+/* Settings Modal - Adopt original styling more closely */
+.modal-overlay { /* Renamed from .modal to .modal-overlay for clarity */
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.8); /* Original */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  font-size: 14px; /* Original fixed font size for modal */
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* More standard UI font for modal */
+}
+
+.modal-content {
+  background-color: #2a2a2a; /* Original */
+  border-radius: 8px;
+  padding: 20px;
+  width: 90%;
+  max-width: 400px; /* Original */
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5); /* Original */
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #444; /* Original */
+  padding-bottom: 10px;
+}
+.modal-header h3 {
+  color: #ffffff;
+  margin: 0;
+  font-size: 18px; /* Original */
+  font-weight: bold;
+}
+
+.close-button { /* Original styling for close button */
+  background: none;
+  border: none;
+  color: #ccc;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 15px;
+  transition: background-color 0.2s, color 0.2s;
+}
+.close-button:hover {
+  background-color: #ff4444; /* Original hover */
+  color: #ffffff;
+}
+
+.modal-body { color: #ffffff; }
+
+.form-group { margin-bottom: 15px; }
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  color: #ccc;
+  font-size: 14px; /* Original */
+  font-weight: 500;
+}
+.form-group input[type="text"],
+.form-group input[type="number"],
+.form-group input[type="password"] {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #555; /* Original */
+  border-radius: 4px;
+  background-color: #333; /* Original */
+  color: #ffffff;
+  font-size: 14px; /* Original */
+  transition: border-color 0.2s, box-shadow 0.2s; /* Original */
+}
+.form-group input:focus {
+  outline: none;
+  border-color: #0084ff; /* Original */
+  box-shadow: 0 0 0 2px rgba(0, 132, 255, 0.2); /* Original */
+}
+.form-group input::placeholder { color: #888; } /* Original */
+
+.form-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+  justify-content: flex-end; /* Original */
+}
+
+.save-button, .test-button {
+  padding: 8px 16px; /* Original */
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px; /* Original */
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+.save-button { background-color: #0084ff; color: #ffffff; } /* Original */
+.save-button:hover { background-color: #0066cc; } /* Original */
+.save-button:disabled { background-color: #555; cursor: not-allowed; } /* Original */
+
+.test-button {
+  background-color: #333; /* Original */
+  color: #ffffff;
+  border: 1px solid #555; /* Original */
+}
+.test-button:hover { background-color: #444; } /* Original */
+.test-button:disabled { background-color: #404040; color: #888; cursor: not-allowed; }
+
+
+.connection-result { /* For modal */
+  margin-top: 15px;
+  padding: 8px;
+  border-radius: 4px;
+  font-size: 14px; /* Original */
+  text-align: center;
+}
+.connection-result.success { /* Original styling for modal connection result */
+  background-color: rgba(68, 255, 68, 0.1);
+  color: #44ff44;
+  border: 1px solid #44ff44;
+}
+.connection-result.error { /* Original styling for modal connection result */
+  background-color: rgba(255, 68, 68, 0.1);
+  color: #ff4444;
+  border: 1px solid #ff4444;
+}
+.connection-result.testing { /* New state for testing */
+  background-color: rgba(255, 170, 0, 0.1);
+  color: #ffaa00;
+  border: 1px solid #ffaa00;
+}
+/* Ensure high-DPI text shadow is applied if needed */
+@media (-webkit-min-device-pixel-ratio: 2) {
+    .timer-display .time-text {
+        text-shadow: 0 0.05em 0.1em rgba(0, 0, 0, 0.7); /* Original */
+    }
+}

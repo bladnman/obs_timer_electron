@@ -50,7 +50,7 @@ body, html {
     left: 0;
     top: 0;
     bottom: 0;
-    width: 2.2em;
+    width: 2.5em; /* Match timer container left offset */
     background-color: rgba(0, 0, 0, 0.6);
     display: flex;
     flex-direction: column;
@@ -121,81 +121,78 @@ body, html {
     color: rgba(255, 255, 255, 0.9);
 }
 
-/* Timer Container - Main content area with proper layout */
+/* ==================================================
+   CLEAN SCALABLE TIMER LAYOUT SYSTEM
+   Single vw-based scaling, everything in ems
+   ================================================== */
+
+/* Main timer container - single scaling unit */
 .timer-container {
     position: absolute;
-    left: 2.2em; /* Tighter left margin */
-    right: 0.5em; /* Tighter right margin */
+    left: 2.5em; /* Sidebar width + small margin */
+    right: 0;
     top: 0;
     bottom: 0;
+    
+    /* SINGLE SCALING UNIT - everything scales from this */
+    font-size: 5vw;
+    
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    font-size: max(6vw, 16px); /* Back to reasonable size */
+    
     transition: opacity 0.3s ease;
-    overflow: visible; /* Allow proper spacing */
-    box-sizing: border-box;
 }
 
-
-/* Dimmed state for the timer container */
+/* Dimmed state */
 .timer-container.dimmed {
-    opacity: 0.4; /* Reduce to 40% opacity when dimmed */
+    opacity: 0.4;
 }
 
-/* Main timer area - separate label and 3-part layout */
-.timer-main-area {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.5em;
-    width: 100%;
-    max-width: 100%;
-}
-
-/* Mode Label - standalone above the 3-part layout */
+/* Mode label */
 .mode-label {
-    font-size: 0.4em; /* Larger label */
+    font-size: 0.2em; /* Relative to container font-size */
     color: rgba(255, 255, 255, 0.6);
-    font-weight: normal;
     text-transform: uppercase;
     letter-spacing: 0.1em;
-    opacity: 0.9;
+    margin-bottom: 0.1em;
     text-align: center;
-    margin-bottom: 0.3em;
 }
 
-/* 3-Part Layout: icon | display | action */
+/* Simple 3-part flexbox layout - impossible to overlap */
 .timer-display-row {
-    display: grid;
-    grid-template-columns: 2em 1fr 2em; /* Larger icon/action columns for proper spacing */
+    display: flex;
     align-items: center;
-    justify-items: center;
+    justify-content: space-between;
     width: 100%;
-    max-width: 100%;
-    gap: 0.8em; /* More spacing to prevent overlapping */
-    padding: 0 0.3em; /* More internal padding */
+    max-width: 15em; /* Reasonable maximum width in ems */
 }
 
-.timer-display-part {
+/* Icon area */
+.timer-icon {
+    flex: 0 0 1.5em; /* Fixed width, won't grow/shrink */
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
-.timer-display-part.icon {
-    justify-content: center;
-}
-
-.timer-display-part.display {
+/* Display area - grows to fill available space */
+.timer-display {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     justify-content: center;
     text-align: center;
-    min-width: 0; /* Allow shrinking */
-    width: 100%;
+    margin: 0 0.5em; /* Simple margin for breathing room */
 }
 
-.timer-display-part.action {
+/* Action area */
+.timer-action {
+    flex: 0 0 1.5em; /* Fixed width, won't grow/shrink */
+    display: flex;
+    align-items: center;
     justify-content: center;
 }
 
@@ -208,14 +205,11 @@ body, html {
     width: 100%; /* Ensure it can take width if needed */
 }
 
+/* Status icons - sized relative to container */
 .status-icon {
-    font-size: 0.6em; /* Much smaller like AM/PM */
-    font-weight: normal;
-    transition: color 0.3s ease;
-    min-width: 0.8em;
-    text-align: center;
-    line-height: 1;
+    font-size: 0.3em; /* Relative to container scaling */
     opacity: 0.8;
+    transition: color 0.3s ease;
 }
 /* Status Icon Colors - Standardized */
 .status-icon.recording { color: var(--color-running); }
@@ -734,16 +728,15 @@ body, html {
   align-items: center;
   justify-content: center;
   width: 100%;
-  gap: 0.6em;
-  font-size: 16px; /* Override the large responsive font from timer-container */
+  gap: 0.3em;
+  font-size: 0.25em; /* Scale relative to container font-size */
 }
 
 .timer-setup-inputs {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.3em;
-  font-size: 0.8em;
+  gap: 0.5em;
 }
 
 .time-input-group {
@@ -754,10 +747,10 @@ body, html {
 }
 
 .time-input {
-  width: 2.5em;
-  padding: 0.3em;
-  border: 1px solid #555;
-  border-radius: 4px;
+  width: 3em;
+  padding: 0.5em;
+  border: 0.1em solid #555;
+  border-radius: 0.3em;
   background-color: #333;
   color: #ffffff;
   font-size: 1em;
@@ -768,7 +761,7 @@ body, html {
 .time-input:focus {
   outline: none;
   border-color: #0084ff;
-  box-shadow: 0 0 0 2px rgba(0, 132, 255, 0.2);
+  box-shadow: 0 0 0 0.1em rgba(0, 132, 255, 0.2);
 }
 
 .time-input-group label {
@@ -789,11 +782,11 @@ body, html {
 }
 
 .setup-button {
-  padding: 0.3em 0.8em;
+  padding: 0.5em 1.2em;
   border: none;
-  border-radius: 4px;
+  border-radius: 0.3em;
   cursor: pointer;
-  font-size: 0.7em;
+  font-size: 1em;
   font-weight: 500;
   transition: background-color 0.2s;
 }
@@ -857,28 +850,7 @@ body, html {
   }
 }
 
-/* Primary Action Button - Inline with timer display */
-.primary-action-button {
-  background: none;
-  border: none;
-  color: rgba(255, 255, 255, 0.4);
-  font-size: 1.2em;
-  width: 2em;
-  height: 2em;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: inherit;
-  flex-shrink: 0;
-}
 
-.primary-action-button:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.8);
-}
 
 /* OBS Action Placeholder - Keep space for consistent layout */
 .obs-action-placeholder {
@@ -888,10 +860,10 @@ body, html {
   opacity: 0; /* Invisible but maintains layout space */
 }
 
-/* Primary action buttons - ensure they fit in action area */
+/* Action buttons - sized relative to container */
 .primary-action-button {
-  width: 1.4em;
-  height: 1.4em;
+  width: 1em;
+  height: 1em;
   border-radius: 50%;
   border: none;
   background: rgba(255, 255, 255, 0.1);
@@ -900,9 +872,8 @@ body, html {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.7em;
+  font-size: 0.3em; /* Relative to container */
   transition: all 0.2s ease;
-  flex-shrink: 0;
 }
 
 .primary-action-button:hover {
@@ -916,11 +887,11 @@ body, html {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.6em;
-  padding: 0.8em;
-  max-width: 280px;
+  gap: 0.3em;
+  padding: 0.5em;
+  max-width: 12em;
   margin: 0 auto;
-  font-size: 14px; /* Override the large responsive font from timer-container */
+  font-size: 0.25em; /* Scale relative to container font-size */
 }
 
 .settings-panel h3 {
@@ -933,16 +904,16 @@ body, html {
 
 .settings-button {
   background-color: #333;
-  border: 1px solid #555;
+  border: 0.1em solid #555;
   color: #ffffff;
   padding: 0.5em 0.8em;
-  border-radius: 4px;
+  border-radius: 0.3em;
   cursor: pointer;
-  font-size: 0.8em;
+  font-size: 1em;
   font-weight: 500;
   transition: all 0.2s ease;
   width: 100%;
-  max-width: 160px;
+  max-width: 8em;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

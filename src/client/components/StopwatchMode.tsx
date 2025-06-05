@@ -19,33 +19,31 @@ const StopwatchMode: React.FC<StopwatchModeProps> = ({
 }) => {
   return (
     <div className={`timer-container ${isDimmed ? "dimmed" : ""}`}>
-      <div className="timer-main-area">
-        <div className="mode-label">Stopwatch</div>
-        <div className="timer-display-row">
-          <div className="timer-display-part icon">
-            <span
-              className={`status-icon ${isRunning ? "stopwatch-running" : "stopwatch-stopped"}`}
-            >
-              {isRunning ? "▶" : "⏸"}
-            </span>
-          </div>
-          <div className="timer-display-part display">
-            <TimerDisplay
-              time={formattedTime}
-              isFocused={true}
-              onClick={onToggle}
-              className={`main-timer-display ${isRunning ? "stopwatch-running" : "stopwatch-stopped"}`}
-            />
-          </div>
-          <div className="timer-display-part action">
-            <button
-              onClick={onReset}
-              className="primary-action-button"
-              title="Reset"
-            >
-              <BiReset />
-            </button>
-          </div>
+      <div className="mode-label">Stopwatch</div>
+      <div className="timer-display-row">
+        <div className="timer-icon">
+          <span
+            className={`status-icon ${isRunning ? "stopwatch-running" : "stopwatch-stopped"}`}
+          >
+            {isRunning ? "▶" : "⏸"}
+          </span>
+        </div>
+        <div className="timer-display">
+          <TimerDisplay
+            time={formattedTime}
+            isFocused={true}
+            onClick={onToggle}
+            className={`main-timer-display ${isRunning ? "stopwatch-running" : "stopwatch-stopped"}`}
+          />
+        </div>
+        <div className="timer-action">
+          <button
+            onClick={onReset}
+            className="primary-action-button"
+            title="Reset"
+          >
+            <BiReset />
+          </button>
         </div>
       </div>
     </div>

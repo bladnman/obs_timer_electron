@@ -41,30 +41,26 @@ const ClockMode: React.FC<ClockModeProps> = ({ isDimmed, is24Hour, onToggleForma
 
   return (
     <div className={`timer-container ${isDimmed ? "dimmed" : ""}`}>
-      <div className="timer-main-area">
-        {/* Clock has no label */}
-        <div className="timer-display-row">
-          <div className="timer-display-part icon">
-            <span className="status-icon recording">
-              <BiTime />
-            </span>
+      {/* Clock has no label */}
+      <div className="timer-display-row">
+        <div className="timer-icon">
+          <span className="status-icon recording">
+            <BiTime />
+          </span>
+        </div>
+        <div className="timer-display">
+          <div className="clock-time-container" onClick={onToggleFormat}>
+            <TimerDisplay
+              time={currentTime}
+              isFocused={true}
+              onClick={() => {}} // Handled by parent container
+              className="main-timer-display recording"
+            />
+            {ampm && <span className="clock-ampm">{ampm}</span>}
           </div>
-          <div className="timer-display-part display">
-            <div className="clock-time-container" onClick={onToggleFormat}>
-              <TimerDisplay
-                time={currentTime}
-                isFocused={true}
-                onClick={() => {}} // Handled by parent container
-                className="main-timer-display recording"
-              />
-              {ampm && <span className="clock-ampm">{ampm}</span>}
-            </div>
-          </div>
-          <div className="timer-display-part action">
-            <div className="obs-action-placeholder">
-              {/* No action button needed for clock mode */}
-            </div>
-          </div>
+        </div>
+        <div className="timer-action">
+          {/* No action for clock mode */}
         </div>
       </div>
     </div>

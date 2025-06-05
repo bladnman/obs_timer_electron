@@ -5,9 +5,16 @@ import OBSMode from "./components/OBSMode";
 import SettingsModal from "./components/SettingsModal";
 import StopwatchMode from "./components/StopwatchMode";
 import TimerMode from "./components/TimerMode";
-import {useAppContext} from "./contexts/AppContext";
+import ClockMode from "./components/ClockMode";
+import {useAppContext, AppMode} from "./contexts/AppContext";
+import React, { useRef, useState } from "react";
 
 function App() {
+  const touchStartY = useRef<number | null>(null);
+  const [isScrolling, setIsScrolling] = useState(false);
+  const [showModeTransition, setShowModeTransition] = useState(false);
+  const lastScrollTime = useRef<number>(0);
+  
   const {
     // State
     settings,
@@ -26,6 +33,8 @@ function App() {
     currentMode,
     stopwatch,
     timer,
+    clock,
+    showSettings,
     // Actions
     openSettingsModal,
     closeSettingsModal,
@@ -41,7 +50,94 @@ function App() {
     toggleTimer,
     resetTimer,
     enterTimerSetup,
+    toggleClockFormat,
+    toggleSettings,
   } = useAppContext();
+
+  const modes: AppMode[] = ['obs', 'stopwatch', 'timer', 'clock'];
+  
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartY.current = e.touches[0].clientY;
+    setIsScrolling(false);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (touchStartY.current === null || showSettings || isScrolling) return;
+    
+    const currentY = e.touches[0].clientY;
+    const deltaY = currentY - touchStartY.current;
+    
+    if (Math.abs(deltaY) > 80) { // Higher threshold for more deliberate swipe
+      e.preventDefault();
+      setIsScrolling(true);
+      
+      if (deltaY > 0) {
+        // Swiping down - go to previous mode
+        switchMode('prev');
+      } else {
+        // Swiping up - go to next mode
+        switchMode('next');
+      }
+      
+      touchStartY.current = null;
+      setTimeout(() => setIsScrolling(false), 400); // Longer debounce
+    }
+  };
+
+  const handleTouchEnd = () => {
+    touchStartY.current = null;
+    setIsScrolling(false);
+  };
+
+  const switchMode = (direction: 'next' | 'prev') => {
+    const currentIndex = modes.indexOf(currentMode);
+    let newIndex: number;
+    
+    if (direction === 'next') {
+      newIndex = currentIndex === modes.length - 1 ? 0 : currentIndex + 1;
+    } else {
+      newIndex = currentIndex === 0 ? modes.length - 1 : currentIndex - 1;
+    }
+    
+    // Visual feedback
+    setShowModeTransition(true);
+    setTimeout(() => setShowModeTransition(false), 200);
+    
+    // Audio feedback (subtle click)
+    try {
+      const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmgfCEOY4O/JdiMFl2+z9Zm8awEOb8OM4ZhQOh1Zl6JXElQgZnGaDFZGRGR8QxRJPHBFCF1sWNE0dHk1cHk/');
+      audio.volume = 0.1;
+      audio.play().catch(() => {}); // Ignore errors if audio fails
+    } catch (e) {
+      // Fallback - create subtle vibration on mobile
+      if ('vibrate' in navigator) {
+        navigator.vibrate(10);
+      }
+    }
+    
+    setMode(modes[newIndex]);
+  };
+
+  const handleWheel = (e: React.WheelEvent) => {
+    if (showSettings || isScrolling) return;
+    
+    const now = Date.now();
+    if (now - lastScrollTime.current < 300) return; // Better debouncing
+    
+    if (Math.abs(e.deltaY) > 50) { // Higher threshold for more deliberate scrolling
+      e.preventDefault();
+      setIsScrolling(true);
+      lastScrollTime.current = now;
+      
+      if (e.deltaY > 0) {
+        switchMode('next');
+      } else {
+        switchMode('prev');
+      }
+      
+      setTimeout(() => setIsScrolling(false), 400); // Longer debounce
+    }
+  };
 
   let statusMessage = "";
   let statusType:
@@ -63,6 +159,10 @@ function App() {
   }
 
   const renderCurrentMode = () => {
+    if (showSettings) {
+      return renderSettingsPanel();
+    }
+
     switch (currentMode) {
       case 'obs':
         return (
@@ -102,24 +202,104 @@ function App() {
             isDimmed={isDimmed}
           />
         );
+      case 'clock':
+        return (
+          <ClockMode
+            isDimmed={isDimmed}
+            is24Hour={clock.is24Hour}
+            onToggleFormat={toggleClockFormat}
+          />
+        );
+      default:
+        return null;
+    }
+  };
+
+  const renderSettingsPanel = () => {
+    switch (currentMode) {
+      case 'obs':
+        return (
+          <div className={`timer-container ${isDimmed ? "dimmed" : ""}`}>
+            <div className="settings-panel">
+              <h3>OBS Settings</h3>
+              <button onClick={openSettingsModal} className="settings-button">
+                Connection
+              </button>
+              <button onClick={toggleBrightness} className="settings-button">
+                {isDimmed ? "Brighten" : "Dim"}
+              </button>
+              <button onClick={resetTotalTime} className="settings-button">
+                Reset Total
+              </button>
+            </div>
+          </div>
+        );
+      case 'stopwatch':
+        return (
+          <div className={`timer-container ${isDimmed ? "dimmed" : ""}`}>
+            <div className="settings-panel">
+              <h3>Stopwatch Settings</h3>
+              <button onClick={toggleBrightness} className="settings-button">
+                {isDimmed ? "Brighten" : "Dim"}
+              </button>
+            </div>
+          </div>
+        );
+      case 'timer':
+        return (
+          <div className={`timer-container ${isDimmed ? "dimmed" : ""}`}>
+            <div className="settings-panel">
+              <h3>Timer Settings</h3>
+              <button onClick={enterTimerSetup} className="settings-button">
+                Set Duration
+              </button>
+              <button onClick={toggleBrightness} className="settings-button">
+                {isDimmed ? "Brighten" : "Dim"}
+              </button>
+            </div>
+          </div>
+        );
+      case 'clock':
+        return (
+          <div className={`timer-container ${isDimmed ? "dimmed" : ""}`}>
+            <div className="settings-panel">
+              <h3>Clock Settings</h3>
+              <button onClick={toggleClockFormat} className="settings-button">
+                {clock.is24Hour ? "12-Hour" : "24-Hour"}
+              </button>
+              <button onClick={toggleBrightness} className="settings-button">
+                {isDimmed ? "Brighten" : "Dim"}
+              </button>
+            </div>
+          </div>
+        );
       default:
         return null;
     }
   };
 
   return (
-    <div className="App">
-      <MenuBar
-        onSettingsClick={openSettingsModal}
-        onResetClick={currentMode === 'obs' ? resetTotalTime : undefined}
-        onBrightnessToggle={toggleBrightness}
-        isDimmed={isDimmed}
-      />
+    <div 
+      className="App"
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+      onWheel={handleWheel}
+    >
+      <div className="left-sidebar">
+        <MenuBar
+          onSettingsClick={openSettingsModal}
+          onResetClick={currentMode === 'obs' ? resetTotalTime : undefined}
+          onBrightnessToggle={toggleBrightness}
+          onSettingsToggle={toggleSettings}
+          isDimmed={isDimmed}
+        />
 
-      <ModeSelector
-        currentMode={currentMode}
-        onModeChange={setMode}
-      />
+        <ModeSelector
+          currentMode={currentMode}
+          onModeChange={setMode}
+        />
+      </div>
 
       {renderCurrentMode()}
 

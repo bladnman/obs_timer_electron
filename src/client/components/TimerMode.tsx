@@ -52,49 +52,62 @@ const TimerMode: React.FC<TimerModeProps> = ({
   if (isSetupMode) {
     return (
       <div className={`timer-container ${isDimmed ? "dimmed" : ""}`}>
-        <div className="timer-setup-container">
-          <div className="timer-setup-inputs">
-            <div className="time-input-group">
-              <input
-                type="number"
-                min="0"
-                max="23"
-                value={hours}
-                onChange={(e) => handleInputChange('hours', e.target.value)}
-                className="time-input"
-              />
-              <label>H</label>
+        <div className="timer-main-area">
+          <div className="mode-label">Timer Setup</div>
+          <div className="timer-display-row">
+            <div className="timer-display-part icon">
+              <span className="status-icon timer-stopped">⏱</span>
             </div>
-            <span className="time-separator">:</span>
-            <div className="time-input-group">
-              <input
-                type="number"
-                min="0"
-                max="59"
-                value={minutes}
-                onChange={(e) => handleInputChange('minutes', e.target.value)}
-                className="time-input"
-              />
-              <label>M</label>
+            <div className="timer-display-part display">
+              <div className="timer-setup-container">
+                <div className="timer-setup-inputs">
+                  <div className="time-input-group">
+                    <input
+                      type="number"
+                      min="0"
+                      max="23"
+                      value={hours}
+                      onChange={(e) => handleInputChange('hours', e.target.value)}
+                      className="time-input"
+                    />
+                    <label>H</label>
+                  </div>
+                  <span className="time-separator">:</span>
+                  <div className="time-input-group">
+                    <input
+                      type="number"
+                      min="0"
+                      max="59"
+                      value={minutes}
+                      onChange={(e) => handleInputChange('minutes', e.target.value)}
+                      className="time-input"
+                    />
+                    <label>M</label>
+                  </div>
+                  <span className="time-separator">:</span>
+                  <div className="time-input-group">
+                    <input
+                      type="number"
+                      min="0"
+                      max="59"
+                      value={seconds}
+                      onChange={(e) => handleInputChange('seconds', e.target.value)}
+                      className="time-input"
+                    />
+                    <label>S</label>
+                  </div>
+                </div>
+                
+                <div className="timer-setup-actions">
+                  <button onClick={handleSetupSubmit} className="setup-button primary">
+                    Set
+                  </button>
+                </div>
+              </div>
             </div>
-            <span className="time-separator">:</span>
-            <div className="time-input-group">
-              <input
-                type="number"
-                min="0"
-                max="59"
-                value={seconds}
-                onChange={(e) => handleInputChange('seconds', e.target.value)}
-                className="time-input"
-              />
-              <label>S</label>
+            <div className="timer-display-part action">
+              {/* No action needed during setup */}
             </div>
-          </div>
-          
-          <div className="timer-setup-actions">
-            <button onClick={handleSetupSubmit} className="setup-button primary">
-              Start
-            </button>
           </div>
         </div>
       </div>
@@ -102,53 +115,50 @@ const TimerMode: React.FC<TimerModeProps> = ({
   }
 
   const getTimerClassName = () => {
-    if (isOvertime) return "main-timer-display overtime";
-    if (isRunning) return "main-timer-display recording";
-    return "main-timer-display stopped";
+    if (isOvertime) return "main-timer-display timer-overtime";
+    if (isRunning) return "main-timer-display timer-running";
+    return "main-timer-display timer-stopped";
   };
 
   const getStatusIcon = () => {
     if (isOvertime) return "⚠";
-    if (isRunning) return <BiPlay />;
-    return <BiStop />;
+    if (isRunning) return "⏱";
+    return "⏱";
   };
 
   const getStatusClassName = () => {
-    if (isOvertime) return "status-icon overtime";
-    if (isRunning) return "status-icon recording";
-    return "status-icon stopped";
+    if (isOvertime) return "status-icon timer-overtime";
+    if (isRunning) return "status-icon timer-running";
+    return "status-icon timer-stopped";
   };
 
   return (
     <div className={`timer-container ${isDimmed ? "dimmed" : ""}`}>
-      <div className="timer-mode-container">
-        <div className="status-timer">
-          <span className={getStatusClassName()}>
-            {getStatusIcon()}
-          </span>
-          <TimerDisplay
-            time={formattedTime}
-            isFocused={true}
-            onClick={onToggle}
-            className={getTimerClassName()}
-          />
-        </div>
-        
-        <div className="timer-controls">
-          <button
-            onClick={onEnterSetup}
-            className="timer-action-button"
-            title="Setup Timer"
-          >
-            <BiEdit />
-          </button>
-          <button
-            onClick={onReset}
-            className="timer-action-button"
-            title="Reset Timer"
-          >
-            <BiReset />
-          </button>
+      <div className="timer-main-area">
+        <div className="mode-label">{isOvertime ? "Timer (Overtime)" : "Countdown Timer"}</div>
+        <div className="timer-display-row">
+          <div className="timer-display-part icon">
+            <span className={getStatusClassName()}>
+              {getStatusIcon()}
+            </span>
+          </div>
+          <div className="timer-display-part display">
+            <TimerDisplay
+              time={formattedTime}
+              isFocused={true}
+              onClick={onToggle}
+              className={getTimerClassName()}
+            />
+          </div>
+          <div className="timer-display-part action">
+            <button
+              onClick={onReset}
+              className="primary-action-button"
+              title="Start Over"
+            >
+              <BiReset />
+            </button>
+          </div>
         </div>
       </div>
     </div>

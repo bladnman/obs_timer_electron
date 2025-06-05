@@ -27,24 +27,36 @@ const OBSMode: React.FC<OBSModeProps> = ({
 }) => {
   return (
     <div className={`timer-container ${isDimmed ? "dimmed" : ""}`}>
-      <div className="status-timer">
-        <span
-          id="status-icon"
-          className={`status-icon ${currentStatusIconClass}`}
-        >
-          {currentStatusIcon}
-        </span>
-        <TimerDisplay
-          time={formattedCurrentTime}
-          isFocused={isCurrentTimeFocused}
-          onClick={onToggleTimerFocus}
-          className={`main-timer-display ${currentStatusIconClass}`}
-        />
+      <div className="timer-main-area">
+        <div className="mode-label">OBS Recording</div>
+        <div className="timer-display-row">
+          <div className="timer-display-part icon">
+            <span
+              id="status-icon"
+              className={`status-icon ${currentStatusIconClass}`}
+            >
+              {currentStatusIcon}
+            </span>
+          </div>
+          <div className="timer-display-part display">
+            <TimerDisplay
+              time={formattedCurrentTime}
+              isFocused={isCurrentTimeFocused}
+              onClick={onToggleTimerFocus}
+              className={`main-timer-display ${currentStatusIconClass}`}
+            />
+          </div>
+          <div className="timer-display-part action">
+            <div className="obs-action-placeholder">
+              {/* No primary action for OBS mode */}
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="total-container">
         <TimerDisplay
-          label="Σ"
+          label="∞"
           time={formattedTotalTime}
           isFocused={!isCurrentTimeFocused}
           onClick={onToggleTimerFocus}

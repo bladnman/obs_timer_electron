@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { BiVideo, BiStopwatch, BiTimer, BiGridAlt } from "react-icons/bi";
+import { BiVideo, BiStopwatch, BiTimer, BiTime, BiGridAlt } from "react-icons/bi";
 import { AppMode } from "../contexts/AppContext";
 
 interface ModeSelectorProps {
@@ -18,6 +18,7 @@ const ModeSelector: React.FC<ModeSelectorProps> = ({
     { id: 'obs' as AppMode, icon: <BiVideo />, title: 'OBS Timer' },
     { id: 'stopwatch' as AppMode, icon: <BiStopwatch />, title: 'Stopwatch' },
     { id: 'timer' as AppMode, icon: <BiTimer />, title: 'Timer' },
+    { id: 'clock' as AppMode, icon: <BiTime />, title: 'Clock' },
   ];
 
   const currentModeData = modes.find(mode => mode.id === currentMode);
@@ -49,25 +50,10 @@ const ModeSelector: React.FC<ModeSelectorProps> = ({
 
   return (
     <div className="mode-selector">
-      {/* Full icons - shown when there's enough space */}
-      <div className="mode-icons-full">
-        {modes.map((mode) => (
-          <button
-            key={mode.id}
-            onClick={() => onModeChange(mode.id)}
-            className={`mode-button ${currentMode === mode.id ? 'active' : ''}`}
-            title={mode.title}
-          >
-            {mode.icon}
-          </button>
-        ))}
-      </div>
-
-      {/* Collapsed hamburger menu - shown when space is tight */}
-      <div className="mode-icons-collapsed" ref={menuRef}>
+      <div className="mode-selector-wrapper" ref={menuRef}>
         <button
           onClick={handleMenuToggle}
-          className={`mode-button hamburger-button ${isMenuOpen ? 'active' : ''}`}
+          className={`mode-button ${isMenuOpen ? 'active' : ''}`}
           title="Select Mode"
         >
           {currentModeData?.icon || <BiGridAlt />}

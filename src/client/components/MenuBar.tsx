@@ -5,6 +5,7 @@ interface MenuBarProps {
   onSettingsClick: () => void;
   onResetClick?: () => void;
   onBrightnessToggle: () => void;
+  onSettingsToggle: () => void;
   isDimmed: boolean;
 }
 
@@ -12,6 +13,7 @@ const MenuBar: React.FC<MenuBarProps> = ({
   onSettingsClick,
   onResetClick,
   onBrightnessToggle,
+  onSettingsToggle,
   isDimmed,
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -76,39 +78,12 @@ const MenuBar: React.FC<MenuBarProps> = ({
       {/* Collapsed hamburger menu - shown when space is tight */}
       <div className="menu-icons-collapsed" ref={menuRef}>
         <button
-          onClick={handleMenuToggle}
-          className={`menu-button hamburger-button ${isMenuOpen ? 'active' : ''}`}
-          title="Menu"
+          onClick={onSettingsToggle}
+          className="menu-button hamburger-button"
+          title="Toggle Settings"
         >
           <BiMenu />
         </button>
-        {isMenuOpen && (
-          <div className="menu-dropdown">
-            <button
-              onClick={() => handleMenuItemClick(onSettingsClick)}
-              className="menu-dropdown-item"
-              title="Settings"
-            >
-              <BiCog />
-            </button>
-            {onResetClick && (
-              <button
-                onClick={() => handleMenuItemClick(onResetClick)}
-                className="menu-dropdown-item"
-                title="Reset Total Time"
-              >
-                <BiReset />
-              </button>
-            )}
-            <button
-              onClick={() => handleMenuItemClick(onBrightnessToggle)}
-              className="menu-dropdown-item"
-              title={brightnessTitle}
-            >
-              {brightnessIcon}
-            </button>
-          </div>
-        )}
       </div>
     </div>
   );

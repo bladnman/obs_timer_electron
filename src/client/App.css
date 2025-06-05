@@ -1,5 +1,14 @@
 /* src/client/App.css - Revised styles */
 
+/* Color System Variables */
+:root {
+  --color-running: #44ff44;     /* Green - recording/running state */
+  --color-trouble: #ff4444;     /* Red - overtime/negative/error state */
+  --color-paused: #ffcc00;      /* Yellow - paused state */
+  --color-stopped: #888888;     /* Gray - stopped/disconnected state */
+  --color-connecting: #f0ad4e;  /* Orange - connecting state */
+}
+
 /* Reset and base styles */
 * {
     margin: 0;
@@ -35,23 +44,34 @@ body, html {
     align-items: stretch; /* Default, good for full height children */
 }
 
-/* Left menu bar - Adopt original fixed positioning and styling */
-.menu-bar {
+/* Left Sidebar - Full height dark bar */
+.left-sidebar {
     position: fixed;
     left: 0;
     top: 0;
-    height: 50vh; /* Take only top half to avoid overlap with mode selector */
-    width: 2.2em; /* Slightly wider to better fit icons */
-    background-color: rgba(0, 0, 0, 0.2);
+    bottom: 0;
+    width: 2.2em;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    z-index: 100;
+    overflow: visible;
+}
+
+/* Left menu bar - Now positioned within sidebar */
+.menu-bar {
+    position: relative;
+    width: 100%;
+    height: auto;
+    background: none; /* No background - uses sidebar background */
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: flex-start;
     padding: 0.4em 0;
     gap: 0.3em;
-    z-index: 100; /* Ensure it's above other content */
     overflow: visible; /* Allow dropdowns to show */
-    min-height: 6em; /* Ensure minimum space for essential buttons */
 }
 
 /* Responsive menu visibility */
@@ -101,26 +121,82 @@ body, html {
     color: rgba(255, 255, 255, 0.9);
 }
 
-/* Timer Container - Main content area */
+/* Timer Container - Main content area with proper layout */
 .timer-container {
-    text-align: center;
-    flex: 1; /* Take remaining space after menu bar */
-    height: 100%; /* Take full height */
-    padding: 0.8em;
+    position: absolute;
+    left: 2.2em; /* Tighter left margin */
+    right: 0.5em; /* Tighter right margin */
+    top: 0;
+    bottom: 0;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center; /* Vertically center content */
-    gap: 0.4em; /* Original gap */
-    font-size: max(8vw, 16px); /* Back to larger responsive font since we have better centering */
-    min-height: 0; /* Override potential min-height from elsewhere */
+    justify-content: center;
+    font-size: max(6vw, 16px); /* Back to reasonable size */
+    transition: opacity 0.3s ease;
+    overflow: visible; /* Allow proper spacing */
     box-sizing: border-box;
-    transition: opacity 0.3s ease; /* Smooth transition for dimming */
 }
+
 
 /* Dimmed state for the timer container */
 .timer-container.dimmed {
     opacity: 0.4; /* Reduce to 40% opacity when dimmed */
+}
+
+/* Main timer area - separate label and 3-part layout */
+.timer-main-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5em;
+    width: 100%;
+    max-width: 100%;
+}
+
+/* Mode Label - standalone above the 3-part layout */
+.mode-label {
+    font-size: 0.4em; /* Larger label */
+    color: rgba(255, 255, 255, 0.6);
+    font-weight: normal;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    opacity: 0.9;
+    text-align: center;
+    margin-bottom: 0.3em;
+}
+
+/* 3-Part Layout: icon | display | action */
+.timer-display-row {
+    display: grid;
+    grid-template-columns: 2em 1fr 2em; /* Larger icon/action columns for proper spacing */
+    align-items: center;
+    justify-items: center;
+    width: 100%;
+    max-width: 100%;
+    gap: 0.8em; /* More spacing to prevent overlapping */
+    padding: 0 0.3em; /* More internal padding */
+}
+
+.timer-display-part {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.timer-display-part.icon {
+    justify-content: center;
+}
+
+.timer-display-part.display {
+    justify-content: center;
+    text-align: center;
+    min-width: 0; /* Allow shrinking */
+    width: 100%;
+}
+
+.timer-display-part.action {
+    justify-content: center;
 }
 
 /* Status Timer (Main/Current Timer) */
@@ -133,44 +209,110 @@ body, html {
 }
 
 .status-icon {
-    font-size: 1.2em; /* Original size */
-    font-weight: bold;
+    font-size: 0.6em; /* Much smaller like AM/PM */
+    font-weight: normal;
     transition: color 0.3s ease;
-    min-width: 1em; /* Original */
+    min-width: 0.8em;
     text-align: center;
-    line-height: 1; /* Original */
+    line-height: 1;
+    opacity: 0.8;
 }
-/* Match original colors */
-.status-icon.recording { color: #ff4444; }
-.status-icon.paused { color: #ffcc00; }
-.status-icon.stopped { color: #888888; }
-.status-icon.disconnected { color: #ff8800; }
-.status-icon.connecting { color: #f0ad4e; } /* Added connecting state color */
+/* Status Icon Colors - Standardized */
+.status-icon.recording { color: var(--color-running); }
+.status-icon.paused { color: var(--color-paused); }
+.status-icon.stopped { color: var(--color-stopped); }
+.status-icon.disconnected { color: var(--color-stopped); }
+.status-icon.connecting { color: var(--color-connecting); }
+.status-icon.overtime { color: var(--color-trouble); }
 
-/* Timer text colors based on recording state */
+/* Stopwatch specific colors - Blue theme */
+.status-icon.stopwatch-running { color: #4da6ff; } /* Blue */
+.status-icon.stopwatch-stopped { color: var(--color-stopped); }
+
+/* Timer specific colors - Orange theme */
+.status-icon.timer-running { color: #ffa500; } /* Orange */
+.status-icon.timer-stopped { color: var(--color-stopped); }
+.status-icon.timer-overtime { color: var(--color-trouble); }
+
+/* Timer text colors based on state - Standardized */
 .timer-display.recording .time-numbers {
-  color: #ff4444; /* Red for recording */
+  color: var(--color-running); /* Green for recording/running */
 }
 
 .timer-display.paused .time-numbers {
-  color: #ffcc00; /* Yellow for paused */
+  color: var(--color-paused); /* Yellow for paused */
 }
 
 .timer-display.stopped .time-numbers {
-  /* For stopped, let focused/unfocused styles take precedence or define a specific gray */
-  /* Defaulting to allow focus/unfocus to control, if a specific stopped color is needed, uncomment below */
-  /* color: #888888; */ 
+  /* For stopped, let focused/unfocused styles take precedence */
+  /* color: var(--color-stopped); */ 
 }
 
-/* When disconnected or connecting, it might be good to also have a distinct timer text color */
+.timer-display.overtime .time-numbers {
+  color: var(--color-trouble); /* Red for overtime/negative time */
+}
+
+/* Override main timer display colors for specific states */
+.timer-display.main-timer-display.recording .time-numbers {
+  color: var(--color-running) !important; /* Green for recording/running */
+}
+
+.timer-display.main-timer-display.paused .time-numbers {
+  color: var(--color-paused) !important; /* Yellow for paused */
+}
+
+.timer-display.main-timer-display.overtime .time-numbers {
+  color: var(--color-trouble) !important; /* Red for overtime/negative time */
+}
+
+/* Stopwatch display colors */
+.timer-display.main-timer-display.stopwatch-running .time-numbers {
+  color: #4da6ff !important; /* Blue for stopwatch running */
+}
+
+.timer-display.main-timer-display.stopwatch-stopped .time-numbers {
+  color: var(--color-stopped) !important; /* Gray for stopwatch stopped */
+}
+
+/* Timer display colors */
+.timer-display.main-timer-display.timer-running .time-numbers {
+  color: #ffa500 !important; /* Orange for timer running */
+}
+
+.timer-display.main-timer-display.timer-stopped .time-numbers {
+  color: var(--color-stopped) !important; /* Gray for timer stopped */
+}
+
+.timer-display.main-timer-display.timer-overtime .time-numbers {
+  color: var(--color-trouble) !important; /* Red for timer overtime */
+}
+
+/* Clock-specific styling */
+.clock-time-container {
+  display: flex;
+  align-items: baseline;
+  gap: 0.3em;
+  cursor: pointer;
+  min-height: 1.2em; /* Match timer-display-row height */
+}
+
+.clock-ampm {
+  font-size: 0.6em;
+  color: var(--color-running);
+  font-weight: normal;
+  opacity: 0.8;
+  margin-left: 0.2em;
+}
+
+/* When disconnected or connecting */
 .timer-display.disconnected .time-numbers,
 .timer-display.connecting .time-numbers {
-  color: #f0ad4e; /* Orange/Yellow, similar to connecting icon */
+  color: var(--color-connecting); /* Orange for connecting states */
 }
 
 /* Colons should always be gray regardless of recording state */
 .timer-display .time-colon {
-  color: #888888; /* Constant gray for colons */
+  color: var(--color-stopped); /* Constant gray for colons */
 }
 
 /* Generic TimerDisplay styling (wrapper for time-text) */
@@ -227,24 +369,24 @@ body, html {
     width: 100%;
 }
 
-.timer-label { /* For Sigma symbol (Σ) */
-  font-size: 0.8em; /* Original size */
-  opacity: 0.7;
+.timer-label { /* For total time icon */
+  font-size: 0.6em; /* Smaller like status icons */
+  opacity: 0.6;
   color: #ccc; /* Match color of unfocused total timer */
-  margin-right: 0.1em; /* Adjust spacing */
+  margin-right: 0.3em; /* More spacing for better breathing */
 }
 
 .toggle-button {
     position: absolute; /* Original positioning */
-    right: -0.2em; /* Adjusted from -0.5em to be closer */
+    right: -0.5em; /* Give more breathing room */
     top: 50%;
     transform: translateY(-50%);
     background: none;
     border: none;
     color: rgba(255, 255, 255, 0.3);
-    font-size: 0.7em; /* Original size */
-    width: 1.2em;
-    height: 1.2em;
+    font-size: 0.5em; /* Smaller like other icons */
+    width: 1.0em;
+    height: 1.0em;
     border-radius: 3px;
     cursor: pointer;
     transition: all 0.2s ease;
@@ -272,10 +414,10 @@ body, html {
     line-height: 1.2; /* Adjusted for better readability */
     z-index: 10; /* Ensure it's above timer text if overlapping */
 }
-.connection-status.connected { color: #44ff44; } /* Original green */
-.connection-status.disconnected { color: #ff4444; } /* Original red */
-.connection-status.error { color: #ff4444; } /* Error is like disconnected */
-.connection-status.connecting { color: #ffaa00; } /* Original connecting orange */
+.connection-status.connected { color: var(--color-running); } /* Green for connected */
+.connection-status.disconnected { color: var(--color-stopped); } /* Gray for disconnected */
+.connection-status.error { color: var(--color-trouble); } /* Red for error */
+.connection-status.connecting { color: var(--color-connecting); } /* Orange for connecting */
 .connection-status.hidden {
     opacity: 0 !important; /* Ensure it hides */
     pointer-events: none;
@@ -338,7 +480,7 @@ body, html {
   transition: background-color 0.2s, color 0.2s;
 }
 .close-button:hover {
-  background-color: #ff4444; /* Original hover */
+  background-color: var(--color-trouble); /* Red hover for close button */
   color: #ffffff;
 }
 
@@ -407,64 +549,43 @@ body, html {
   font-size: 14px; /* Original */
   text-align: center;
 }
-.connection-result.success { /* Original styling for modal connection result */
+.connection-result.success { /* Modal connection result - success */
   background-color: rgba(68, 255, 68, 0.1);
-  color: #44ff44;
-  border: 1px solid #44ff44;
+  color: var(--color-running);
+  border: 1px solid var(--color-running);
 }
-.connection-result.error { /* Original styling for modal connection result */
+.connection-result.error { /* Modal connection result - error */
   background-color: rgba(255, 68, 68, 0.1);
-  color: #ff4444;
-  border: 1px solid #ff4444;
+  color: var(--color-trouble);
+  border: 1px solid var(--color-trouble);
 }
-.connection-result.testing { /* New state for testing */
-  background-color: rgba(255, 170, 0, 0.1);
-  color: #ffaa00;
-  border: 1px solid #ffaa00;
+.connection-result.testing { /* Modal connection result - testing */
+  background-color: rgba(240, 173, 78, 0.1);
+  color: var(--color-connecting);
+  border: 1px solid var(--color-connecting);
 }
-/* Mode Selector - positioned at bottom of menu bar */
+/* Mode Selector - positioned within sidebar */
 .mode-selector {
-  position: fixed;
-  left: 0;
-  bottom: 0;
-  height: 50vh; /* Take bottom half of screen */
-  width: 2.2em;
-  background-color: rgba(0, 0, 0, 0.2);
+  position: relative;
+  width: 100%;
+  height: auto;
+  background: none; /* No background - uses sidebar background */
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: flex-end;
   padding: 0.4em 0;
-  gap: 0.3em;
-  z-index: 100;
   overflow: visible; /* Allow dropdowns to show */
-  min-height: 5em; /* Ensure minimum space for mode buttons */
 }
 
-/* Responsive mode selector visibility */
-@media (min-height: 300px) {
-    .mode-icons-full {
-        display: flex;
-        flex-direction: column;
-        gap: 0.3em;
-        align-items: center;
-    }
-    .mode-icons-collapsed {
-        display: none;
-    }
+.mode-selector-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
-@media (max-height: 299px) {
-    .mode-icons-full {
-        display: none;
-    }
-    .mode-icons-collapsed {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        position: relative;
-    }
-}
+/* Mode selector is now always horizontal - no responsive switching */
 
 .mode-button {
   background: none;
@@ -514,19 +635,19 @@ body, html {
 
 .mode-dropdown {
   position: absolute;
-  bottom: 100%;
-  left: 50%;
-  transform: translateX(-50%);
+  top: 50%;
+  left: 100%;
+  transform: translateY(-50%);
+  margin-left: 0.3em;
   background-color: rgba(0, 0, 0, 0.8);
   border-radius: 4px;
-  padding: 0.2em;
-  margin-bottom: 0.2em;
+  padding: 0.3em;
   display: flex;
-  flex-direction: column;
-  gap: 0.1em;
+  flex-direction: row;
+  gap: 0.3em;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   z-index: 200;
-  min-width: 2.5em;
+  white-space: nowrap;
 }
 
 .menu-dropdown-item,
@@ -614,6 +735,7 @@ body, html {
   justify-content: center;
   width: 100%;
   gap: 0.6em;
+  font-size: 16px; /* Override the large responsive font from timer-container */
 }
 
 .timer-setup-inputs {
@@ -717,12 +839,12 @@ body, html {
 
 /* Overtime throbbing effect */
 .timer-display.overtime .time-text {
-  color: #ff4444 !important;
+  color: var(--color-trouble) !important;
   animation: overtime-throb 1s ease-in-out infinite alternate;
 }
 
 .status-icon.overtime {
-  color: #ff4444;
+  color: var(--color-trouble);
   animation: overtime-throb 1s ease-in-out infinite alternate;
 }
 
@@ -733,6 +855,106 @@ body, html {
   to {
     opacity: 1;
   }
+}
+
+/* Primary Action Button - Inline with timer display */
+.primary-action-button {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 1.2em;
+  width: 2em;
+  height: 2em;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: inherit;
+  flex-shrink: 0;
+}
+
+.primary-action-button:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* OBS Action Placeholder - Keep space for consistent layout */
+.obs-action-placeholder {
+  width: 1.4em;
+  height: 1.4em;
+  flex-shrink: 0;
+  opacity: 0; /* Invisible but maintains layout space */
+}
+
+/* Primary action buttons - ensure they fit in action area */
+.primary-action-button {
+  width: 1.4em;
+  height: 1.4em;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7em;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.primary-action-button:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* Settings Panel Styles */
+.settings-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6em;
+  padding: 0.8em;
+  max-width: 280px;
+  margin: 0 auto;
+  font-size: 14px; /* Override the large responsive font from timer-container */
+}
+
+.settings-panel h3 {
+  color: #ffffff;
+  font-size: 1em;
+  margin-bottom: 0.3em;
+  text-align: center;
+  font-weight: 500;
+}
+
+.settings-button {
+  background-color: #333;
+  border: 1px solid #555;
+  color: #ffffff;
+  padding: 0.5em 0.8em;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.8em;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  width: 100%;
+  max-width: 160px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.settings-button:hover {
+  background-color: #444;
+  border-color: #666;
+}
+
+.settings-button:active {
+  background-color: #222;
 }
 
 /* Ensure high-DPI text shadow is applied if needed */

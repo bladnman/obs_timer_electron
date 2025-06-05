@@ -35,7 +35,7 @@ export interface OBSRecordingState {
   currentSessionSeconds: number; // Seconds accumulated in the current recording session based on timecode
 }
 
-export type AppMode = 'obs' | 'stopwatch' | 'timer';
+export type AppMode = 'obs' | 'stopwatch' | 'timer' | 'clock';
 
 export interface StopwatchState {
   isRunning: boolean;
@@ -52,6 +52,10 @@ export interface TimerState {
   isOvertime: boolean;
 }
 
+export interface ClockState {
+  is24Hour: boolean;
+}
+
 interface AppState {
   settings: OBSSettings;
   obsConnection: OBSConnectionState;
@@ -65,6 +69,8 @@ interface AppState {
   currentMode: AppMode;
   stopwatch: StopwatchState;
   timer: TimerState;
+  clock: ClockState;
+  showSettings: boolean; // For hamburger menu toggle
 }
 
 // --- Context Value Interface ---
@@ -85,6 +91,8 @@ interface AppContextValue extends AppState {
   toggleTimer: () => void;
   resetTimer: () => void;
   enterTimerSetup: () => void;
+  toggleClockFormat: () => void;
+  toggleSettings: () => void; // For hamburger menu toggle
   currentStatusIcon: string;
   currentStatusIconClass: string;
   formattedTotalTime: string; // Derived state for display
@@ -128,6 +136,10 @@ const initialTimerState: TimerState = {
   isOvertime: false,
 };
 
+const initialClockState: ClockState = {
+  is24Hour: true,
+};
+
 const initialState: AppState = {
   settings: initialSettings,
   obsConnection: initialOBSConnectionState,
@@ -141,6 +153,8 @@ const initialState: AppState = {
   currentMode: 'obs',
   stopwatch: initialStopwatchState,
   timer: initialTimerState,
+  clock: initialClockState,
+  showSettings: false, // Default to display mode
 };
 
 const AppContext = createContext<AppContextValue>({
@@ -165,6 +179,8 @@ const AppContext = createContext<AppContextValue>({
   toggleTimer: () => {},
   resetTimer: () => {},
   enterTimerSetup: () => {},
+  toggleClockFormat: () => {},
+  toggleSettings: () => {},
   currentStatusIcon: "■",
   currentStatusIconClass: "stopped",
 });
@@ -195,6 +211,8 @@ export const AppProvider: React.FC<AppProviderProps> = ({children}) => {
   const [currentMode, setCurrentMode] = useState<AppMode>('obs');
   const [stopwatch, setStopwatch] = useState<StopwatchState>(initialStopwatchState);
   const [timer, setTimer] = useState<TimerState>(initialTimerState);
+  const [clock, setClock] = useState<ClockState>(initialClockState);
+  const [showSettings, setShowSettings] = useState<boolean>(false);
 
   // Re-add polling interval ref, but only for timecode updates during recording
   const timecodeUpdateInterval = useRef<ReturnType<typeof setInterval> | null>(
@@ -251,8 +269,14 @@ export const AppProvider: React.FC<AppProviderProps> = ({children}) => {
 
     // Load current mode from localStorage
     const storedMode = localStorage.getItem("obsTimerCurrentMode");
-    if (storedMode && ['obs', 'stopwatch', 'timer'].includes(storedMode)) {
+    if (storedMode && ['obs', 'stopwatch', 'timer', 'clock'].includes(storedMode)) {
       setCurrentMode(storedMode as AppMode);
+    }
+
+    // Load clock settings from localStorage
+    const storedClockFormat = localStorage.getItem("obsTimerClockIs24Hour");
+    if (storedClockFormat !== null) {
+      setClock({ is24Hour: storedClockFormat === "true" });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Connect on mount
@@ -665,6 +689,18 @@ export const AppProvider: React.FC<AppProviderProps> = ({children}) => {
     localStorage.setItem("obsTimerCurrentMode", mode);
   };
 
+  const toggleSettings = () => {
+    setShowSettings((prev) => !prev);
+  };
+
+  const toggleClockFormat = () => {
+    setClock((prev) => {
+      const newIs24Hour = !prev.is24Hour;
+      localStorage.setItem("obsTimerClockIs24Hour", newIs24Hour.toString());
+      return { is24Hour: newIs24Hour };
+    });
+  };
+
   const toggleStopwatch = () => {
     setStopwatch((prev) => {
       if (prev.isRunning) {
@@ -781,6 +817,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({children}) => {
       startTime: null,
       isOvertime: false,
     });
+    setShowSettings(false); // Close settings when entering timer setup
   };
 
   const getCurrentTimerSeconds = () => {
@@ -809,6 +846,8 @@ export const AppProvider: React.FC<AppProviderProps> = ({children}) => {
     currentMode,
     stopwatch,
     timer,
+    clock,
+    showSettings,
     formattedTotalTime: formatHMS(
       totalTimeSeconds +
         (obsRecording.outputActive ? obsRecording.currentSessionSeconds : 0)
@@ -845,6 +884,8 @@ export const AppProvider: React.FC<AppProviderProps> = ({children}) => {
     toggleTimer,
     resetTimer,
     enterTimerSetup,
+    toggleClockFormat,
+    toggleSettings,
     currentStatusIcon,
     currentStatusIconClass,
   };

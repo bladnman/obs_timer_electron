@@ -1,14 +1,16 @@
 const js = require('@eslint/js');
 const globals = require('globals');
-const tseslint = require('typescript-eslint');
 const reactPlugin = require('eslint-plugin-react');
 const reactHooksPlugin = require('eslint-plugin-react-hooks');
+const tsParser = require('@typescript-eslint/parser');
+const tsPlugin = require('@typescript-eslint/eslint-plugin');
 
-module.exports = tseslint.config(
+module.exports = [
+  // Base JS config
   js.configs.recommended,
-  ...tseslint.configs.recommended,
+  
+  // Global settings for all files
   {
-    // Global settings for all files
     linterOptions: {
       reportUnusedDisableDirectives: 'warn',
     },
@@ -17,8 +19,9 @@ module.exports = tseslint.config(
       sourceType: 'module',
     },
   },
+  
+  // Configuration for JavaScript files (e.g., Electron main, preload, old utils if any)
   {
-    // Configuration for JavaScript files (e.g., Electron main, preload, old utils if any)
     files: ['**/*.js', '**/*.mjs'],
     languageOptions: {
       globals: {
@@ -39,16 +42,17 @@ module.exports = tseslint.config(
       'no-var': 'error',
     },
   },
+  
+  // Configuration for TypeScript files (React components, client-side logic)
   {
-    // Configuration for TypeScript files (React components, client-side logic)
-    files: ['src/client/**/*.ts', 'src/client/**/*.tsx', 'vite.config.js'],
+    files: ['src/client/**/*.ts', 'src/client/**/*.tsx'],
     plugins: {
-      '@typescript-eslint': tseslint.plugin,
+      '@typescript-eslint': tsPlugin,
       'react': reactPlugin,
       'react-hooks': reactHooksPlugin,
     },
     languageOptions: {
-      parser: tseslint.parser,
+      parser: tsParser,
       parserOptions: {
         ecmaFeatures: {
           jsx: true,
@@ -60,8 +64,7 @@ module.exports = tseslint.config(
       }
     },
     rules: {
-      ...tseslint.configs.recommended.rules,
-      ...tseslint.configs.strict.rules, // Or other configs like 'stylistic'
+      ...tsPlugin.configs.recommended.rules,
       'react/jsx-uses-react': 'off', // Not needed with new JSX transform
       'react/react-in-jsx-scope': 'off', // Not needed with new JSX transform
       'react/jsx-filename-extension': [1, { 'extensions': ['.tsx'] }],
@@ -78,20 +81,32 @@ module.exports = tseslint.config(
       },
     },
   },
+  
+  // Configuration for Jest test files (assuming they remain .js for now or are also converted to .ts)
   {
-    // Configuration for Jest test files (assuming they remain .js for now or are also converted to .ts)
     files: ['__tests__/**/*.js', '__tests__/**/*.ts'],
-    languageOptions: {
-      globals: {
-        ...globals.jest,
-      },
+    plugins: {
+      '@typescript-eslint': tsPlugin,
     },
+          languageOptions: {
+        parser: tsParser,
+        parserOptions: {
+          project: './tsconfig.json',
+        },
+        globals: {
+          ...globals.jest,
+          ...globals.browser, // Add browser globals for DOM access in tests
+        },
+      },
     rules: {
+      ...tsPlugin.configs.recommended.rules,
+      '@typescript-eslint/ban-ts-comment': 'off', // Allow @ts-ignore in tests
       // Specific rules for tests if needed
     }
   },
+  
+  // Ignore patterns
   {
-    // Ignore build output, node_modules, etc.
-    ignores: ['node_modules/', 'dist/', '.electron/', 'vite.config.js.timestamp-*.mjs'],
+    ignores: ['node_modules/', 'dist/', '.electron/', 'vite.config.js.timestamp-*.mjs', '__tests__/__mocks__/**/*.js'],
   }
-);
+];

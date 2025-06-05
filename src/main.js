@@ -112,7 +112,7 @@ function createWindow() {
   const viteDevServerUrl = process.env.VITE_DEV_SERVER_URL;
 
   if (viteDevServerUrl) {
-    console.log(\`Loading from Vite dev server: \${viteDevServerUrl}\`);
+    console.log(`Loading from Vite dev server: ${viteDevServerUrl}`);
     mainWindow.loadURL(viteDevServerUrl);
     // Optionally open DevTools if VITE_DEV_SERVER_URL is set (implies development)
     // mainWindow.webContents.openDevTools();

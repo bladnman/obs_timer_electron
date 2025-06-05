@@ -6,13 +6,16 @@
  * @returns The formatted time string (e.g., "01:23:45").
  */
 export function formatHMS(totalSeconds: number): string {
-  const hours = Math.floor(totalSeconds / 3600);
-  const minutes = Math.floor((totalSeconds % 3600) / 60);
-  const seconds = Math.floor(totalSeconds % 60);
+  // Handle negative values by treating them as 0
+  const safeSeconds = Math.max(0, totalSeconds);
 
-  const pad = (num: number): string => num.toString().padStart(2, '0');
+  const hours = Math.floor(safeSeconds / 3600);
+  const minutes = Math.floor((safeSeconds % 3600) / 60);
+  const seconds = Math.floor(safeSeconds % 60);
 
-  return `\${pad(hours)}:\${pad(minutes)}:\${pad(seconds)}`;
+  const pad = (num: number): string => num.toString().padStart(2, "0");
+
+  return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
 }
 
 /**
@@ -21,18 +24,18 @@ export function formatHMS(totalSeconds: number): string {
  * @returns The total duration in seconds.
  */
 export function parseTimecodeToSeconds(timecode: string): number {
-  if (!timecode || typeof timecode !== 'string') {
+  if (!timecode || typeof timecode !== "string") {
     return 0;
   }
   try {
-    const parts = timecode.split('.')[0]; // Remove milliseconds if present
-    const [hours, minutes, seconds] = parts.split(':').map(Number);
+    const parts = timecode.split(".")[0]; // Remove milliseconds if present
+    const [hours, minutes, seconds] = parts.split(":").map(Number);
     if (isNaN(hours) || isNaN(minutes) || isNaN(seconds)) {
-        return 0;
+      return 0;
     }
-    return (hours * 3600) + (minutes * 60) + seconds;
+    return hours * 3600 + minutes * 60 + seconds;
   } catch (error) {
-    console.error('Error parsing timecode:', timecode, error);
+    console.error("Error parsing timecode:", timecode, error);
     return 0;
   }
 }

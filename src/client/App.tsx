@@ -1,54 +1,75 @@
-import React from 'react';
-import './App.css';
-import MenuBar from './components/MenuBar';
-import TimerDisplay from './components/TimerDisplay';
-import SettingsModal from './components/SettingsModal';
-import ConnectionStatus from './components/ConnectionStatus';
-import { useAppContext } from './contexts/AppContext';
+import "./App.css";
+import ConnectionStatus from "./components/ConnectionStatus";
+import MenuBar from "./components/MenuBar";
+import SettingsModal from "./components/SettingsModal";
+import TimerDisplay from "./components/TimerDisplay";
+import {useAppContext} from "./contexts/AppContext";
 
 function App() {
   const {
     // State
-    settings, obsConnection, obsRecording, isSettingsModalOpen, isCurrentTimeFocused,
-    connectionTestResult, isTestingConnection, currentStatusIcon, currentStatusIconClass,
-    formattedCurrentTime, formattedTotalTime,
+    settings,
+    obsConnection,
+    isSettingsModalOpen,
+    isCurrentTimeFocused,
+    connectionTestResult,
+    isTestingConnection,
+    currentStatusIcon,
+    currentStatusIconClass,
+    formattedCurrentTime,
+    formattedTotalTime,
+    isDimmed,
     // Actions
-    openSettingsModal, closeSettingsModal, saveSettings, testOBSConnection,
-    toggleTimerFocus, resetTotalTime
+    openSettingsModal,
+    closeSettingsModal,
+    saveSettings,
+    testOBSConnection,
+    toggleTimerFocus,
+    resetTotalTime,
+    toggleBrightness,
   } = useAppContext();
 
-  let statusMessage = '';
-  let statusType: 'connecting' | 'connected' | 'disconnected' | 'error' | 'hidden' = 'hidden';
+  let statusMessage = "";
+  let statusType:
+    | "connecting"
+    | "connected"
+    | "disconnected"
+    | "error"
+    | "hidden" = "hidden";
 
   if (obsConnection.isConnecting) {
-    statusMessage = 'Connecting to OBS...';
-    statusType = 'connecting';
+    statusMessage = "Connecting to OBS...";
+    statusType = "connecting";
   } else if (obsConnection.error) {
     statusMessage = obsConnection.error;
-    statusType = 'error';
+    statusType = "error";
   } else if (obsConnection.isConnected && !obsConnection.error) {
-    statusMessage = \`Connected to OBS \${obsConnection.obsVersion || ''}\`;
-    statusType = 'connected';
-    // Hide after a delay if desired, or keep it shown
-    // setTimeout(() => setStatusType('hidden'), 3000); // Example for auto-hide
+    statusMessage = "";
+    statusType = "hidden";
   }
-
 
   return (
     <div className="App">
       <MenuBar
         onSettingsClick={openSettingsModal}
         onResetClick={resetTotalTime}
+        onBrightnessToggle={toggleBrightness}
+        isDimmed={isDimmed}
       />
 
-      <div className="timer-container">
+      <div className={`timer-container ${isDimmed ? "dimmed" : ""}`}>
         <div className="status-timer">
-          <span id="status-icon" className={`status-icon \${currentStatusIconClass}`}>{currentStatusIcon}</span>
+          <span
+            id="status-icon"
+            className={`status-icon ${currentStatusIconClass}`}
+          >
+            {currentStatusIcon}
+          </span>
           <TimerDisplay
             time={formattedCurrentTime}
             isFocused={isCurrentTimeFocused}
             onClick={toggleTimerFocus}
-            className="main-timer-display"
+            className={`main-timer-display ${currentStatusIconClass}`}
           />
         </div>
 
@@ -60,7 +81,14 @@ function App() {
             onClick={toggleTimerFocus}
             className="total-timer-display"
           />
-          <button id="toggle-display" className="toggle-button" title="Toggle Focus" onClick={toggleTimerFocus}>⇅</button>
+          <button
+            id="toggle-display"
+            className="toggle-button"
+            title="Toggle Focus"
+            onClick={toggleTimerFocus}
+          >
+            ⇅
+          </button>
         </div>
 
         <ConnectionStatus statusText={statusMessage} statusType={statusType} />

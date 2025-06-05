@@ -92,6 +92,12 @@ body, html {
     font-size: max(7vw, 16px); /* Responsive font, slightly adjusted from original's 8vw */
     min-height: 0; /* Override potential min-height from elsewhere */
     box-sizing: border-box;
+    transition: opacity 0.3s ease; /* Smooth transition for dimming */
+}
+
+/* Dimmed state for the timer container */
+.timer-container.dimmed {
+    opacity: 0.4; /* Reduce to 40% opacity when dimmed */
 }
 
 /* Status Timer (Main/Current Timer) */
@@ -118,6 +124,31 @@ body, html {
 .status-icon.disconnected { color: #ff8800; }
 .status-icon.connecting { color: #f0ad4e; } /* Added connecting state color */
 
+/* Timer text colors based on recording state */
+.timer-display.recording .time-numbers {
+  color: #ff4444; /* Red for recording */
+}
+
+.timer-display.paused .time-numbers {
+  color: #ffcc00; /* Yellow for paused */
+}
+
+.timer-display.stopped .time-numbers {
+  /* For stopped, let focused/unfocused styles take precedence or define a specific gray */
+  /* Defaulting to allow focus/unfocus to control, if a specific stopped color is needed, uncomment below */
+  /* color: #888888; */ 
+}
+
+/* When disconnected or connecting, it might be good to also have a distinct timer text color */
+.timer-display.disconnected .time-numbers,
+.timer-display.connecting .time-numbers {
+  color: #f0ad4e; /* Orange/Yellow, similar to connecting icon */
+}
+
+/* Colons should always be gray regardless of recording state */
+.timer-display .time-colon {
+  color: #888888; /* Constant gray for colons */
+}
 
 /* Generic TimerDisplay styling (wrapper for time-text) */
 .timer-display {

@@ -9,6 +9,8 @@ module.exports = {
     '\\.(css|less|scss|sass)$': 'jest-transform-stub' // Mock CSS files
   },
   moduleNameMapper: {
+    // Mock obs-websocket-js to avoid ES module issues
+    '^obs-websocket-js$': '<rootDir>/__tests__/__mocks__/obs-websocket-js.js',
     // If you use module aliases in tsconfig.json, map them here
     // '^@components/(.*)$': '<rootDir>/src/client/components/$1',
     // Mock CSS Modules if you were using them (not in this project currently)

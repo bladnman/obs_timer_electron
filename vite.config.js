@@ -1,26 +1,47 @@
-import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import path from 'path';
+import { defineConfig } from 'vite';
 
-// https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react()],
-  base: './', // Important for Electron to load files correctly
+  plugins: [
+    react({
+      // Pass esbuild options directly to the React plugin
+      esbuild: {
+        target: 'esnext',
+      },
+    }),
+  ],
+  root: process.cwd(),
+  publicDir: path.resolve(process.cwd(), 'public'),
+  base: '/', // Simplified for now
+  server: {
+    port: 3000,
+    host: '0.0.0.0',
+  },
+  // Global esbuild settings for Vite's own transforms
+  esbuild: {
+    target: 'esnext',
+  },
+  // esbuild settings for Vite's dependency optimizer
+  optimizeDeps: {
+    esbuildOptions: {
+      target: 'esnext',
+    },
+  },
+  define: {
+    'process.env': {},
+  },
+  resolve: {
+    alias: {
+      '/src': path.resolve(process.cwd(), 'src'),
+    },
+  },
+  // Build config can be restored later with conditional base
   build: {
-    outDir: 'dist/client', // Output directory for the React app
+    outDir: path.resolve(process.cwd(), 'dist/client'),
+    emptyOutDir: true,
     rollupOptions: {
-        // Ensure that assets are correctly referenced in Electron
-        output: {
-            // Adjust asset file names if necessary, default should be fine
-            // assetFileNames: (assetInfo) => {
-            //   let extType = assetInfo.name.split('.').at(1);
-            //   if (/png|jpe?g|svg|gif|tiff|bmp|ico/i.test(extType)) {
-            //     extType = 'img';
-            //   }
-            //   return `assets/${extType}/[name]-[hash][extname]`;
-            // },
-            // chunkFileNames: 'assets/js/[name]-[hash].js',
-            // entryFileNames: 'assets/js/[name]-[hash].js',
-        },
-    }
-  }
+      input: path.resolve(process.cwd(), 'index.html'),
+    },
+  },
 });

@@ -1,4 +1,4 @@
-import OBSWebSocket, { OBSResponseTypes, OBSEventTypes, OBSRequestTypes } from 'obs-websocket-js';
+import OBSWebSocket, {OBSEventTypes, OBSResponseTypes} from "obs-websocket-js";
 
 // Define a type for connection options
 export interface OBSConnectionOptions {
@@ -11,7 +11,7 @@ export interface OBSServiceCallbacks {
   onConnected?: () => void;
   onDisconnected?: () => void;
   onConnectionError?: (error: Error) => void;
-  onRecordStateChanged?: (data: OBSEventTypes['RecordStateChanged']) => void;
+  onRecordStateChanged?: (data: OBSEventTypes["RecordStateChanged"]) => void;
   // Add more specific event callbacks as needed
   // onStreamStateChanged?: (data: OBSEventTypes['StreamStateChanged']) => void;
   // onCurrentProgramSceneChanged?: (data: OBSEventTypes['CurrentProgramSceneChanged']) => void;
@@ -25,45 +25,50 @@ class OBSService {
   private isAttemptingConnection: boolean = false;
 
   constructor() {
+    console.log("OBSService: Constructor called");
     this.obs = new OBSWebSocket();
     this.setupEventListeners();
   }
 
   private setupEventListeners() {
-    this.obs.on('ConnectionOpened', () => {
+    this.obs.on("ConnectionOpened", () => {
+      this.isAttemptingConnection = false;
+      console.log("OBS WebSocket Connection Opened (awaiting identification)");
+    });
+
+    this.obs.on("Identified", () => {
       this.isConnected = true;
       this.isAttemptingConnection = false;
-      console.log('OBS WebSocket Connected');
+      console.log("OBS WebSocket Identified (fully connected)");
       if (this.callbacks.onConnected) {
         this.callbacks.onConnected();
       }
-      // Example: Get initial state after connection
-      // this.getRecordStatus().then(status => console.log('Initial Record Status:', status));
     });
 
-    this.obs.on('ConnectionClosed', () => {
+    this.obs.on("ConnectionClosed", () => {
       this.isConnected = false;
       this.isAttemptingConnection = false; // Reset if connection attempt failed or was closed
-      console.log('OBS WebSocket Disconnected');
+      console.log("OBS WebSocket Disconnected");
       if (this.callbacks.onDisconnected) {
         this.callbacks.onDisconnected();
       }
     });
 
-    this.obs.on('ConnectionError', (error) => {
+    this.obs.on("ConnectionError", (error) => {
       this.isConnected = false;
       this.isAttemptingConnection = false;
-      console.error('OBS WebSocket Connection Error:', error);
+      console.error("OBS WebSocket Connection Error:", error);
       if (this.callbacks.onConnectionError) {
         // Ensure error is an Error object
-        const err = error instanceof Error ? error : new Error(JSON.stringify(error));
+        const err =
+          error instanceof Error ? error : new Error(JSON.stringify(error));
         this.callbacks.onConnectionError(err);
       }
     });
 
     // Recording state events
-    this.obs.on('RecordStateChanged', (data) => {
-      console.log('RecordStateChanged:', data);
+    this.obs.on("RecordStateChanged", (data) => {
+      console.log("RecordStateChanged:", data);
       if (this.callbacks.onRecordStateChanged) {
         this.callbacks.onRecordStateChanged(data);
       }
@@ -84,33 +89,36 @@ class OBSService {
   }
 
   public registerCallbacks(callbacks: OBSServiceCallbacks) {
-    this.callbacks = { ...this.callbacks, ...callbacks };
+    this.callbacks = {...this.callbacks, ...callbacks};
   }
 
   public async connect(options: OBSConnectionOptions): Promise<void> {
     if (this.isConnected || this.isAttemptingConnection) {
-      console.log('OBS connection attempt already in progress or connected.');
+      console.log("OBS connection attempt already in progress or connected.");
       return Promise.resolve();
     }
 
     this.isAttemptingConnection = true;
     this.connectionOptions = options;
-    console.log(\`Attempting to connect to OBS at \${options.address}\`);
+    console.log(`Attempting to connect to OBS at ${options.address}`);
 
     try {
       // obs-websocket-js v5 expects address and password as separate arguments to connect
       // It no longer takes a single URL string if password is involved.
       // The address should be 'hostname:port'
       await this.obs.connect(options.address, options.password, {
-        rpcVersion: 1 // Specify RPC version if needed, defaults to latest supported by lib
+        rpcVersion: 1, // Specify RPC version if needed, defaults to latest supported by lib
       });
       // ConnectionOpened event will handle setting isConnected
     } catch (error: any) {
       this.isAttemptingConnection = false; // Reset on direct connect method failure
       // The 'ConnectionError' event should also fire, but catch direct errors too.
-      console.error('Direct connection error:', error);
+      console.error("Direct connection error:", error);
       if (this.callbacks.onConnectionError) {
-         const err = error instanceof Error ? error : new Error(error.message || JSON.stringify(error));
+        const err =
+          error instanceof Error
+            ? error
+            : new Error(error.message || JSON.stringify(error));
         this.callbacks.onConnectionError(err);
       }
       // Rethrow or handle as appropriate for the calling context
@@ -127,22 +135,24 @@ class OBSService {
   }
 
   // --- Request Methods ---
-  public async getVersion(): Promise<OBSResponseTypes['GetVersion'] | null> {
+  public async getVersion(): Promise<OBSResponseTypes["GetVersion"] | null> {
     if (!this.isConnected) return null;
     try {
-      return await this.obs.call('GetVersion');
+      return await this.obs.call("GetVersion");
     } catch (error) {
-      console.error('Error calling GetVersion:', error);
+      console.error("Error calling GetVersion:", error);
       return null;
     }
   }
 
-  public async getRecordStatus(): Promise<OBSResponseTypes['GetRecordStatus'] | null> {
+  public async getRecordStatus(): Promise<
+    OBSResponseTypes["GetRecordStatus"] | null
+  > {
     if (!this.isConnected) return null;
     try {
-      return await this.obs.call('GetRecordStatus');
+      return await this.obs.call("GetRecordStatus");
     } catch (error) {
-      console.error('Error calling GetRecordStatus:', error);
+      console.error("Error calling GetRecordStatus:", error);
       return null;
     }
   }
@@ -169,7 +179,6 @@ class OBSService {
   //     console.error('Error calling SetCurrentProgramScene:', error);
   //   }
   // }
-
 }
 
 // Export a singleton instance of the service

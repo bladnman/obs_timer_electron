@@ -43,6 +43,15 @@ export interface StopwatchState {
   startTime: number | null;
 }
 
+export interface TimerState {
+  isRunning: boolean;
+  isSetupMode: boolean;
+  totalSeconds: number;
+  remainingSeconds: number;
+  startTime: number | null;
+  isOvertime: boolean;
+}
+
 interface AppState {
   settings: OBSSettings;
   obsConnection: OBSConnectionState;
@@ -55,6 +64,7 @@ interface AppState {
   isDimmed: boolean; // Added for brightness control
   currentMode: AppMode;
   stopwatch: StopwatchState;
+  timer: TimerState;
 }
 
 // --- Context Value Interface ---
@@ -71,11 +81,16 @@ interface AppContextValue extends AppState {
   setMode: (mode: AppMode) => void;
   toggleStopwatch: () => void;
   resetStopwatch: () => void;
+  setupTimer: (hours: number, minutes: number, seconds: number) => void;
+  toggleTimer: () => void;
+  resetTimer: () => void;
+  enterTimerSetup: () => void;
   currentStatusIcon: string;
   currentStatusIconClass: string;
   formattedTotalTime: string; // Derived state for display
   formattedCurrentTime: string; // Derived state for display
   formattedStopwatchTime: string; // Derived state for stopwatch display
+  formattedTimerTime: string; // Derived state for timer display
 }
 
 // --- Default Initial State ---
@@ -104,6 +119,15 @@ const initialStopwatchState: StopwatchState = {
   startTime: null,
 };
 
+const initialTimerState: TimerState = {
+  isRunning: false,
+  isSetupMode: true,
+  totalSeconds: 0,
+  remainingSeconds: 0,
+  startTime: null,
+  isOvertime: false,
+};
+
 const initialState: AppState = {
   settings: initialSettings,
   obsConnection: initialOBSConnectionState,
@@ -116,6 +140,7 @@ const initialState: AppState = {
   isDimmed: false, // Default to bright
   currentMode: 'obs',
   stopwatch: initialStopwatchState,
+  timer: initialTimerState,
 };
 
 const AppContext = createContext<AppContextValue>({
@@ -123,6 +148,7 @@ const AppContext = createContext<AppContextValue>({
   formattedTotalTime: "00:00:00",
   formattedCurrentTime: "00:00:00",
   formattedStopwatchTime: "00:00:00",
+  formattedTimerTime: "00:00:00",
   saveSettings: async () => {},
   connectToOBS: async () => {},
   disconnectFromOBS: async () => {},
@@ -135,6 +161,10 @@ const AppContext = createContext<AppContextValue>({
   setMode: () => {},
   toggleStopwatch: () => {},
   resetStopwatch: () => {},
+  setupTimer: () => {},
+  toggleTimer: () => {},
+  resetTimer: () => {},
+  enterTimerSetup: () => {},
   currentStatusIcon: "■",
   currentStatusIconClass: "stopped",
 });
@@ -164,6 +194,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({children}) => {
   const [isDimmed, setIsDimmed] = useState(false);
   const [currentMode, setCurrentMode] = useState<AppMode>('obs');
   const [stopwatch, setStopwatch] = useState<StopwatchState>(initialStopwatchState);
+  const [timer, setTimer] = useState<TimerState>(initialTimerState);
 
   // Re-add polling interval ref, but only for timecode updates during recording
   const timecodeUpdateInterval = useRef<ReturnType<typeof setInterval> | null>(
@@ -172,6 +203,9 @@ export const AppProvider: React.FC<AppProviderProps> = ({children}) => {
   
   // Stopwatch interval ref
   const stopwatchInterval = useRef<ReturnType<typeof setInterval> | null>(null);
+  
+  // Timer interval ref
+  const timerInterval = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // To track previous recording state for saving total time
   const prevOutputActiveRef = useRef<boolean>(false);
@@ -572,6 +606,9 @@ export const AppProvider: React.FC<AppProviderProps> = ({children}) => {
       if (stopwatchInterval.current) {
         clearInterval(stopwatchInterval.current);
       }
+      if (timerInterval.current) {
+        clearInterval(timerInterval.current);
+      }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Changed dependency array to empty
@@ -668,6 +705,97 @@ export const AppProvider: React.FC<AppProviderProps> = ({children}) => {
     setStopwatch(initialStopwatchState);
   };
 
+  const setupTimer = (hours: number, minutes: number, seconds: number) => {
+    const totalSeconds = (hours * 3600) + (minutes * 60) + seconds;
+    setTimer({
+      isRunning: false,
+      isSetupMode: false,
+      totalSeconds,
+      remainingSeconds: totalSeconds,
+      startTime: null,
+      isOvertime: false,
+    });
+  };
+
+  const toggleTimer = () => {
+    setTimer((prev) => {
+      if (prev.isSetupMode) return prev; // Can't toggle in setup mode
+
+      if (prev.isRunning) {
+        // Stop the timer
+        if (timerInterval.current) {
+          clearInterval(timerInterval.current);
+          timerInterval.current = null;
+        }
+        const now = Date.now();
+        const elapsed = prev.startTime ? Math.floor((now - prev.startTime) / 1000) : 0;
+        const newRemaining = prev.remainingSeconds - elapsed;
+        
+        return {
+          ...prev,
+          isRunning: false,
+          remainingSeconds: newRemaining,
+          startTime: null,
+          isOvertime: newRemaining < 0,
+        };
+      } else {
+        // Start the timer
+        const now = Date.now();
+        timerInterval.current = setInterval(() => {
+          // Force a re-render to update the displayed time
+          setTimer((current) => ({ ...current }));
+        }, 100);
+        return {
+          ...prev,
+          isRunning: true,
+          startTime: now,
+        };
+      }
+    });
+  };
+
+  const resetTimer = () => {
+    if (timerInterval.current) {
+      clearInterval(timerInterval.current);
+      timerInterval.current = null;
+    }
+    setTimer((prev) => ({
+      ...prev,
+      isRunning: false,
+      remainingSeconds: prev.totalSeconds,
+      startTime: null,
+      isOvertime: false,
+    }));
+  };
+
+  const enterTimerSetup = () => {
+    if (timerInterval.current) {
+      clearInterval(timerInterval.current);
+      timerInterval.current = null;
+    }
+    setTimer({
+      isRunning: false,
+      isSetupMode: true,
+      totalSeconds: 0,
+      remainingSeconds: 0,
+      startTime: null,
+      isOvertime: false,
+    });
+  };
+
+  const getCurrentTimerSeconds = () => {
+    if (!timer.isRunning || !timer.startTime) return timer.remainingSeconds;
+    const elapsed = Math.floor((Date.now() - timer.startTime) / 1000);
+    const remaining = timer.remainingSeconds - elapsed;
+    
+    // Update overtime state if we've gone negative
+    if (remaining < 0 && !timer.isOvertime) {
+      setTimer(prev => ({ ...prev, isOvertime: true }));
+    }
+    
+    return remaining;
+  };
+
   const contextValue: AppContextValue = {
     settings,
     obsConnection,
@@ -680,6 +808,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({children}) => {
     isDimmed,
     currentMode,
     stopwatch,
+    timer,
     formattedTotalTime: formatHMS(
       totalTimeSeconds +
         (obsRecording.outputActive ? obsRecording.currentSessionSeconds : 0)
@@ -690,6 +819,13 @@ export const AppProvider: React.FC<AppProviderProps> = ({children}) => {
         ? stopwatch.seconds + Math.floor((Date.now() - stopwatch.startTime) / 1000)
         : stopwatch.seconds
     ),
+    formattedTimerTime: (() => {
+      const currentSeconds = getCurrentTimerSeconds();
+      const isNegative = currentSeconds < 0;
+      const absSeconds = Math.abs(currentSeconds);
+      const formatted = formatHMS(absSeconds);
+      return isNegative ? `-${formatted}` : formatted;
+    })(),
     saveSettings,
     connectToOBS,
     disconnectFromOBS,
@@ -705,6 +841,10 @@ export const AppProvider: React.FC<AppProviderProps> = ({children}) => {
     setMode,
     toggleStopwatch,
     resetStopwatch,
+    setupTimer,
+    toggleTimer,
+    resetTimer,
+    enterTimerSetup,
     currentStatusIcon,
     currentStatusIconClass,
   };

@@ -4,6 +4,7 @@ import ModeSelector from "./components/ModeSelector";
 import OBSMode from "./components/OBSMode";
 import SettingsModal from "./components/SettingsModal";
 import StopwatchMode from "./components/StopwatchMode";
+import TimerMode from "./components/TimerMode";
 import {useAppContext} from "./contexts/AppContext";
 
 function App() {
@@ -20,9 +21,11 @@ function App() {
     formattedCurrentTime,
     formattedTotalTime,
     formattedStopwatchTime,
+    formattedTimerTime,
     isDimmed,
     currentMode,
     stopwatch,
+    timer,
     // Actions
     openSettingsModal,
     closeSettingsModal,
@@ -34,6 +37,10 @@ function App() {
     setMode,
     toggleStopwatch,
     resetStopwatch,
+    setupTimer,
+    toggleTimer,
+    resetTimer,
+    enterTimerSetup,
   } = useAppContext();
 
   let statusMessage = "";
@@ -82,13 +89,18 @@ function App() {
           />
         );
       case 'timer':
-        // TODO: Implement timer mode
         return (
-          <div className={`timer-container ${isDimmed ? "dimmed" : ""}`}>
-            <div className="placeholder-mode">
-              <p>Timer mode coming soon...</p>
-            </div>
-          </div>
+          <TimerMode
+            formattedTime={formattedTimerTime}
+            isRunning={timer.isRunning}
+            isSetupMode={timer.isSetupMode}
+            isOvertime={timer.isOvertime}
+            onToggle={toggleTimer}
+            onReset={resetTimer}
+            onSetupComplete={setupTimer}
+            onEnterSetup={enterTimerSetup}
+            isDimmed={isDimmed}
+          />
         );
       default:
         return null;

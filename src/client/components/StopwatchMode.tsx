@@ -30,7 +30,7 @@ const StopwatchMode: React.FC<StopwatchModeProps> = ({
             time={formattedTime}
             isFocused={true}
             onClick={onToggle}
-            className="main-timer-display"
+            className={`main-timer-display ${isRunning ? "recording" : "stopped"}`}
           />
         </div>
         

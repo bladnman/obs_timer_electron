@@ -597,14 +597,149 @@ body, html {
   color: rgba(255, 255, 255, 0.8);
 }
 
-/* Placeholder mode for future timer */
-.placeholder-mode {
+/* Timer Mode Styles */
+.timer-mode-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  position: relative;
+}
+
+.timer-setup-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  gap: 1em;
+}
+
+.timer-setup-header h3 {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 1em;
+  margin: 0;
+  text-align: center;
+}
+
+.timer-setup-inputs {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 100%;
-  color: rgba(255, 255, 255, 0.6);
+  gap: 0.3em;
   font-size: 0.8em;
+}
+
+.time-input-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2em;
+}
+
+.time-input {
+  width: 2.5em;
+  padding: 0.3em;
+  border: 1px solid #555;
+  border-radius: 4px;
+  background-color: #333;
+  color: #ffffff;
+  font-size: 1em;
+  text-align: center;
+  font-family: 'Consolas', 'Monaco', 'Lucida Console', monospace;
+}
+
+.time-input:focus {
+  outline: none;
+  border-color: #0084ff;
+  box-shadow: 0 0 0 2px rgba(0, 132, 255, 0.2);
+}
+
+.time-input-group label {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.7em;
+  font-weight: 500;
+}
+
+.time-separator {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 1.2em;
+  margin: 0 0.2em;
+}
+
+.timer-setup-actions {
+  display: flex;
+  gap: 0.5em;
+}
+
+.setup-button {
+  padding: 0.5em 1em;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.8em;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.setup-button.primary {
+  background-color: #0084ff;
+  color: #ffffff;
+}
+
+.setup-button.primary:hover {
+  background-color: #0066cc;
+}
+
+.timer-controls {
+  position: absolute;
+  bottom: -3em;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 0.5em;
+}
+
+.timer-action-button {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 1em;
+  width: 1.8em;
+  height: 1.8em;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: inherit;
+}
+
+.timer-action-button:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* Overtime throbbing effect */
+.timer-display.overtime .time-text {
+  color: #ff4444 !important;
+  animation: overtime-throb 1s ease-in-out infinite alternate;
+}
+
+.status-icon.overtime {
+  color: #ff4444;
+  animation: overtime-throb 1s ease-in-out infinite alternate;
+}
+
+@keyframes overtime-throb {
+  from {
+    opacity: 0.5;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 /* Ensure high-DPI text shadow is applied if needed */

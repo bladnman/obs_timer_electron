@@ -63,3 +63,56 @@ describe("<App />", () => {
   // - Timer focus toggle
   // - Reset total time confirmation
 });
+
+// Development Configuration Tests
+describe("Development Configuration", () => {
+  test("package.json has correct development script setup", () => {
+    // Import package.json using require since we're in a test environment
+    const packageJson = require("../package.json");
+
+    // Verify dev script exists and has proper structure
+    expect(packageJson.scripts).toHaveProperty("dev");
+    const devScript = packageJson.scripts.dev;
+
+    // Check that dev script includes both Vite and Electron
+    expect(devScript).toContain("dev:client");
+    expect(devScript).toContain("electron");
+
+    // Verify VITE_DEV_SERVER_URL is set in the dev script
+    expect(devScript).toContain("VITE_DEV_SERVER_URL=http://localhost:3000");
+  });
+
+  test("package.json has required Electron dependencies", () => {
+    const packageJson = require("../package.json");
+
+    // Verify essential dev dependencies exist
+    expect(packageJson.devDependencies).toHaveProperty("electron");
+    expect(packageJson.devDependencies).toHaveProperty("vite");
+    expect(packageJson.devDependencies).toHaveProperty("@vitejs/plugin-react");
+
+    // Verify main entry point is set correctly
+    expect(packageJson.main).toBe("src/main.js");
+  });
+
+  test("Electron main process file exists and has required structure", () => {
+    // This validates that the main process file exists and has key components
+    // without trying to execute it
+    const fs = require("fs");
+    const path = require("path");
+
+    const mainJsPath = path.resolve(process.cwd(), "src/main.js");
+    expect(fs.existsSync(mainJsPath)).toBe(true);
+
+    const mainJsContent = fs.readFileSync(mainJsPath, "utf8");
+
+    // Verify key Electron patterns are present
+    expect(mainJsContent).toContain("BrowserWindow");
+    expect(mainJsContent).toContain("app.whenReady");
+    expect(mainJsContent).toContain("createWindow");
+
+    // Verify environment-based loading logic
+    expect(mainJsContent).toContain("process.env.VITE_DEV_SERVER_URL");
+    expect(mainJsContent).toContain("loadURL");
+    expect(mainJsContent).toContain("loadFile");
+  });
+});

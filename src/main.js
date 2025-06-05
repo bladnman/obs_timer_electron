@@ -122,12 +122,26 @@ function createWindow() {
   }
 
   // Make window draggable by its content (since frame:false)
-  // This is a common pattern, but might need to be selective with CSS.
-  // For now, the whole window is draggable.
-  // Consider adding a specific draggable region later if needed.
-  // mainWindow.webContents.on('did-finish-load', () => {
-  //   mainWindow.webContents.insertCSS('body { -webkit-app-region: drag; } button, input, select, textarea, .clickable-timer, .menu-button, .toggle-button, .modal-content { -webkit-app-region: no-drag; }');
-  // });
+  // This makes the whole window draggable while keeping interactive elements clickable
+  mainWindow.webContents.on('did-finish-load', () => {
+    mainWindow.webContents.insertCSS(`
+      body { 
+        -webkit-app-region: drag; 
+      } 
+      button, 
+      input, 
+      select, 
+      textarea, 
+      .timer-display, 
+      .menu-button, 
+      .toggle-button, 
+      .modal-content,
+      .settings-modal,
+      .clickable-timer { 
+        -webkit-app-region: no-drag; 
+      }
+    `);
+  });
   
   // IPC handlers removed as settings are client-side
 

@@ -1,0 +1,620 @@
+import OBSWebSocket, {OBSEventTypes} from "obs-websocket-js";
+import React, {
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+import obsService, {
+  OBSConnectionOptions,
+  OBSServiceCallbacks,
+} from "../services/obsService";
+import {formatHMS, parseTimecodeToSeconds} from "../utils/timeUtils";
+
+// --- Interfaces (assuming these are defined as before) ---
+export interface OBSSettings {
+  host: string;
+  port: string;
+  password?: string;
+}
+export interface OBSConnectionState {
+  isConnected: boolean;
+  isConnecting: boolean;
+  error: string | null;
+  obsVersion?: string;
+  hasInitialStatus: boolean;
+}
+export interface OBSRecordingState {
+  isRecording: boolean; // Actively recording (not paused)
+  isPaused: boolean; // Recording is paused
+  outputActive: boolean; // OBS output (record/stream) is active
+  outputPaused: boolean; // OBS output is paused
+  recordTimecode: string; // HH:MM:SS format from polling, or HH:MM:SS.ms from events
+  currentSessionSeconds: number; // Seconds accumulated in the current recording session based on timecode
+}
+
+interface AppState {
+  settings: OBSSettings;
+  obsConnection: OBSConnectionState;
+  obsRecording: OBSRecordingState;
+  totalTimeSeconds: number; // Total accumulated time in seconds
+  isSettingsModalOpen: boolean;
+  isCurrentTimeFocused: boolean;
+  connectionTestResult: string | null;
+  isTestingConnection: boolean;
+  isDimmed: boolean; // Added for brightness control
+}
+
+// --- Context Value Interface ---
+interface AppContextValue extends AppState {
+  saveSettings: (settings: OBSSettings) => Promise<void>;
+  connectToOBS: (settings?: OBSSettings) => Promise<void>;
+  disconnectFromOBS: () => Promise<void>;
+  testOBSConnection: (settings: OBSSettings) => Promise<void>;
+  openSettingsModal: () => void;
+  closeSettingsModal: () => void;
+  toggleTimerFocus: () => void;
+  resetTotalTime: () => void;
+  toggleBrightness: () => void; // Added for brightness control
+  currentStatusIcon: string;
+  currentStatusIconClass: string;
+  formattedTotalTime: string; // Derived state for display
+  formattedCurrentTime: string; // Derived state for display
+}
+
+// --- Default Initial State ---
+const initialSettings: OBSSettings = {
+  host: "localhost",
+  port: "4455",
+  password: "",
+};
+const initialOBSConnectionState: OBSConnectionState = {
+  isConnected: false,
+  isConnecting: false,
+  error: null,
+  hasInitialStatus: false,
+};
+const initialOBSRecordingState: OBSRecordingState = {
+  isRecording: false,
+  isPaused: false,
+  outputActive: false,
+  outputPaused: false,
+  recordTimecode: "00:00:00",
+  currentSessionSeconds: 0,
+};
+const initialState: AppState = {
+  settings: initialSettings,
+  obsConnection: initialOBSConnectionState,
+  obsRecording: initialOBSRecordingState,
+  totalTimeSeconds: 0,
+  isSettingsModalOpen: false,
+  isCurrentTimeFocused: true,
+  connectionTestResult: null,
+  isTestingConnection: false,
+  isDimmed: false, // Default to bright
+};
+
+const AppContext = createContext<AppContextValue>({
+  ...initialState,
+  formattedTotalTime: "00:00:00",
+  formattedCurrentTime: "00:00:00",
+  saveSettings: async () => {},
+  connectToOBS: async () => {},
+  disconnectFromOBS: async () => {},
+  testOBSConnection: async () => {},
+  openSettingsModal: () => {},
+  closeSettingsModal: () => {},
+  toggleTimerFocus: () => {},
+  resetTotalTime: () => {},
+  toggleBrightness: () => {}, // Added for brightness control
+  currentStatusIcon: "■",
+  currentStatusIconClass: "stopped",
+});
+
+export const useAppContext = () => useContext(AppContext);
+
+interface AppProviderProps {
+  children: ReactNode;
+}
+
+export const AppProvider: React.FC<AppProviderProps> = ({children}) => {
+  console.log("AppProvider: Mounting");
+  const [settings, setSettings] = useState<OBSSettings>(initialSettings);
+  const [obsConnection, setObsConnection] = useState<OBSConnectionState>(
+    initialOBSConnectionState
+  );
+  const [obsRecording, setObsRecording] = useState<OBSRecordingState>(
+    initialOBSRecordingState
+  );
+  const [totalTimeSeconds, setTotalTimeSeconds] = useState<number>(0);
+  const [isSettingsModalOpen, setSettingsModalOpen] = useState(false);
+  const [isCurrentTimeFocused, setIsCurrentTimeFocused] = useState(true);
+  const [connectionTestResult, setConnectionTestResult] = useState<
+    string | null
+  >(null);
+  const [isTestingConnection, setIsTestingConnection] = useState(false);
+  const [isDimmed, setIsDimmed] = useState(false); // Added for brightness control
+
+  // Re-add polling interval ref, but only for timecode updates during recording
+  const timecodeUpdateInterval = useRef<ReturnType<typeof setInterval> | null>(
+    null
+  );
+
+  // To track previous recording state for saving total time
+  const prevOutputActiveRef = useRef<boolean>(false);
+
+  // Load initial settings and total time from localStorage
+  useEffect(() => {
+    console.log("AppProvider: Initial useEffect (settings load) START");
+    const storedSettings = localStorage.getItem("obsTimerAppSettings");
+    console.log(
+      "AppProvider: storedSettings from localStorage:",
+      storedSettings
+    );
+    if (storedSettings) {
+      try {
+        const parsedSettings = JSON.parse(storedSettings);
+        console.log("AppProvider: parsedSettings:", parsedSettings);
+        setSettings(parsedSettings);
+        // Trigger initial connection attempt with loaded settings
+        connectToOBS(parsedSettings);
+      } catch (e) {
+        console.error("Failed to parse stored settings:", e);
+        localStorage.removeItem("obsTimerAppSettings");
+      }
+    } else {
+      console.log(
+        "AppProvider: No stored settings, using initialSettings:",
+        initialSettings
+      );
+      // If no stored settings, attempt connection with initial default settings
+      connectToOBS(initialSettings);
+    }
+
+    const storedTotalTime = localStorage.getItem("obsTimerTotalSeconds");
+    if (storedTotalTime) {
+      setTotalTimeSeconds(parseInt(storedTotalTime, 10) || 0);
+    }
+
+    // Load brightness setting from localStorage
+    const storedBrightness = localStorage.getItem("obsTimerIsDimmed");
+    if (storedBrightness) {
+      setIsDimmed(storedBrightness === "true");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Connect on mount
+
+  const saveSettings = async (newSettings: OBSSettings) => {
+    setSettings(newSettings);
+    localStorage.setItem("obsTimerAppSettings", JSON.stringify(newSettings));
+    if (obsConnection.isConnected || obsConnection.isConnecting) {
+      await disconnectFromOBS(); // Disconnect before reconnecting with new settings
+    }
+    // Automatically try to connect with new settings after a short delay
+    // to allow disconnect to complete.
+    setTimeout(() => connectToOBS(newSettings), 500);
+  };
+
+  const connectToOBS = async (currentSettingsParam?: OBSSettings) => {
+    const activeSettings = currentSettingsParam || settings;
+    console.log(
+      "AppProvider: connectToOBS called with activeSettings:",
+      activeSettings
+    );
+
+    if (!activeSettings.host || !activeSettings.port) {
+      console.error(
+        "AppProvider: Host or Port missing in activeSettings. Aborting connection.",
+        activeSettings
+      );
+      setObsConnection({
+        isConnected: false,
+        isConnecting: false,
+        error: "Host or Port missing.",
+        obsVersion: undefined,
+        hasInitialStatus: false,
+      });
+      return;
+    }
+    setObsConnection({
+      isConnected: false,
+      isConnecting: true,
+      error: null,
+      obsVersion: undefined,
+      hasInitialStatus: false,
+    });
+    setConnectionTestResult(null); // Clear previous test results
+    try {
+      const obsConnectOpts: OBSConnectionOptions = {
+        address: `ws://${activeSettings.host}:${activeSettings.port}`,
+        password: activeSettings.password,
+      };
+      console.log(
+        "AppProvider: Attempting obsService.connect with options:",
+        obsConnectOpts
+      );
+      await obsService.connect(obsConnectOpts);
+    } catch (error: any) {
+      if (!obsService.isConnected) {
+        setObsConnection((prev) => ({
+          ...prev,
+          isConnected: false,
+          isConnecting: false,
+          error: error.message || "Connection failed directly",
+          hasInitialStatus: false,
+        }));
+      }
+    }
+  };
+
+  const disconnectFromOBS = async () => {
+    if (obsService.isConnected) {
+      await obsService.disconnect(); // This will trigger onDisconnected callback
+    } else {
+      // If not connected but trying, ensure state reflects disconnected
+      setObsConnection({
+        isConnected: false,
+        isConnecting: false,
+        error: null,
+        hasInitialStatus: false,
+      });
+    }
+    setObsRecording(initialOBSRecordingState); // Reset recording state
+    // Save any pending session time if was recording
+    if (prevOutputActiveRef.current && obsRecording.currentSessionSeconds > 0) {
+      setTotalTimeSeconds((prevTotal) => {
+        const newTotal = prevTotal + obsRecording.currentSessionSeconds;
+        localStorage.setItem("obsTimerTotalSeconds", newTotal.toString());
+        return newTotal;
+      });
+    }
+    setObsRecording(initialOBSRecordingState);
+    prevOutputActiveRef.current = false;
+  };
+
+  const testOBSConnection = async (testSettings: OBSSettings) => {
+    // Similar to before, unchanged
+    if (!testSettings.host || !testSettings.port) {
+      setConnectionTestResult("Error: Host or Port missing.");
+      return;
+    }
+    setIsTestingConnection(true);
+    setConnectionTestResult("Testing connection...");
+    const testObs = new OBSWebSocket();
+    try {
+      await testObs.connect(
+        `${testSettings.host}:${testSettings.port}`,
+        testSettings.password
+      );
+      const versionInfo = await testObs.call("GetVersion");
+      setConnectionTestResult(`✓ Connected to OBS ${versionInfo.obsVersion}`);
+      await testObs.disconnect();
+    } catch (error: any) {
+      setConnectionTestResult(
+        `✗ Connection failed: ${error.message || "Unknown error"}`
+      );
+    } finally {
+      setIsTestingConnection(false);
+    }
+  };
+
+  const updateObsRecordingState = (data: Partial<OBSRecordingState>) => {
+    setObsRecording((prev) => ({...prev, ...data}));
+  };
+
+  // Minimal function to update only timecode during active recording
+  const updateTimecodeOnly = async () => {
+    if (obsService.isConnected) {
+      try {
+        const status = await obsService.getRecordStatus();
+        if (status && status.outputActive) {
+          const currentSessionSeconds = parseTimecodeToSeconds(
+            status.outputTimecode
+          );
+          // Only update timecode and session seconds, don't touch other state
+          setObsRecording((prev) => ({
+            ...prev,
+            recordTimecode: status.outputTimecode.split(".")[0],
+            currentSessionSeconds: currentSessionSeconds,
+          }));
+        }
+      } catch (e) {
+        console.error("Error updating timecode:", e);
+      }
+    }
+  };
+
+  useEffect(() => {
+    console.log("AppProvider: Callback registration useEffect START");
+    const serviceCallbacks: OBSServiceCallbacks = {
+      onConnected: async () => {
+        console.log(
+          "AppProvider: obsService.onConnected callback triggered (Identified)"
+        );
+        // Temporarily simplified - only basic connection state
+        setObsConnection({
+          isConnected: true,
+          isConnecting: false,
+          error: null,
+          hasInitialStatus: true, // Set to true to avoid any issues with the derived state
+          obsVersion: undefined,
+        });
+
+        // Add back version fetching first
+        try {
+          const version = await obsService.getVersion();
+          setObsConnection((prev) => ({
+            ...prev,
+            obsVersion: version?.obsVersion,
+          }));
+          console.log(
+            "AppProvider: Version fetched successfully:",
+            version?.obsVersion
+          );
+        } catch (e: any) {
+          console.error("Error fetching OBS version:", e);
+        }
+
+        // Add back record status fetching (without polling setup)
+        try {
+          if (obsService.isConnected) {
+            const status = await obsService.getRecordStatus();
+            if (status) {
+              console.log(
+                "AppProvider: Initial GetRecordStatus after connection:",
+                status
+              );
+              const currentSessionSeconds = parseTimecodeToSeconds(
+                status.outputTimecode
+              );
+              updateObsRecordingState({
+                recordTimecode: status.outputTimecode.split(".")[0],
+                currentSessionSeconds: currentSessionSeconds,
+                outputActive: status.outputActive,
+                outputPaused: status.outputPaused,
+                isRecording: status.outputActive && !status.outputPaused,
+                isPaused: status.outputActive && status.outputPaused,
+              });
+              prevOutputActiveRef.current = status.outputActive;
+              console.log("AppProvider: Record state updated successfully");
+            } else {
+              console.warn(
+                "AppProvider: Initial GetRecordStatus returned null."
+              );
+              prevOutputActiveRef.current = false;
+            }
+          }
+        } catch (e: any) {
+          console.error("Error fetching initial OBS record status:", e);
+          prevOutputActiveRef.current = false;
+        }
+      },
+      onDisconnected: () => {
+        console.log(
+          "AppProvider: obsService.onDisconnected callback triggered"
+        );
+        setObsConnection({
+          isConnected: false,
+          isConnecting: false,
+          error: "Disconnected from OBS.",
+          hasInitialStatus: false, // Reset on disconnect
+          obsVersion: undefined,
+        });
+        // Save any pending session time if was recording
+        if (
+          prevOutputActiveRef.current &&
+          obsRecording.currentSessionSeconds > 0
+        ) {
+          setTotalTimeSeconds((prevTotal) => {
+            const newTotal = prevTotal + obsRecording.currentSessionSeconds;
+            localStorage.setItem("obsTimerTotalSeconds", newTotal.toString());
+            return newTotal;
+          });
+        }
+        setObsRecording(initialOBSRecordingState);
+        prevOutputActiveRef.current = false;
+      },
+      onConnectionError: (error: Error) => {
+        console.error(
+          "AppProvider: obsService.onConnectionError callback triggered",
+          error
+        );
+        setObsConnection({
+          isConnected: false,
+          isConnecting: false,
+          error: error.message || "Connection Error",
+          hasInitialStatus: false, // Reset on error
+          obsVersion: undefined,
+        });
+        setObsRecording(initialOBSRecordingState);
+        prevOutputActiveRef.current = false;
+      },
+      onRecordStateChanged: (data: OBSEventTypes["RecordStateChanged"]) => {
+        console.log(
+          "AppProvider: obsService.onRecordStateChanged event:",
+          data.outputState
+        );
+        const {outputState} = data;
+
+        // Get current state from a reliable source (the state itself)
+        // to avoid issues with closure over stale state in the callback.
+        setObsRecording((prevObsRecording) => {
+          let newIsRecording = prevObsRecording.isRecording;
+          let newIsPaused = prevObsRecording.isPaused;
+          let newOutputActive = prevObsRecording.outputActive;
+
+          if (
+            outputState === "OBS_WEBSOCKET_OUTPUT_STARTED" ||
+            outputState === "OBS_WEBSOCKET_OUTPUT_RESUMED"
+          ) {
+            newIsRecording = true;
+            newIsPaused = false;
+            newOutputActive = true;
+          } else if (outputState === "OBS_WEBSOCKET_OUTPUT_PAUSED") {
+            newIsRecording = false;
+            newIsPaused = true;
+            newOutputActive = true; // Session is active, but paused
+          } else if (outputState === "OBS_WEBSOCKET_OUTPUT_STOPPED") {
+            newIsRecording = false;
+            newIsPaused = false;
+            newOutputActive = false;
+          }
+
+          // Update prevOutputActiveRef for state tracking
+          prevOutputActiveRef.current = newOutputActive;
+
+          return {
+            ...prevObsRecording,
+            isRecording: newIsRecording,
+            isPaused: newIsPaused,
+            outputActive: newOutputActive,
+          };
+        });
+
+        // Handle timecode polling based on new state
+        if (
+          outputState === "OBS_WEBSOCKET_OUTPUT_STARTED" ||
+          outputState === "OBS_WEBSOCKET_OUTPUT_RESUMED"
+        ) {
+          // Start timecode updates when recording begins or resumes
+          if (!timecodeUpdateInterval.current) {
+            console.log("AppProvider: Starting timecode updates for recording");
+            timecodeUpdateInterval.current = setInterval(
+              updateTimecodeOnly,
+              250
+            );
+          }
+        } else if (outputState === "OBS_WEBSOCKET_OUTPUT_PAUSED") {
+          // Stop timecode updates when paused (timecode shouldn't change)
+          if (timecodeUpdateInterval.current) {
+            console.log("AppProvider: Pausing timecode updates");
+            clearInterval(timecodeUpdateInterval.current);
+            timecodeUpdateInterval.current = null;
+          }
+        } else if (outputState === "OBS_WEBSOCKET_OUTPUT_STOPPED") {
+          // Stop timecode updates and do final save when recording stops
+          if (timecodeUpdateInterval.current) {
+            console.log("AppProvider: Stopping timecode updates");
+            clearInterval(timecodeUpdateInterval.current);
+            timecodeUpdateInterval.current = null;
+          }
+          // Final timecode update and save session time
+          updateTimecodeOnly().then(() => {
+            // Save the final session time to total
+            setObsRecording((prev) => {
+              if (prev.currentSessionSeconds > 0) {
+                setTotalTimeSeconds((prevTotal) => {
+                  const newTotal = prevTotal + prev.currentSessionSeconds;
+                  localStorage.setItem(
+                    "obsTimerTotalSeconds",
+                    newTotal.toString()
+                  );
+                  return newTotal;
+                });
+              }
+              return {...prev, currentSessionSeconds: 0}; // Reset for next session
+            });
+          });
+        }
+      },
+    };
+    obsService.registerCallbacks(serviceCallbacks);
+    console.log("AppProvider: obsService.registerCallbacks called");
+
+    return () => {
+      // Cleanup on provider unmount (app close)
+      console.log(
+        "AppProvider: Unmounting, disconnecting from OBS if connected."
+      );
+      if (obsService.isConnected) obsService.disconnect();
+      if (timecodeUpdateInterval.current) {
+        clearInterval(timecodeUpdateInterval.current);
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Changed dependency array to empty
+
+  // Derived state for status icon
+  let currentStatusIcon = "■";
+  let currentStatusIconClass = "stopped";
+
+  if (obsConnection.isConnecting) {
+    currentStatusIcon = "…";
+    currentStatusIconClass = "connecting";
+  } else if (!obsConnection.isConnected) {
+    currentStatusIcon = "✕";
+    currentStatusIconClass = "disconnected";
+  } else {
+    // Connected
+    if (obsConnection.error && !obsRecording.outputActive) {
+      currentStatusIcon = "✕";
+      currentStatusIconClass = "error";
+    } else if (obsRecording.isRecording) {
+      currentStatusIcon = "●";
+      currentStatusIconClass = "recording";
+    } else if (obsRecording.isPaused) {
+      currentStatusIcon = "❚❚";
+      currentStatusIconClass = "paused";
+    } else {
+      currentStatusIcon = "■";
+      currentStatusIconClass = "stopped";
+    }
+  }
+
+  const resetTotalTime = () => {
+    if (
+      window.confirm(
+        "Reset total time to 00:00:00? This will clear your project time."
+      )
+    ) {
+      setTotalTimeSeconds(0);
+      updateObsRecordingState({currentSessionSeconds: 0}); // Also reset current session if any
+      localStorage.setItem("obsTimerTotalSeconds", "0");
+    }
+  };
+
+  const toggleBrightness = () => {
+    setIsDimmed((prev) => {
+      const newValue = !prev;
+      localStorage.setItem("obsTimerIsDimmed", newValue.toString());
+      return newValue;
+    });
+  };
+
+  const contextValue: AppContextValue = {
+    settings,
+    obsConnection,
+    obsRecording,
+    totalTimeSeconds,
+    isSettingsModalOpen,
+    isCurrentTimeFocused,
+    connectionTestResult,
+    isTestingConnection,
+    isDimmed, // Added for brightness control
+    formattedTotalTime: formatHMS(
+      totalTimeSeconds +
+        (obsRecording.outputActive ? obsRecording.currentSessionSeconds : 0)
+    ),
+    formattedCurrentTime: formatHMS(obsRecording.currentSessionSeconds),
+    saveSettings,
+    connectToOBS,
+    disconnectFromOBS,
+    testOBSConnection,
+    openSettingsModal: () => setSettingsModalOpen(true),
+    closeSettingsModal: () => {
+      setSettingsModalOpen(false);
+      setConnectionTestResult(null);
+    },
+    toggleTimerFocus: () => setIsCurrentTimeFocused((prev) => !prev),
+    resetTotalTime,
+    toggleBrightness, // Added for brightness control
+    currentStatusIcon,
+    currentStatusIconClass,
+  };
+
+  return (
+    <AppContext.Provider value={contextValue}>{children}</AppContext.Provider>
+  );
+};

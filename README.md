@@ -5,7 +5,7 @@ A cross-platform desktop utility built with Electron and React, that connects to
 ## Features
 
 - **Live session timer**: Real-time HH:MM:SS timer while OBS is recording.
-- **Accumulated total time**: Persistent tracking across multiple recording sessions (stored in \`localStorage\`).
+- **Accumulated total time**: Persistent tracking across multiple recording sessions (stored in `localStorage`).
 - **Always on top**: Floats above all applications.
 - **Frameless & Transparent Design**: Clean, modern look that integrates well with your desktop.
 - **Configurable OBS Connection**: Settings for OBS host, port, and password.
@@ -23,38 +23,38 @@ A cross-platform desktop utility built with Electron and React, that connects to
 1.  Open OBS Studio.
 2.  Go to **Tools** → **WebSocket Server Settings**.
 3.  Ensure **Enable WebSocket server** is checked.
-4.  Set **Server Port** (default is \`4455\`).
+4.  Set **Server Port** (default is `4455`).
 5.  Optionally, set a **Server Password**.
 6.  Click **Apply** and **OK**.
 
 ## Installation (After Building)
 
-After building the application (see "Building for Production" below), you'll find installer files in the \`dist/\` folder. Installation instructions are similar to common applications for your OS (DMG for macOS, EXE for Windows, AppImage for Linux).
+After building the application (see "Building for Production" below), you'll find installer files in the `dist/` folder. Installation instructions are similar to common applications for your OS (DMG for macOS, EXE for Windows, AppImage for Linux).
 
 ## Development
 
 ### Setup
 
 1.  Clone this repository:
-    \`\`\`bash
+    ```bash
     git clone <repository-url>
     cd obs-timer-react
     # Replace <repository-url> and obs-timer-react with actual project details if known, otherwise leave generic
-    \`\`\`
+    ```
 2.  Install dependencies:
-    \`\`\`bash
+    ```bash
     npm install
-    \`\`\`
+    ```
 
 ### Running the Development Server
 
 To run the application in development mode (with live reloading for the React client):
 
-\`\`\`bash
+```bash
 npm run dev
-\`\`\`
+```
 
-This command starts the Vite development server for the React frontend and then launches the Electron application. Electron will load the frontend from the Vite server. Developer tools for both the main Electron process and the renderer (React app) can be accessed (usually via the View menu added in \`main.js\` or standard shortcuts).
+This command starts the Vite development server for the React frontend and then launches the Electron application. Electron will load the frontend from the Vite server. Developer tools for both the main Electron process and the renderer (React app) can be accessed (usually via the View menu added in `main.js` or standard shortcuts).
 
 ### Key Technologies
 
@@ -67,39 +67,64 @@ This command starts the Vite development server for the React frontend and then 
 
 ### Project Structure
 
--   \`src/main.js\`: Electron main process entry point. Handles window creation and application lifecycle.
--   \`src/preload.js\`: Electron preload script for context bridge (currently minimal).
--   \`src/client/\`: Contains the React/TypeScript frontend application.
-    -   \`src/client/main.tsx\`: Entry point for the React app.
-    -   \`src/client/App.tsx\`: Root React component.
-    -   \`src/client/components/\`: Reusable UI components.
-    -   \`src/client/contexts/\`: React Context for global state management (\`AppContext.tsx\`).
-    -   \`src/client/services/\`: Services like \`obsService.ts\` for OBS WebSocket communication.
-    -   \`src/client/utils/\`: Utility functions (e.g., \`timeUtils.ts\`).
-    -   \`src/client/App.css\`: Global styles for the React app.
--   \`vite.config.js\`: Configuration for Vite.
--   \`jest.config.js\`: Configuration for Jest.
--   \`public/\`: Static assets and the \`index.html\` template for Vite.
--   \`__tests__/\`: Contains all test files.
+-   `src/main.js`: Electron main process entry point. Handles window creation and application lifecycle.
+-   `src/preload.js`: Electron preload script for context bridge (currently minimal).
+-   `src/client/`: Contains the React/TypeScript frontend application.
+    -   `src/client/main.tsx`: Entry point for the React app.
+    -   `src/client/App.tsx`: Root React component.
+    -   `src/client/components/`: Reusable UI components.
+    -   `src/client/contexts/`: React Context for global state management (`AppContext.tsx`).
+    -   `src/client/services/`: Services like `obsService.ts` for OBS WebSocket communication.
+    -   `src/client/utils/`: Utility functions (e.g., `timeUtils.ts`).
+    -   `src/client/App.css`: Global styles for the React app.
+-   `vite.config.js`: Configuration for Vite.
+-   `jest.config.js`: Configuration for Jest.
+-   `public/`: Static assets and the `index.html` template for Vite.
+-   `__tests__/`: Contains all test files.
 
 ## Building for Production
 
-To build executable packages for your platform:
+### Quick Production Build with Testing
+```bash
+# Build with tests and linting (recommended)
+npm run build:prod
 
--   Build for all configured platforms:
-    \`\`\`bash
-    npm run build
-    \`\`\`
-    (or \`npm run dist\`)
+# Platform-specific builds with testing
+npm run build:prod:mac
+npm run build:prod:win  
+npm run build:prod:linux
+```
 
--   Build for a specific platform (examples):
-    \`\`\`bash
-    npm run build:mac
-    npm run build:win
-    npm run build:linux
-    \`\`\`
+### Basic Builds (without testing)
+```bash
+# Build for all configured platforms
+npm run build
 
-Packaged applications will be found in the \`dist/\` directory.
+# Build for specific platforms
+npm run build:mac
+npm run build:win
+npm run build:linux
+```
+
+Packaged applications will be found in the `dist/` directory.
+
+## Releases
+
+We have automated release workflows that handle testing, building, version bumping, and GitHub releases.
+
+### Create a Release
+```bash
+# Patch release (1.0.1 -> 1.0.2) with GitHub release
+npm run release:patch:github
+
+# Minor release (1.0.1 -> 1.1.0) 
+npm run release:minor:github
+
+# Major release (1.0.1 -> 2.0.0)
+npm run release:major:github
+```
+
+For complete release documentation, see [docs/RELEASE.md](docs/RELEASE.md).
 
 ## Troubleshooting
 
@@ -118,4 +143,4 @@ Contributions are welcome! Please follow standard fork-and-pull-request workflow
 
 ## License
 
-MIT License. See the \`LICENSE\` file for details.
+MIT License. See the `LICENSE` file for details.

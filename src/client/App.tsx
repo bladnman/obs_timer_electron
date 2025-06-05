@@ -1,8 +1,9 @@
 import "./App.css";
-import ConnectionStatus from "./components/ConnectionStatus";
 import MenuBar from "./components/MenuBar";
+import ModeSelector from "./components/ModeSelector";
+import OBSMode from "./components/OBSMode";
 import SettingsModal from "./components/SettingsModal";
-import TimerDisplay from "./components/TimerDisplay";
+import StopwatchMode from "./components/StopwatchMode";
 import {useAppContext} from "./contexts/AppContext";
 
 function App() {
@@ -18,7 +19,10 @@ function App() {
     currentStatusIconClass,
     formattedCurrentTime,
     formattedTotalTime,
+    formattedStopwatchTime,
     isDimmed,
+    currentMode,
+    stopwatch,
     // Actions
     openSettingsModal,
     closeSettingsModal,
@@ -27,6 +31,9 @@ function App() {
     toggleTimerFocus,
     resetTotalTime,
     toggleBrightness,
+    setMode,
+    toggleStopwatch,
+    resetStopwatch,
   } = useAppContext();
 
   let statusMessage = "";
@@ -48,57 +55,67 @@ function App() {
     statusType = "hidden";
   }
 
+  const renderCurrentMode = () => {
+    switch (currentMode) {
+      case 'obs':
+        return (
+          <OBSMode
+            currentStatusIcon={currentStatusIcon}
+            currentStatusIconClass={currentStatusIconClass}
+            formattedCurrentTime={formattedCurrentTime}
+            formattedTotalTime={formattedTotalTime}
+            isCurrentTimeFocused={isCurrentTimeFocused}
+            onToggleTimerFocus={toggleTimerFocus}
+            statusMessage={statusMessage}
+            statusType={statusType}
+            isDimmed={isDimmed}
+          />
+        );
+      case 'stopwatch':
+        return (
+          <StopwatchMode
+            formattedTime={formattedStopwatchTime}
+            isRunning={stopwatch.isRunning}
+            onToggle={toggleStopwatch}
+            onReset={resetStopwatch}
+            isDimmed={isDimmed}
+          />
+        );
+      case 'timer':
+        // TODO: Implement timer mode
+        return (
+          <div className={`timer-container ${isDimmed ? "dimmed" : ""}`}>
+            <div className="placeholder-mode">
+              <p>Timer mode coming soon...</p>
+            </div>
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
+
   return (
     <div className="App">
       <MenuBar
         onSettingsClick={openSettingsModal}
-        onResetClick={resetTotalTime}
+        onResetClick={currentMode === 'obs' ? resetTotalTime : undefined}
         onBrightnessToggle={toggleBrightness}
         isDimmed={isDimmed}
       />
 
-      <div className={`timer-container ${isDimmed ? "dimmed" : ""}`}>
-        <div className="status-timer">
-          <span
-            id="status-icon"
-            className={`status-icon ${currentStatusIconClass}`}
-          >
-            {currentStatusIcon}
-          </span>
-          <TimerDisplay
-            time={formattedCurrentTime}
-            isFocused={isCurrentTimeFocused}
-            onClick={toggleTimerFocus}
-            className={`main-timer-display ${currentStatusIconClass}`}
-          />
-        </div>
+      <ModeSelector
+        currentMode={currentMode}
+        onModeChange={setMode}
+      />
 
-        <div className="total-container">
-          <TimerDisplay
-            label="Σ"
-            time={formattedTotalTime}
-            isFocused={!isCurrentTimeFocused}
-            onClick={toggleTimerFocus}
-            className="total-timer-display"
-          />
-          <button
-            id="toggle-display"
-            className="toggle-button"
-            title="Toggle Focus"
-            onClick={toggleTimerFocus}
-          >
-            ⇅
-          </button>
-        </div>
-
-        <ConnectionStatus statusText={statusMessage} statusType={statusType} />
-      </div>
+      {renderCurrentMode()}
 
       <SettingsModal
         isOpen={isSettingsModalOpen}
         onClose={closeSettingsModal}
-        onSave={saveSettings} // saveSettings now handles disconnect/reconnect
-        onTestConnection={() => testOBSConnection(settings)} // Pass current settings from modal form
+        onSave={saveSettings}
+        onTestConnection={() => testOBSConnection(settings)}
         initialHost={settings.host}
         initialPort={settings.port}
         initialPassword={settings.password}

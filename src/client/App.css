@@ -40,25 +40,52 @@ body, html {
     position: fixed;
     left: 0;
     top: 0;
-    height: 100vh;
+    height: 50vh; /* Take only top half to avoid overlap with mode selector */
     width: 2.2em; /* Slightly wider to better fit icons */
     background-color: rgba(0, 0, 0, 0.2);
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: flex-start;
-    padding: 0.5em 0;
-    gap: 0.5em;
+    padding: 0.4em 0;
+    gap: 0.3em;
     z-index: 100; /* Ensure it's above other content */
+    overflow: visible; /* Allow dropdowns to show */
+    min-height: 6em; /* Ensure minimum space for essential buttons */
+}
+
+/* Responsive menu visibility */
+@media (min-height: 300px) {
+    .menu-icons-full {
+        display: flex;
+        flex-direction: column;
+        gap: 0.3em;
+        align-items: center;
+    }
+    .menu-icons-collapsed {
+        display: none;
+    }
+}
+
+@media (max-height: 299px) {
+    .menu-icons-full {
+        display: none;
+    }
+    .menu-icons-collapsed {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+    }
 }
 
 .menu-button {
     background: none;
     border: none;
     color: rgba(255, 255, 255, 0.6);
-    font-size: 1.2em; /* Original size */
-    width: 1.8em;
-    height: 1.8em;
+    font-size: 1.1em; /* Slightly smaller for better fit */
+    width: 1.6em;
+    height: 1.6em;
     border-radius: 4px;
     cursor: pointer;
     transition: all 0.2s ease;
@@ -66,6 +93,7 @@ body, html {
     align-items: center;
     justify-content: center;
     font-family: inherit; /* Important for symbols */
+    flex-shrink: 0; /* Prevent shrinking when space is tight */
 }
 
 .menu-button:hover {
@@ -394,6 +422,191 @@ body, html {
   color: #ffaa00;
   border: 1px solid #ffaa00;
 }
+/* Mode Selector - positioned at bottom of menu bar */
+.mode-selector {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  height: 50vh; /* Take bottom half of screen */
+  width: 2.2em;
+  background-color: rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0.4em 0;
+  gap: 0.3em;
+  z-index: 100;
+  overflow: visible; /* Allow dropdowns to show */
+  min-height: 5em; /* Ensure minimum space for mode buttons */
+}
+
+/* Responsive mode selector visibility */
+@media (min-height: 300px) {
+    .mode-icons-full {
+        display: flex;
+        flex-direction: column;
+        gap: 0.3em;
+        align-items: center;
+    }
+    .mode-icons-collapsed {
+        display: none;
+    }
+}
+
+@media (max-height: 299px) {
+    .mode-icons-full {
+        display: none;
+    }
+    .mode-icons-collapsed {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+    }
+}
+
+.mode-button {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 1.1em;
+  width: 1.6em;
+  height: 1.6em;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: inherit;
+  flex-shrink: 0; /* Prevent shrinking when space is tight */
+}
+
+.mode-button:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.mode-button.active {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 1);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.3);
+}
+
+/* Dropdown Menu Styles */
+.menu-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(0, 0, 0, 0.8);
+  border-radius: 4px;
+  padding: 0.2em;
+  margin-top: 0.2em;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1em;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  z-index: 200;
+  min-width: 2.5em;
+}
+
+.mode-dropdown {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(0, 0, 0, 0.8);
+  border-radius: 4px;
+  padding: 0.2em;
+  margin-bottom: 0.2em;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1em;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  z-index: 200;
+  min-width: 2.5em;
+}
+
+.menu-dropdown-item,
+.mode-dropdown-item {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 1.1em;
+  width: 2em;
+  height: 2em;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: inherit;
+}
+
+.menu-dropdown-item:hover,
+.mode-dropdown-item:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.mode-dropdown-item.active {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 1);
+}
+
+.hamburger-button.active {
+  background-color: rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* Stopwatch Mode Styles */
+.stopwatch-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  position: relative;
+}
+
+.stopwatch-reset-button {
+  position: absolute;
+  bottom: -1.5em;
+  left: 50%;
+  transform: translateX(-50%);
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 1em;
+  width: 1.8em;
+  height: 1.8em;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: inherit;
+}
+
+.stopwatch-reset-button:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* Placeholder mode for future timer */
+.placeholder-mode {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.8em;
+}
+
 /* Ensure high-DPI text shadow is applied if needed */
 @media (-webkit-min-device-pixel-ratio: 2) {
     .timer-display .time-text {

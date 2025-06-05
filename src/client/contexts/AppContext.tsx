@@ -35,6 +35,14 @@ export interface OBSRecordingState {
   currentSessionSeconds: number; // Seconds accumulated in the current recording session based on timecode
 }
 
+export type AppMode = 'obs' | 'stopwatch' | 'timer';
+
+export interface StopwatchState {
+  isRunning: boolean;
+  seconds: number;
+  startTime: number | null;
+}
+
 interface AppState {
   settings: OBSSettings;
   obsConnection: OBSConnectionState;
@@ -45,6 +53,8 @@ interface AppState {
   connectionTestResult: string | null;
   isTestingConnection: boolean;
   isDimmed: boolean; // Added for brightness control
+  currentMode: AppMode;
+  stopwatch: StopwatchState;
 }
 
 // --- Context Value Interface ---
@@ -58,10 +68,14 @@ interface AppContextValue extends AppState {
   toggleTimerFocus: () => void;
   resetTotalTime: () => void;
   toggleBrightness: () => void; // Added for brightness control
+  setMode: (mode: AppMode) => void;
+  toggleStopwatch: () => void;
+  resetStopwatch: () => void;
   currentStatusIcon: string;
   currentStatusIconClass: string;
   formattedTotalTime: string; // Derived state for display
   formattedCurrentTime: string; // Derived state for display
+  formattedStopwatchTime: string; // Derived state for stopwatch display
 }
 
 // --- Default Initial State ---
@@ -84,6 +98,12 @@ const initialOBSRecordingState: OBSRecordingState = {
   recordTimecode: "00:00:00",
   currentSessionSeconds: 0,
 };
+const initialStopwatchState: StopwatchState = {
+  isRunning: false,
+  seconds: 0,
+  startTime: null,
+};
+
 const initialState: AppState = {
   settings: initialSettings,
   obsConnection: initialOBSConnectionState,
@@ -94,12 +114,15 @@ const initialState: AppState = {
   connectionTestResult: null,
   isTestingConnection: false,
   isDimmed: false, // Default to bright
+  currentMode: 'obs',
+  stopwatch: initialStopwatchState,
 };
 
 const AppContext = createContext<AppContextValue>({
   ...initialState,
   formattedTotalTime: "00:00:00",
   formattedCurrentTime: "00:00:00",
+  formattedStopwatchTime: "00:00:00",
   saveSettings: async () => {},
   connectToOBS: async () => {},
   disconnectFromOBS: async () => {},
@@ -108,7 +131,10 @@ const AppContext = createContext<AppContextValue>({
   closeSettingsModal: () => {},
   toggleTimerFocus: () => {},
   resetTotalTime: () => {},
-  toggleBrightness: () => {}, // Added for brightness control
+  toggleBrightness: () => {},
+  setMode: () => {},
+  toggleStopwatch: () => {},
+  resetStopwatch: () => {},
   currentStatusIcon: "■",
   currentStatusIconClass: "stopped",
 });
@@ -135,12 +161,17 @@ export const AppProvider: React.FC<AppProviderProps> = ({children}) => {
     string | null
   >(null);
   const [isTestingConnection, setIsTestingConnection] = useState(false);
-  const [isDimmed, setIsDimmed] = useState(false); // Added for brightness control
+  const [isDimmed, setIsDimmed] = useState(false);
+  const [currentMode, setCurrentMode] = useState<AppMode>('obs');
+  const [stopwatch, setStopwatch] = useState<StopwatchState>(initialStopwatchState);
 
   // Re-add polling interval ref, but only for timecode updates during recording
   const timecodeUpdateInterval = useRef<ReturnType<typeof setInterval> | null>(
     null
   );
+  
+  // Stopwatch interval ref
+  const stopwatchInterval = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // To track previous recording state for saving total time
   const prevOutputActiveRef = useRef<boolean>(false);
@@ -182,6 +213,12 @@ export const AppProvider: React.FC<AppProviderProps> = ({children}) => {
     const storedBrightness = localStorage.getItem("obsTimerIsDimmed");
     if (storedBrightness) {
       setIsDimmed(storedBrightness === "true");
+    }
+
+    // Load current mode from localStorage
+    const storedMode = localStorage.getItem("obsTimerCurrentMode");
+    if (storedMode && ['obs', 'stopwatch', 'timer'].includes(storedMode)) {
+      setCurrentMode(storedMode as AppMode);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Connect on mount
@@ -532,6 +569,9 @@ export const AppProvider: React.FC<AppProviderProps> = ({children}) => {
       if (timecodeUpdateInterval.current) {
         clearInterval(timecodeUpdateInterval.current);
       }
+      if (stopwatchInterval.current) {
+        clearInterval(stopwatchInterval.current);
+      }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Changed dependency array to empty
@@ -583,6 +623,51 @@ export const AppProvider: React.FC<AppProviderProps> = ({children}) => {
     });
   };
 
+  const setMode = (mode: AppMode) => {
+    setCurrentMode(mode);
+    localStorage.setItem("obsTimerCurrentMode", mode);
+  };
+
+  const toggleStopwatch = () => {
+    setStopwatch((prev) => {
+      if (prev.isRunning) {
+        // Stop the stopwatch
+        if (stopwatchInterval.current) {
+          clearInterval(stopwatchInterval.current);
+          stopwatchInterval.current = null;
+        }
+        const now = Date.now();
+        const elapsed = prev.startTime ? Math.floor((now - prev.startTime) / 1000) : 0;
+        const newSeconds = prev.seconds + elapsed;
+        return {
+          isRunning: false,
+          seconds: newSeconds,
+          startTime: null,
+        };
+      } else {
+        // Start the stopwatch
+        const now = Date.now();
+        stopwatchInterval.current = setInterval(() => {
+          // Force a re-render to update the displayed time
+          setStopwatch((current) => ({ ...current }));
+        }, 100);
+        return {
+          ...prev,
+          isRunning: true,
+          startTime: now,
+        };
+      }
+    });
+  };
+
+  const resetStopwatch = () => {
+    if (stopwatchInterval.current) {
+      clearInterval(stopwatchInterval.current);
+      stopwatchInterval.current = null;
+    }
+    setStopwatch(initialStopwatchState);
+  };
+
   const contextValue: AppContextValue = {
     settings,
     obsConnection,
@@ -592,12 +677,19 @@ export const AppProvider: React.FC<AppProviderProps> = ({children}) => {
     isCurrentTimeFocused,
     connectionTestResult,
     isTestingConnection,
-    isDimmed, // Added for brightness control
+    isDimmed,
+    currentMode,
+    stopwatch,
     formattedTotalTime: formatHMS(
       totalTimeSeconds +
         (obsRecording.outputActive ? obsRecording.currentSessionSeconds : 0)
     ),
     formattedCurrentTime: formatHMS(obsRecording.currentSessionSeconds),
+    formattedStopwatchTime: formatHMS(
+      stopwatch.isRunning && stopwatch.startTime
+        ? stopwatch.seconds + Math.floor((Date.now() - stopwatch.startTime) / 1000)
+        : stopwatch.seconds
+    ),
     saveSettings,
     connectToOBS,
     disconnectFromOBS,
@@ -609,7 +701,10 @@ export const AppProvider: React.FC<AppProviderProps> = ({children}) => {
     },
     toggleTimerFocus: () => setIsCurrentTimeFocused((prev) => !prev),
     resetTotalTime,
-    toggleBrightness, // Added for brightness control
+    toggleBrightness,
+    setMode,
+    toggleStopwatch,
+    resetStopwatch,
     currentStatusIcon,
     currentStatusIconClass,
   };

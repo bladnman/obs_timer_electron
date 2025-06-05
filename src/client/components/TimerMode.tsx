@@ -53,10 +53,6 @@ const TimerMode: React.FC<TimerModeProps> = ({
     return (
       <div className={`timer-container ${isDimmed ? "dimmed" : ""}`}>
         <div className="timer-setup-container">
-          <div className="timer-setup-header">
-            <h3>Set Timer</h3>
-          </div>
-          
           <div className="timer-setup-inputs">
             <div className="time-input-group">
               <input
@@ -97,7 +93,7 @@ const TimerMode: React.FC<TimerModeProps> = ({
           
           <div className="timer-setup-actions">
             <button onClick={handleSetupSubmit} className="setup-button primary">
-              Start Timer
+              Start
             </button>
           </div>
         </div>

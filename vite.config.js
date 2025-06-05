@@ -13,7 +13,7 @@ export default defineConfig({
   ],
   root: process.cwd(),
   publicDir: path.resolve(process.cwd(), 'public'),
-  base: '/', // Simplified for now
+  base: './', // Use relative paths for Electron
   server: {
     port: 3000,
     host: '0.0.0.0',

@@ -117,13 +117,40 @@ function createWindow() {
     // Optionally open DevTools if VITE_DEV_SERVER_URL is set (implies development)
     // mainWindow.webContents.openDevTools();
   } else {
-    console.log('Loading from production build: dist/client/index.html');
-    mainWindow.loadFile(path.join(__dirname, '../dist/client/index.html'));
+    // In packaged app, files are relative to the app directory
+    // In development, files are in dist/client relative to the project root
+    let indexPath;
+    if (app.isPackaged) {
+      // In packaged app, the dist/client directory is at the root level of app.asar
+      indexPath = path.join(__dirname, '..', 'dist', 'client', 'index.html');
+    } else {
+      // In development, look relative to the src directory
+      indexPath = path.join(__dirname, '..', 'dist', 'client', 'index.html');
+    }
+    console.log(`Loading from production build: ${indexPath}`);
+    mainWindow.loadFile(indexPath).catch((error) => {
+      console.error('Failed to load index.html:', error);
+    });
   }
+
+  // Add error handling for renderer process
+  mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription, validatedURL) => {
+    console.error('Failed to load page:', errorCode, errorDescription, validatedURL);
+  });
+
+  mainWindow.webContents.on('crashed', (event, killed) => {
+    console.error('Renderer process crashed:', { killed });
+  });
+
+  // Log when the page starts loading
+  mainWindow.webContents.on('did-start-loading', () => {
+    console.log('Started loading page...');
+  });
 
   // Make window draggable by its content (since frame:false)
   // This makes the whole window draggable while keeping interactive elements clickable
   mainWindow.webContents.on('did-finish-load', () => {
+    console.log('Page finished loading successfully');
     mainWindow.webContents.insertCSS(`
       body { 
         -webkit-app-region: drag; 

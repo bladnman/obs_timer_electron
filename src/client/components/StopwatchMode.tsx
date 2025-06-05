@@ -1,5 +1,5 @@
 import React from "react";
-import { BiPlay, BiPause, BiReset } from "react-icons/bi";
+import { BiPlay, BiStop, BiReset } from "react-icons/bi";
 import TimerDisplay from "./TimerDisplay";
 
 interface StopwatchModeProps {
@@ -24,7 +24,7 @@ const StopwatchMode: React.FC<StopwatchModeProps> = ({
           <span
             className={`status-icon ${isRunning ? "recording" : "stopped"}`}
           >
-            {isRunning ? <BiPause /> : <BiPlay />}
+            {isRunning ? <BiPlay /> : <BiStop />}
           </span>
           <TimerDisplay
             time={formattedTime}

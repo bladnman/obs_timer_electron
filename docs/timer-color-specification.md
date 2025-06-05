@@ -45,7 +45,25 @@ When a countdown timer goes below zero (negative time), the display should:
 - All time displays (main timer, total timer, etc.) should follow these rules
 - Colors should remain consistent across different window sizes and responsive states
 
+## Icon State Indicators
+
+### Icon Philosophy
+Status icons should indicate the **current state** of the timer, not the available action. This provides immediate visual feedback about what the timer is doing.
+
+### Icon Definitions
+- **Running/Active**: Play triangle (▶) or similar "active" indicator
+- **Paused**: Pause bars (❚❚) - timer is paused but retains time
+- **Stopped**: Stop square (■) - timer is at zero or reset state
+- **Warning/Overtime**: Warning symbol (⚠) - for countdown timers in overtime
+
+### Implementation Notes
+- Icons serve as **state indicators**, not action buttons
+- Users click the timer display itself to toggle states
+- Icon changes should accompany color changes for consistent feedback
+- Avoid confusion by showing what IS happening, not what WILL happen
+
 ## Accessibility
 - Ensure sufficient contrast ratios for all color states
 - Consider color-blind users - rely on additional visual cues (icons, positioning) alongside color
 - Maintain readability in both normal and dimmed display modes
+- Icons must clearly differentiate between states for users who may not perceive color differences

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { BiPlay, BiPause, BiReset, BiEdit } from "react-icons/bi";
+import { BiPlay, BiStop, BiReset, BiEdit } from "react-icons/bi";
 import TimerDisplay from "./TimerDisplay";
 
 interface TimerModeProps {
@@ -113,8 +113,8 @@ const TimerMode: React.FC<TimerModeProps> = ({
 
   const getStatusIcon = () => {
     if (isOvertime) return "⚠";
-    if (isRunning) return <BiPause />;
-    return <BiPlay />;
+    if (isRunning) return <BiPlay />;
+    return <BiStop />;
   };
 
   const getStatusClassName = () => {

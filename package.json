@@ -1,6 +1,6 @@
 {
     "name": "obs-timer",
-    "version": "1.0.5",
+    "version": "1.0.6",
     "description": "OBS Timer - A floating timer for OBS Studio recording sessions",
     "main": "src/main.js",
     "scripts": {

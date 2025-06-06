@@ -1,6 +1,6 @@
 import React from "react";
-import { BiPlay, BiPause, BiReset } from "react-icons/bi";
-import TimerDisplay from "./TimerDisplay";
+import {BiReset} from "react-icons/bi";
+import ThreeColumnLayout from "./ThreeColumnLayout";
 
 interface StopwatchModeProps {
   formattedTime: string;
@@ -17,26 +17,29 @@ const StopwatchMode: React.FC<StopwatchModeProps> = ({
   onReset,
   isDimmed,
 }) => {
+  const timerClassName = `time-text ${
+    isRunning ? "stopwatch-running" : "stopwatch-stopped"
+  }`;
+
   return (
     <div className={`timer-container ${isDimmed ? "dimmed" : ""}`}>
-      <div className="mode-label">Stopwatch</div>
-      <div className="timer-display-row">
-        <div className="timer-icon">
+      <ThreeColumnLayout
+        label="Stopwatch"
+        left={
           <span
-            className={`status-icon ${isRunning ? "stopwatch-running" : "stopwatch-stopped"}`}
+            className={`status-icon ${
+              isRunning ? "stopwatch-running" : "stopwatch-stopped"
+            }`}
           >
             {isRunning ? "▶" : "⏸"}
           </span>
-        </div>
-        <div className="timer-display">
-          <TimerDisplay
-            time={formattedTime}
-            isFocused={true}
-            onClick={onToggle}
-            className={`main-timer-display ${isRunning ? "stopwatch-running" : "stopwatch-stopped"}`}
-          />
-        </div>
-        <div className="timer-action">
+        }
+        center={
+          <div onClick={onToggle} className={timerClassName}>
+            {formattedTime}
+          </div>
+        }
+        right={
           <button
             onClick={onReset}
             className="primary-action-button"
@@ -44,8 +47,8 @@ const StopwatchMode: React.FC<StopwatchModeProps> = ({
           >
             <BiReset />
           </button>
-        </div>
-      </div>
+        }
+      />
     </div>
   );
 };

@@ -1,14 +1,12 @@
 import React from "react";
-import TimerDisplay from "./TimerDisplay";
 import ConnectionStatus from "./ConnectionStatus";
+import ThreeColumnLayout from "./ThreeColumnLayout";
 
 interface OBSModeProps {
   currentStatusIcon: string;
   currentStatusIconClass: string;
   formattedCurrentTime: string;
   formattedTotalTime: string;
-  isCurrentTimeFocused: boolean;
-  onToggleTimerFocus: () => void;
   statusMessage: string;
   statusType: "connecting" | "connected" | "disconnected" | "error" | "hidden";
   isDimmed: boolean;
@@ -19,55 +17,32 @@ const OBSMode: React.FC<OBSModeProps> = ({
   currentStatusIconClass,
   formattedCurrentTime,
   formattedTotalTime,
-  isCurrentTimeFocused,
-  onToggleTimerFocus,
   statusMessage,
   statusType,
   isDimmed,
 }) => {
   return (
     <div className={`timer-container ${isDimmed ? "dimmed" : ""}`}>
-      <div className="mode-label">OBS Recording</div>
-      <div className="timer-display-row">
-        <div className="timer-icon">
+      <ThreeColumnLayout
+        label="OBS Recording"
+        left={
           <span
             id="status-icon"
             className={`status-icon ${currentStatusIconClass}`}
           >
             {currentStatusIcon}
           </span>
-        </div>
-        <div className="timer-display">
-          <TimerDisplay
-            time={formattedCurrentTime}
-            isFocused={isCurrentTimeFocused}
-            onClick={onToggleTimerFocus}
-            className={`main-timer-display ${currentStatusIconClass}`}
-          />
-        </div>
-        <div className="timer-action">
-          {/* No action for OBS mode */}
-        </div>
-      </div>
-
-      <div className="total-container">
-        <TimerDisplay
-          label="∞"
-          time={formattedTotalTime}
-          isFocused={!isCurrentTimeFocused}
-          onClick={onToggleTimerFocus}
-          className="total-timer-display"
-        />
-        <button
-          id="toggle-display"
-          className="toggle-button"
-          title="Toggle Focus"
-          onClick={onToggleTimerFocus}
-        >
-          ⇅
-        </button>
-      </div>
-
+        }
+        center={
+          <>
+            <div className={`time-text ${currentStatusIconClass}`}>
+              {formattedCurrentTime}
+            </div>
+            <div className="time-text total-time">{formattedTotalTime}</div>
+          </>
+        }
+        right={null /* No action button for this mode */}
+      />
       <ConnectionStatus statusText={statusMessage} statusType={statusType} />
     </div>
   );

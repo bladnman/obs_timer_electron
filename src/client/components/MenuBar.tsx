@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from "react";
-import { BiCog, BiReset, BiSun, BiMoon, BiMenu } from "react-icons/bi";
+import React, {useEffect, useRef, useState} from "react";
+import {BiCog, BiMenu, BiMoon, BiReset, BiSun} from "react-icons/bi";
 
 interface MenuBarProps {
   onSettingsClick: () => void;
@@ -7,6 +7,7 @@ interface MenuBarProps {
   onBrightnessToggle: () => void;
   onSettingsToggle: () => void;
   isDimmed: boolean;
+  showSettings: boolean;
 }
 
 const MenuBar: React.FC<MenuBarProps> = ({
@@ -15,6 +16,7 @@ const MenuBar: React.FC<MenuBarProps> = ({
   onBrightnessToggle,
   onSettingsToggle,
   isDimmed,
+  showSettings,
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -29,11 +31,11 @@ const MenuBar: React.FC<MenuBarProps> = ({
     };
 
     if (isMenuOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener("mousedown", handleClickOutside);
     }
 
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [isMenuOpen]);
 
@@ -79,7 +81,9 @@ const MenuBar: React.FC<MenuBarProps> = ({
       <div className="menu-icons-collapsed" ref={menuRef}>
         <button
           onClick={onSettingsToggle}
-          className="menu-button hamburger-button"
+          className={`menu-button hamburger-button ${
+            showSettings ? "active" : ""
+          }`}
           title="Toggle Settings"
         >
           <BiMenu />

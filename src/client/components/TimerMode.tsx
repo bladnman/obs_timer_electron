@@ -1,6 +1,6 @@
-import React, { useState } from "react";
-import { BiPlay, BiStop, BiReset, BiEdit } from "react-icons/bi";
-import TimerDisplay from "./TimerDisplay";
+import React, {useState} from "react";
+import {BiReset} from "react-icons/bi";
+import ThreeColumnLayout from "./ThreeColumnLayout";
 
 interface TimerModeProps {
   formattedTime: string;
@@ -33,17 +33,20 @@ const TimerMode: React.FC<TimerModeProps> = ({
     onSetupComplete(hours, minutes, seconds);
   };
 
-  const handleInputChange = (type: 'hours' | 'minutes' | 'seconds', value: string) => {
+  const handleInputChange = (
+    type: "hours" | "minutes" | "seconds",
+    value: string
+  ) => {
     const numValue = Math.max(0, parseInt(value) || 0);
-    
+
     switch (type) {
-      case 'hours':
+      case "hours":
         setHours(Math.min(23, numValue));
         break;
-      case 'minutes':
+      case "minutes":
         setMinutes(Math.min(59, numValue));
         break;
-      case 'seconds':
+      case "seconds":
         setSeconds(Math.min(59, numValue));
         break;
     }
@@ -52,12 +55,10 @@ const TimerMode: React.FC<TimerModeProps> = ({
   if (isSetupMode) {
     return (
       <div className={`timer-container ${isDimmed ? "dimmed" : ""}`}>
-        <div className="mode-label">Timer Setup</div>
-        <div className="timer-display-row">
-          <div className="timer-icon">
-            <span className="status-icon timer-stopped">⏱</span>
-          </div>
-          <div className="timer-display">
+        <ThreeColumnLayout
+          label="Timer Setup"
+          left={<span className="status-icon timer-stopped">⏱</span>}
+          center={
             <div className="timer-setup-container">
               <div className="timer-setup-inputs">
                 <div className="time-input-group">
@@ -66,7 +67,7 @@ const TimerMode: React.FC<TimerModeProps> = ({
                     min="0"
                     max="23"
                     value={hours}
-                    onChange={(e) => handleInputChange('hours', e.target.value)}
+                    onChange={(e) => handleInputChange("hours", e.target.value)}
                     className="time-input"
                   />
                   <label>H</label>
@@ -78,7 +79,9 @@ const TimerMode: React.FC<TimerModeProps> = ({
                     min="0"
                     max="59"
                     value={minutes}
-                    onChange={(e) => handleInputChange('minutes', e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("minutes", e.target.value)
+                    }
                     className="time-input"
                   />
                   <label>M</label>
@@ -90,32 +93,35 @@ const TimerMode: React.FC<TimerModeProps> = ({
                     min="0"
                     max="59"
                     value={seconds}
-                    onChange={(e) => handleInputChange('seconds', e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("seconds", e.target.value)
+                    }
                     className="time-input"
                   />
                   <label>S</label>
                 </div>
               </div>
-              
+
               <div className="timer-setup-actions">
-                <button onClick={handleSetupSubmit} className="setup-button primary">
+                <button
+                  onClick={handleSetupSubmit}
+                  className="setup-button primary"
+                >
                   Set
                 </button>
               </div>
             </div>
-          </div>
-          <div className="timer-action">
-            {/* No action needed during setup */}
-          </div>
-        </div>
+          }
+          right={<div />}
+        />
       </div>
     );
   }
 
   const getTimerClassName = () => {
-    if (isOvertime) return "main-timer-display timer-overtime";
-    if (isRunning) return "main-timer-display timer-running";
-    return "main-timer-display timer-stopped";
+    if (isOvertime) return "time-text timer-overtime";
+    if (isRunning) return "time-text timer-running";
+    return "time-text timer-stopped";
   };
 
   const getStatusIcon = () => {
@@ -132,22 +138,15 @@ const TimerMode: React.FC<TimerModeProps> = ({
 
   return (
     <div className={`timer-container ${isDimmed ? "dimmed" : ""}`}>
-      <div className="mode-label">{isOvertime ? "Timer (Overtime)" : "Countdown Timer"}</div>
-      <div className="timer-display-row">
-        <div className="timer-icon">
-          <span className={getStatusClassName()}>
-            {getStatusIcon()}
-          </span>
-        </div>
-        <div className="timer-display">
-          <TimerDisplay
-            time={formattedTime}
-            isFocused={true}
-            onClick={onToggle}
-            className={getTimerClassName()}
-          />
-        </div>
-        <div className="timer-action">
+      <ThreeColumnLayout
+        label={isOvertime ? "Timer (Overtime)" : "Countdown Timer"}
+        left={<span className={getStatusClassName()}>{getStatusIcon()}</span>}
+        center={
+          <div onClick={onToggle} className={getTimerClassName()}>
+            {formattedTime}
+          </div>
+        }
+        right={
           <button
             onClick={onReset}
             className="primary-action-button"
@@ -155,8 +154,8 @@ const TimerMode: React.FC<TimerModeProps> = ({
           >
             <BiReset />
           </button>
-        </div>
-      </div>
+        }
+      />
     </div>
   );
 };

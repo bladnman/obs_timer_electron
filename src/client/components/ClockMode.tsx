@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
-import { BiTime } from "react-icons/bi";
-import TimerDisplay from "./TimerDisplay";
+import React, {useEffect, useState} from "react";
+import {BiTime} from "react-icons/bi";
+import ThreeColumnLayout from "./ThreeColumnLayout";
 
 interface ClockModeProps {
   isDimmed: boolean;
@@ -8,14 +8,18 @@ interface ClockModeProps {
   onToggleFormat: () => void;
 }
 
-const ClockMode: React.FC<ClockModeProps> = ({ isDimmed, is24Hour, onToggleFormat }) => {
+const ClockMode: React.FC<ClockModeProps> = ({
+  isDimmed,
+  is24Hour,
+  onToggleFormat,
+}) => {
   const [currentTime, setCurrentTime] = useState("");
   const [ampm, setAmpm] = useState("");
 
   useEffect(() => {
     const updateTime = () => {
       const now = new Date();
-      
+
       if (is24Hour) {
         const hours = now.getHours().toString().padStart(2, "0");
         const minutes = now.getMinutes().toString().padStart(2, "0");
@@ -41,28 +45,22 @@ const ClockMode: React.FC<ClockModeProps> = ({ isDimmed, is24Hour, onToggleForma
 
   return (
     <div className={`timer-container ${isDimmed ? "dimmed" : ""}`}>
-      {/* Clock has no label */}
-      <div className="timer-display-row">
-        <div className="timer-icon">
+      <ThreeColumnLayout
+        left={
           <span className="status-icon recording">
             <BiTime />
           </span>
-        </div>
-        <div className="timer-display">
+        }
+        center={
           <div className="clock-time-container" onClick={onToggleFormat}>
-            <TimerDisplay
-              time={currentTime}
-              isFocused={true}
-              onClick={() => {}} // Handled by parent container
-              className="main-timer-display recording"
-            />
+            <div className="time-text recording">{currentTime}</div>
             {ampm && <span className="clock-ampm">{ampm}</span>}
           </div>
-        </div>
-        <div className="timer-action">
-          {/* No action for clock mode */}
-        </div>
-      </div>
+        }
+        right={
+          <div /> // Placeholder for consistent layout
+        }
+      />
     </div>
   );
 };

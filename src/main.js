@@ -1,12 +1,22 @@
 const { app, BrowserWindow, Menu } = require('electron'); // Added Menu
 const path = require('path');
+const Store = require('electron-store');
 
-// No longer need fs for settings here as it's client-side localStorage
+const store = new Store();
+
+const INITIAL_WIDTH = 422;
+const ASPECT_RATIO = INITIAL_WIDTH / 102;
+const INITIAL_HEIGHT = Math.round(INITIAL_WIDTH / ASPECT_RATIO);
 
 function createWindow() {
+  const { width: savedWidth, x, y } = store.get('windowBounds', { width: INITIAL_WIDTH });
+  const height = Math.round(savedWidth / ASPECT_RATIO);
+
   const mainWindow = new BrowserWindow({
-    width: 270, // Adjusted width for better content fit
-    height: 160, // Adjusted height
+    width: savedWidth,
+    height: height,
+    x,
+    y,
     frame: false,      // Frameless window
     transparent: true, // Transparent background
     alwaysOnTop: true, // Always on top
@@ -19,8 +29,27 @@ function createWindow() {
       // Consider sandbox: true for more security if preload is minimal/empty
     },
     // Setting a minimum size can be useful
-    minWidth: 150,
-    minHeight: 100,
+    minWidth: 211, // Half of the initial size
+    minHeight: Math.round(211 / ASPECT_RATIO),
+    aspectRatio: ASPECT_RATIO,
+  });
+
+  mainWindow.on('resize', () => {
+    const [width, height] = mainWindow.getSize();
+    const newHeight = Math.round(width / ASPECT_RATIO);
+    
+    // Enforce the aspect ratio if the height is not correct
+    if (height !== newHeight) {
+      mainWindow.setSize(width, newHeight, false); // `false` for not animating
+    }
+
+    const bounds = mainWindow.getBounds();
+    store.set('windowBounds', bounds);
+  });
+
+  mainWindow.on('move', () => {
+    const bounds = mainWindow.getBounds();
+    store.set('windowBounds', bounds);
   });
 
   // --- Menu ---

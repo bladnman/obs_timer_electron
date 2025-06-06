@@ -50,9 +50,9 @@ describe("<App />", () => {
     const timerContainers = document.querySelectorAll(".time-text");
     expect(timerContainers.length).toBeGreaterThanOrEqual(1); // Expect at least one, likely two
 
-    // Check that we have time number elements with "00"
-    const timeNumbers = screen.getAllByText("00");
-    expect(timeNumbers.length).toBeGreaterThanOrEqual(4); // Should have at least 4 "00" spans (2 timers × 2 "00"s each)
+    // Check that we have time displays showing "00:00:00" format
+    const timeDisplays = screen.getAllByText("00:00:00");
+    expect(timeDisplays.length).toBeGreaterThanOrEqual(2); // Should have at least 2 timer displays
 
     // Check that the status icon is present
     expect(document.getElementById("status-icon")).toBeInTheDocument();

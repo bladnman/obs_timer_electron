@@ -52,6 +52,11 @@ function createWindow() {
     store.set('windowBounds', bounds);
   });
 
+  // Ensure app quits when window is closed
+  mainWindow.on('close', () => {
+    app.quit();
+  });
+
   // --- Menu ---
   // Create a minimal menu, especially for macOS (app menu, copy/paste)
   // and to provide a way to quit and open DevTools.
@@ -211,7 +216,8 @@ app.whenReady().then(() => {
 });
 
 app.on('window-all-closed', function () {
-  if (process.platform !== 'darwin') app.quit();
+  // For a utility app like timer, quit when window is closed on all platforms
+  app.quit();
 });
 
 // Ensure app quits on SIGINT (Ctrl+C) from terminal

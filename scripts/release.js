@@ -76,12 +76,18 @@ Download the appropriate installer for your platform from the assets below.
     execSync('gh --version', { stdio: 'pipe' });
     
     // Create the release with GitHub CLI
+    // Use glob patterns that match actual build artifacts
     const distFiles = [
-      'dist/*.dmg',
+      `dist/OBS Timer-${version}.dmg`,
+      `dist/OBS Timer-${version}-arm64.dmg`,
       'dist/*.exe', 
       'dist/*.AppImage',
       'dist/*.zip'
-    ].join(' ');
+    ].filter(file => {
+      // Only include files that exist for current build
+      if (file.includes('*.')) return true; // Keep glob patterns for potential future builds
+      return fs.existsSync(file);
+    }).join(' ');
 
     const releaseCommand = `gh release create v${version} ${distFiles} --title "Release v${version}" --notes-file "${notesFile}" --draft=false`;
     

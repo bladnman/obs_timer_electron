@@ -1065,6 +1065,33 @@ body, html {
   cursor: default; /* Not clickable */
 }
 
+/* Container for total time and reset icon */
+.total-time-container {
+  display: flex;
+  align-items: center;
+  gap: 0.3em;
+}
+
+/* Small reset icon for total time */
+.reset-total-button {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 0.8em;
+  width: 1.4em;
+  height: 1.4em;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.reset-total-button:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.8);
+}
+
 /* Icons */
 .status-icon { font-size: 1em; /* Inherits size from parent (.timer-icon) */ opacity: 0.8; }
 .status-icon.recording { color: var(--color-running); }

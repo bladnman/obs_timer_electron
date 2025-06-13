@@ -180,6 +180,7 @@ function App() {
           statusMessage={statusMessage}
           statusType={statusType}
           isDimmed={isDimmed}
+          onResetTotal={resetTotalTime}
           onRetry={onRetry}
         />
       ),

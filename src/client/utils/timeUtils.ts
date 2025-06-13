@@ -46,7 +46,7 @@ export function parseTimecodeToSeconds(timecode: string): number {
  * @returns Elapsed seconds, or 0 if startTime is null.
  */
 export function getElapsedSeconds(startTime: number | null): number {
-  if (!startTime) {
+  if (startTime === null) {
     return 0;
   }
   return Math.floor((Date.now() - startTime) / 1000);

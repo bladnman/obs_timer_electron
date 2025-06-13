@@ -67,6 +67,12 @@ describe("timeUtils", () => {
       expect(getElapsedSeconds(null)).toBe(0);
     });
 
+    test("handles start time of zero", () => {
+      const mockNow = 5000;
+      Date.now = jest.fn(() => mockNow);
+      expect(getElapsedSeconds(0)).toBe(5);
+    });
+
     test("returns negative for future start time", () => {
       const mockNow = 1670000000000;
       Date.now = jest.fn(() => mockNow);

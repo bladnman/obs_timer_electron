@@ -52,6 +52,7 @@ function App() {
     enterTimerSetup,
     toggleClockFormat,
     toggleSettings,
+    connectToOBS,
   } = useAppContext();
 
   const modes: AppMode[] = ["obs", "stopwatch", "timer", "clock"];
@@ -150,6 +151,7 @@ function App() {
     | "disconnected"
     | "error"
     | "hidden" = "hidden";
+  let onRetry: (() => void) | undefined;
 
   if (obsConnection.isConnecting) {
     statusMessage = "Connecting to OBS...";
@@ -157,6 +159,11 @@ function App() {
   } else if (obsConnection.error) {
     statusMessage = obsConnection.error;
     statusType = "error";
+    onRetry = connectToOBS;
+  } else if (!obsConnection.isConnected) {
+    statusMessage = "OBS unavailable";
+    statusType = "disconnected";
+    onRetry = connectToOBS;
   } else if (obsConnection.isConnected && !obsConnection.error) {
     statusMessage = "";
     statusType = "hidden";

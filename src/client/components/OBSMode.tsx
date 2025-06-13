@@ -55,7 +55,11 @@ const OBSMode: React.FC<OBSModeProps> = ({
         }
         right={null /* No action button for this mode */}
       />
-      <ConnectionStatus statusText={statusMessage} statusType={statusType} />
+      <ConnectionStatus
+        statusText={statusMessage}
+        statusType={statusType}
+        onRetry={onRetry}
+      />
     </div>
   );
 };

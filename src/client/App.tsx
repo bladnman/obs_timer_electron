@@ -173,6 +173,7 @@ function App() {
           statusMessage={statusMessage}
           statusType={statusType}
           isDimmed={isDimmed}
+          onResetTotal={resetTotalTime}
         />
       ),
       stopwatch: (

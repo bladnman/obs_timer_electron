@@ -1,4 +1,5 @@
 import React from "react";
+import {BiReset} from "react-icons/bi";
 import ConnectionStatus from "./ConnectionStatus";
 import ThreeColumnLayout from "./ThreeColumnLayout";
 
@@ -10,6 +11,7 @@ interface OBSModeProps {
   statusMessage: string;
   statusType: "connecting" | "connected" | "disconnected" | "error" | "hidden";
   isDimmed: boolean;
+  onResetTotal: () => void;
 }
 
 const OBSMode: React.FC<OBSModeProps> = ({
@@ -20,6 +22,7 @@ const OBSMode: React.FC<OBSModeProps> = ({
   statusMessage,
   statusType,
   isDimmed,
+  onResetTotal,
 }) => {
   return (
     <div className={`timer-container ${isDimmed ? "dimmed" : ""}`}>
@@ -38,7 +41,16 @@ const OBSMode: React.FC<OBSModeProps> = ({
             <div className={`time-text ${currentStatusIconClass}`}>
               {formattedCurrentTime}
             </div>
-            <div className="time-text total-time">{formattedTotalTime}</div>
+            <div className="total-time-container">
+              <div className="time-text total-time">{formattedTotalTime}</div>
+              <button
+                onClick={onResetTotal}
+                className="reset-total-button"
+                title="Reset Total Time"
+              >
+                <BiReset />
+              </button>
+            </div>
           </>
         }
         right={null /* No action button for this mode */}

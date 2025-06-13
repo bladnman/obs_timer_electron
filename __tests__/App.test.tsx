@@ -2,6 +2,7 @@ import {render, screen} from "@testing-library/react";
 import React from "react";
 import App from "../src/client/App";
 import {AppProvider} from "../src/client/contexts/AppContext";
+import obsService from "../src/client/services/obsService";
 
 // Helper to render with provider
 const renderWithProvider = (ui: React.ReactElement) => {
@@ -56,6 +57,12 @@ describe("<App />", () => {
 
     // Check that the status icon is present
     expect(document.getElementById("status-icon")).toBeInTheDocument();
+  });
+
+  test("shows retry button when connection fails", async () => {
+    (obsService.connect as jest.Mock).mockRejectedValueOnce(new Error("fail"));
+    renderWithProvider(<App />);
+    expect(await screen.findByTitle("Retry Connection")).toBeInTheDocument();
   });
 
   // Add more tests:

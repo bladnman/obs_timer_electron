@@ -225,6 +225,11 @@ export const AppProvider: React.FC<AppProviderProps> = ({children}) => {
   // Timer interval ref
   const timerInterval = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  // Interval for automatic reconnect attempts
+  const autoReconnectInterval = useRef<ReturnType<typeof setInterval> | null>(
+    null
+  );
+
   // To track previous recording state for saving total time
   const prevOutputActiveRef = useRef<boolean>(false);
 
@@ -633,9 +638,34 @@ export const AppProvider: React.FC<AppProviderProps> = ({children}) => {
       if (timerInterval.current) {
         clearInterval(timerInterval.current);
       }
+      if (autoReconnectInterval.current) {
+        clearInterval(autoReconnectInterval.current);
+        autoReconnectInterval.current = null;
+      }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Changed dependency array to empty
+
+  // Automatically attempt reconnection while disconnected
+  useEffect(() => {
+    if (!obsConnection.isConnected && !obsConnection.isConnecting) {
+      if (!autoReconnectInterval.current) {
+        autoReconnectInterval.current = setInterval(() => {
+          console.log("AppProvider: auto reconnect attempt");
+          connectToOBS();
+        }, 10000);
+      }
+    } else if (autoReconnectInterval.current) {
+      clearInterval(autoReconnectInterval.current);
+      autoReconnectInterval.current = null;
+    }
+    return () => {
+      if (autoReconnectInterval.current) {
+        clearInterval(autoReconnectInterval.current);
+        autoReconnectInterval.current = null;
+      }
+    };
+  }, [obsConnection.isConnected, obsConnection.isConnecting]);
 
   // Derived state for status icon
   let currentStatusIcon = "■";

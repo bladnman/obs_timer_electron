@@ -446,6 +446,15 @@ body, html {
     pointer-events: none;
 }
 
+.retry-button {
+    background: none;
+    border: none;
+    color: inherit;
+    font-size: 1em;
+    margin-left: 0.3em;
+    cursor: pointer;
+}
+
 
 /* Settings Modal - Adopt original styling more closely */
 .modal-overlay { /* Renamed from .modal to .modal-overlay for clarity */

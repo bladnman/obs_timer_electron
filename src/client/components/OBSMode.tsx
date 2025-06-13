@@ -10,6 +10,7 @@ interface OBSModeProps {
   statusMessage: string;
   statusType: "connecting" | "connected" | "disconnected" | "error" | "hidden";
   isDimmed: boolean;
+  onRetry?: () => void;
 }
 
 const OBSMode: React.FC<OBSModeProps> = ({
@@ -20,6 +21,7 @@ const OBSMode: React.FC<OBSModeProps> = ({
   statusMessage,
   statusType,
   isDimmed,
+  onRetry,
 }) => {
   return (
     <div className={`timer-container ${isDimmed ? "dimmed" : ""}`}>
@@ -43,7 +45,11 @@ const OBSMode: React.FC<OBSModeProps> = ({
         }
         right={null /* No action button for this mode */}
       />
-      <ConnectionStatus statusText={statusMessage} statusType={statusType} />
+      <ConnectionStatus
+        statusText={statusMessage}
+        statusType={statusType}
+        onRetry={onRetry}
+      />
     </div>
   );
 };

@@ -181,6 +181,7 @@ function App() {
           statusType={statusType}
           isDimmed={isDimmed}
           onResetTotal={resetTotalTime}
+          onRetry={onRetry}
         />
       ),
       stopwatch: (

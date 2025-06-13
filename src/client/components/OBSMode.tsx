@@ -12,6 +12,7 @@ interface OBSModeProps {
   statusType: "connecting" | "connected" | "disconnected" | "error" | "hidden";
   isDimmed: boolean;
   onResetTotal: () => void;
+  onRetry?: () => void;
 }
 
 const OBSMode: React.FC<OBSModeProps> = ({
@@ -23,6 +24,7 @@ const OBSMode: React.FC<OBSModeProps> = ({
   statusType,
   isDimmed,
   onResetTotal,
+  onRetry,
 }) => {
   return (
     <div className={`timer-container ${isDimmed ? "dimmed" : ""}`}>

@@ -1,3 +1,4 @@
+import "@testing-library/jest-dom";
 import {render, screen} from "@testing-library/react";
 import React from "react";
 import App from "../src/client/App";
@@ -45,7 +46,8 @@ describe("<App />", () => {
     // Check for some key elements to ensure basic rendering
     // Menu buttons (title is a good way to find them if text is just icons)
     expect(screen.getByTitle("Settings")).toBeInTheDocument();
-    expect(screen.getByTitle("Reset Total Time")).toBeInTheDocument();
+    const resetButtons = screen.getAllByTitle("Reset Total Time");
+    expect(resetButtons.length).toBe(2); // We expect 2 reset buttons - one in menu and one in timer display
 
     // Timer displays - check for time-text containers
     const timerContainers = document.querySelectorAll(".time-text");

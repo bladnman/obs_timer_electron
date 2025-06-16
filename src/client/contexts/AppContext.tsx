@@ -35,7 +35,7 @@ export interface OBSRecordingState {
   currentSessionSeconds: number; // Seconds accumulated in the current recording session based on timecode
 }
 
-export type AppMode = 'obs' | 'stopwatch' | 'timer' | 'clock';
+export type AppMode = "obs" | "stopwatch" | "timer" | "clock";
 
 export interface StopwatchState {
   isRunning: boolean;
@@ -150,7 +150,7 @@ const initialState: AppState = {
   connectionTestResult: null,
   isTestingConnection: false,
   isDimmed: false, // Default to bright
-  currentMode: 'obs',
+  currentMode: "obs",
   stopwatch: initialStopwatchState,
   timer: initialTimerState,
   clock: initialClockState,
@@ -208,8 +208,10 @@ export const AppProvider: React.FC<AppProviderProps> = ({children}) => {
   >(null);
   const [isTestingConnection, setIsTestingConnection] = useState(false);
   const [isDimmed, setIsDimmed] = useState(false);
-  const [currentMode, setCurrentMode] = useState<AppMode>('obs');
-  const [stopwatch, setStopwatch] = useState<StopwatchState>(initialStopwatchState);
+  const [currentMode, setCurrentMode] = useState<AppMode>("obs");
+  const [stopwatch, setStopwatch] = useState<StopwatchState>(
+    initialStopwatchState
+  );
   const [timer, setTimer] = useState<TimerState>(initialTimerState);
   const [clock, setClock] = useState<ClockState>(initialClockState);
   const [showSettings, setShowSettings] = useState<boolean>(false);
@@ -218,10 +220,10 @@ export const AppProvider: React.FC<AppProviderProps> = ({children}) => {
   const timecodeUpdateInterval = useRef<ReturnType<typeof setInterval> | null>(
     null
   );
-  
+
   // Stopwatch interval ref
   const stopwatchInterval = useRef<ReturnType<typeof setInterval> | null>(null);
-  
+
   // Timer interval ref
   const timerInterval = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -274,14 +276,17 @@ export const AppProvider: React.FC<AppProviderProps> = ({children}) => {
 
     // Load current mode from localStorage
     const storedMode = localStorage.getItem("obsTimerCurrentMode");
-    if (storedMode && ['obs', 'stopwatch', 'timer', 'clock'].includes(storedMode)) {
+    if (
+      storedMode &&
+      ["obs", "stopwatch", "timer", "clock"].includes(storedMode)
+    ) {
       setCurrentMode(storedMode as AppMode);
     }
 
     // Load clock settings from localStorage
     const storedClockFormat = localStorage.getItem("obsTimerClockIs24Hour");
     if (storedClockFormat !== null) {
-      setClock({ is24Hour: storedClockFormat === "true" });
+      setClock({is24Hour: storedClockFormat === "true"});
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Connect on mount
@@ -337,6 +342,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({children}) => {
       );
       await obsService.connect(obsConnectOpts);
     } catch (error: any) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       if (!obsService.isConnected) {
         setObsConnection((prev) => ({
           ...prev,
@@ -392,6 +398,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({children}) => {
       setConnectionTestResult(`✓ Connected to OBS ${versionInfo.obsVersion}`);
       await testObs.disconnect();
     } catch (error: any) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       setConnectionTestResult(
         `✗ Connection failed: ${error.message || "Unknown error"}`
       );
@@ -454,6 +461,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({children}) => {
             version?.obsVersion
           );
         } catch (e: any) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           console.error("Error fetching OBS version:", e);
         }
 
@@ -487,6 +495,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({children}) => {
             }
           }
         } catch (e: any) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           console.error("Error fetching initial OBS record status:", e);
           prevOutputActiveRef.current = false;
         }
@@ -727,7 +736,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({children}) => {
     setClock((prev) => {
       const newIs24Hour = !prev.is24Hour;
       localStorage.setItem("obsTimerClockIs24Hour", newIs24Hour.toString());
-      return { is24Hour: newIs24Hour };
+      return {is24Hour: newIs24Hour};
     });
   };
 
@@ -740,7 +749,9 @@ export const AppProvider: React.FC<AppProviderProps> = ({children}) => {
           stopwatchInterval.current = null;
         }
         const now = Date.now();
-        const elapsed = prev.startTime ? Math.floor((now - prev.startTime) / 1000) : 0;
+        const elapsed = prev.startTime
+          ? Math.floor((now - prev.startTime) / 1000)
+          : 0;
         const newSeconds = prev.seconds + elapsed;
         return {
           isRunning: false,
@@ -752,7 +763,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({children}) => {
         const now = Date.now();
         stopwatchInterval.current = setInterval(() => {
           // Force a re-render to update the displayed time
-          setStopwatch((current) => ({ ...current }));
+          setStopwatch((current) => ({...current}));
         }, 100);
         return {
           ...prev,
@@ -772,7 +783,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({children}) => {
   };
 
   const setupTimer = (hours: number, minutes: number, seconds: number) => {
-    const totalSeconds = (hours * 3600) + (minutes * 60) + seconds;
+    const totalSeconds = hours * 3600 + minutes * 60 + seconds;
     setTimer({
       isRunning: false,
       isSetupMode: false,
@@ -794,9 +805,11 @@ export const AppProvider: React.FC<AppProviderProps> = ({children}) => {
           timerInterval.current = null;
         }
         const now = Date.now();
-        const elapsed = prev.startTime ? Math.floor((now - prev.startTime) / 1000) : 0;
+        const elapsed = prev.startTime
+          ? Math.floor((now - prev.startTime) / 1000)
+          : 0;
         const newRemaining = prev.remainingSeconds - elapsed;
-        
+
         return {
           ...prev,
           isRunning: false,
@@ -809,7 +822,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({children}) => {
         const now = Date.now();
         timerInterval.current = setInterval(() => {
           // Force a re-render to update the displayed time
-          setTimer((current) => ({ ...current }));
+          setTimer((current) => ({...current}));
         }, 100);
         return {
           ...prev,
@@ -854,12 +867,12 @@ export const AppProvider: React.FC<AppProviderProps> = ({children}) => {
     if (!timer.isRunning || !timer.startTime) return timer.remainingSeconds;
     const elapsed = Math.floor((Date.now() - timer.startTime) / 1000);
     const remaining = timer.remainingSeconds - elapsed;
-    
+
     // Update overtime state if we've gone negative
     if (remaining < 0 && !timer.isOvertime) {
-      setTimer(prev => ({ ...prev, isOvertime: true }));
+      setTimer((prev) => ({...prev, isOvertime: true}));
     }
-    
+
     return remaining;
   };
 
@@ -885,7 +898,8 @@ export const AppProvider: React.FC<AppProviderProps> = ({children}) => {
     formattedCurrentTime: formatHMS(obsRecording.currentSessionSeconds),
     formattedStopwatchTime: formatHMS(
       stopwatch.isRunning && stopwatch.startTime
-        ? stopwatch.seconds + Math.floor((Date.now() - stopwatch.startTime) / 1000)
+        ? stopwatch.seconds +
+            Math.floor((Date.now() - stopwatch.startTime) / 1000)
         : stopwatch.seconds
     ),
     formattedTimerTime: (() => {

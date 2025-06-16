@@ -6,6 +6,7 @@ const store = new Store();
 
 const INITIAL_WIDTH = 422;
 const ASPECT_RATIO = INITIAL_WIDTH / 102;
+// eslint-disable-next-line no-unused-vars
 const INITIAL_HEIGHT = Math.round(INITIAL_WIDTH / ASPECT_RATIO);
 
 function createWindow() {

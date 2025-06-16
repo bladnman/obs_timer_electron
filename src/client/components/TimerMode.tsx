@@ -10,6 +10,7 @@ interface TimerModeProps {
   onToggle: () => void;
   onReset: () => void;
   onSetupComplete: (hours: number, minutes: number, seconds: number) => void;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   onEnterSetup: () => void;
   isDimmed: boolean;
 }

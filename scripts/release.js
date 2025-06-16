@@ -20,6 +20,7 @@ function run(command, description) {
   try {
     const output = execSync(command, { stdio: 'inherit', cwd: process.cwd() });
     return output;
+  // eslint-disable-next-line no-unused-vars
   } catch (err) {
     error(`Failed: ${description}\nCommand: ${command}\nError: ${err.message}`);
   }
@@ -36,6 +37,7 @@ function validateGitStatus() {
     if (status.trim()) {
       error('Working directory is not clean. Please commit or stash your changes first.');
     }
+  // eslint-disable-next-line no-unused-vars
   } catch (err) {
     error('Failed to check git status. Make sure you\'re in a git repository.');
   }

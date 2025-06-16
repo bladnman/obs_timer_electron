@@ -12,6 +12,7 @@ import {AppMode, useAppContext} from "./contexts/AppContext";
 function App() {
   const touchStartY = useRef<number | null>(null);
   const [isScrolling, setIsScrolling] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [showModeTransition, setShowModeTransition] = useState(false);
   const lastScrollTime = useRef<number>(0);
 
@@ -20,6 +21,7 @@ function App() {
     settings,
     obsConnection,
     isSettingsModalOpen,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     isCurrentTimeFocused,
     connectionTestResult,
     isTestingConnection,
@@ -40,6 +42,7 @@ function App() {
     closeSettingsModal,
     saveSettings,
     testOBSConnection,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     toggleTimerFocus,
     resetTotalTime,
     toggleBrightness,

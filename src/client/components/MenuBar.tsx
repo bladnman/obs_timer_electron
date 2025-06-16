@@ -39,10 +39,12 @@ const MenuBar: React.FC<MenuBarProps> = ({
     };
   }, [isMenuOpen]);
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleMenuToggle = () => {
     setIsMenuOpen(!isMenuOpen);
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleMenuItemClick = (action: () => void) => {
     action();
     setIsMenuOpen(false);

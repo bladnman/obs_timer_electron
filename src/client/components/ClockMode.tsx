@@ -29,7 +29,7 @@ const ClockMode: React.FC<ClockModeProps> = ({
         const hours12 = now.getHours() % 12 || 12;
         const ampmValue = now.getHours() >= 12 ? "PM" : "AM";
         const minutes = now.getMinutes().toString().padStart(2, "0");
-        setCurrentTime(`${hours12.toString().padStart(2, "0")}:${minutes}`);
+        setCurrentTime(`${hours12}:${minutes}`);
         setAmpm(ampmValue);
       }
     };

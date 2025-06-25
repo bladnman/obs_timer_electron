@@ -39,5 +39,6 @@ Then the Overview and Phases.
 Phase Execution: At the end of the document, add this note:
 “Work this plan phase by phase, checking off each item as it is completed. Always update the status line to reflect current progress.”
 
-Example Task:
-For this request, please create a plan for: [Insert specific software task here]
+---
+For this request, please create a plan for: 
+$ARGUMENTS

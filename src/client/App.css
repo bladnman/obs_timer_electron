@@ -853,6 +853,13 @@ body, html {
   animation: overtime-throb 1s ease-in-out infinite alternate;
 }
 
+/* Reduce font size slightly for overtime to prevent overflow */
+.time-text.timer-overtime {
+  color: var(--color-trouble) !important;
+  animation: overtime-throb 1s ease-in-out infinite alternate;
+  font-size: 1.8em !important; /* Slightly smaller than default 2em */
+}
+
 .status-icon.overtime {
   color: var(--color-trouble);
   animation: overtime-throb 1s ease-in-out infinite alternate;

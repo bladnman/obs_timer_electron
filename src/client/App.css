@@ -1069,7 +1069,6 @@ body, html {
   font-size: 0.75em; /* Larger, more readable size */
   color: #cccccc; /* Neutral light gray color */
   margin-top: 0.2em; /* Spacing below primary time */
-  cursor: default; /* Not clickable */
 }
 
 /* Container for total time and reset icon */
@@ -1077,6 +1076,27 @@ body, html {
   display: flex;
   align-items: center;
   gap: 0.3em;
+}
+
+/* Individual time segments for manual adjustment */
+.time-segment {
+  cursor: pointer;
+  padding: 0 0.1em;
+  border-radius: 0.2em;
+  transition: all 0.2s ease;
+}
+
+.time-segment:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.time-segment.selected {
+  background-color: #0066cc;
+  color: #ffffff;
+}
+
+.time-segment.selected:hover {
+  background-color: #0055aa;
 }
 
 /* Small reset icon for total time */

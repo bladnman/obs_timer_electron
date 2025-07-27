@@ -56,6 +56,8 @@ export interface ClockState {
   is24Hour: boolean;
 }
 
+export type TimeSegment = "hours" | "minutes" | "seconds" | null;
+
 interface AppState {
   settings: OBSSettings;
   obsConnection: OBSConnectionState;
@@ -71,6 +73,7 @@ interface AppState {
   timer: TimerState;
   clock: ClockState;
   showSettings: boolean; // For hamburger menu toggle
+  selectedTimeSegment: TimeSegment; // For manual time adjustment
 }
 
 // --- Context Value Interface ---
@@ -93,6 +96,8 @@ interface AppContextValue extends AppState {
   enterTimerSetup: () => void;
   toggleClockFormat: () => void;
   toggleSettings: () => void; // For hamburger menu toggle
+  selectTimeSegment: (segment: TimeSegment) => void;
+  adjustTotalTime: (amount: number) => void;
   currentStatusIcon: string;
   currentStatusIconClass: string;
   formattedTotalTime: string; // Derived state for display
@@ -155,6 +160,7 @@ const initialState: AppState = {
   timer: initialTimerState,
   clock: initialClockState,
   showSettings: false, // Default to display mode
+  selectedTimeSegment: null,
 };
 
 const AppContext = createContext<AppContextValue>({
@@ -181,6 +187,8 @@ const AppContext = createContext<AppContextValue>({
   enterTimerSetup: () => {},
   toggleClockFormat: () => {},
   toggleSettings: () => {},
+  selectTimeSegment: () => {},
+  adjustTotalTime: () => {},
   currentStatusIcon: "■",
   currentStatusIconClass: "stopped",
 });
@@ -215,6 +223,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({children}) => {
   const [timer, setTimer] = useState<TimerState>(initialTimerState);
   const [clock, setClock] = useState<ClockState>(initialClockState);
   const [showSettings, setShowSettings] = useState<boolean>(false);
+  const [selectedTimeSegment, setSelectedTimeSegment] = useState<TimeSegment>(null);
 
   // Re-add polling interval ref, but only for timecode updates during recording
   const timecodeUpdateInterval = useRef<ReturnType<typeof setInterval> | null>(
@@ -876,6 +885,18 @@ export const AppProvider: React.FC<AppProviderProps> = ({children}) => {
     return remaining;
   };
 
+  const selectTimeSegment = (segment: TimeSegment) => {
+    setSelectedTimeSegment(segment);
+  };
+
+  const adjustTotalTime = (amount: number) => {
+    setTotalTimeSeconds((prevTotal) => {
+      const newTotal = Math.max(0, prevTotal + amount);
+      localStorage.setItem("obsTimerTotalSeconds", newTotal.toString());
+      return newTotal;
+    });
+  };
+
   const contextValue: AppContextValue = {
     settings,
     obsConnection,
@@ -891,6 +912,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({children}) => {
     timer,
     clock,
     showSettings,
+    selectedTimeSegment,
     formattedTotalTime: formatHMS(
       totalTimeSeconds +
         (obsRecording.outputActive ? obsRecording.currentSessionSeconds : 0)
@@ -930,6 +952,8 @@ export const AppProvider: React.FC<AppProviderProps> = ({children}) => {
     enterTimerSetup,
     toggleClockFormat,
     toggleSettings,
+    selectTimeSegment,
+    adjustTotalTime,
     currentStatusIcon,
     currentStatusIconClass,
   };

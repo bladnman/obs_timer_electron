@@ -37,6 +37,7 @@ function App() {
     timer,
     clock,
     showSettings,
+    selectedTimeSegment,
     // Actions
     openSettingsModal,
     closeSettingsModal,
@@ -56,6 +57,8 @@ function App() {
     toggleClockFormat,
     toggleSettings,
     connectToOBS,
+    selectTimeSegment,
+    adjustTotalTime,
   } = useAppContext();
 
   const modes: AppMode[] = ["obs", "stopwatch", "timer", "clock"];
@@ -185,6 +188,9 @@ function App() {
           isDimmed={isDimmed}
           onResetTotal={resetTotalTime}
           onRetry={onRetry}
+          selectedTimeSegment={selectedTimeSegment}
+          onSelectTimeSegment={selectTimeSegment}
+          onAdjustTotalTime={adjustTotalTime}
         />
       ),
       stopwatch: (

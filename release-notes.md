@@ -1,4 +1,4 @@
-# Release v1.0.7
+# Release v1.1.1
 
 ## What's New
 - Automated release with comprehensive testing

@@ -77,21 +77,28 @@ Download the appropriate installer for your platform from the assets below.
     // Check if we have the GitHub CLI
     execSync('gh --version', { stdio: 'pipe' });
     
-    // Create the release with GitHub CLI
-    // Use glob patterns that match actual build artifacts
-    const distFiles = [
-      `dist/OBS Timer-${version}.dmg`,
-      `dist/OBS Timer-${version}-arm64.dmg`,
-      'dist/*.exe', 
-      'dist/*.AppImage',
-      'dist/*.zip'
-    ].filter(file => {
-      // Only include files that exist for current build
-      if (file.includes('*.')) return true; // Keep glob patterns for potential future builds
-      return fs.existsSync(file);
-    }).join(' ');
+    // Build explicit artifact list by scanning dist directory to avoid
+    // shell glob expansion issues and to properly handle spaces in filenames
+    const distDir = path.join(process.cwd(), 'dist');
+    const allowedExtensions = ['.dmg', '.blockmap', '.exe', '.AppImage', '.zip'];
+    const artifactFiles = fs.existsSync(distDir)
+      ? fs
+          .readdirSync(distDir)
+          .filter((name) => allowedExtensions.some((ext) => name.endsWith(ext)))
+          .map((name) => path.join('dist', name))
+      : [];
 
-    const releaseCommand = `gh release create v${version} ${distFiles} --title "Release v${version}" --notes-file "${notesFile}" --draft=false`;
+    if (artifactFiles.length === 0) {
+      log('⚠️  No build artifacts found in dist/. Proceeding to create a release without assets.');
+    } else {
+      log(`Attaching ${artifactFiles.length} artifact(s):`);
+      artifactFiles.forEach((f) => log(` - ${f}`));
+    }
+
+    // Quote each file path to preserve spaces
+    const artifactArgs = artifactFiles.map((f) => `"${f}"`).join(' ');
+
+    const releaseCommand = `gh release create v${version} ${artifactArgs} --title "Release v${version}" --notes-file "${notesFile}" --draft=false`;
     
     run(releaseCommand, 'Creating GitHub release with artifacts');
     

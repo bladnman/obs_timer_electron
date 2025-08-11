@@ -34,6 +34,19 @@ const TimerMode: React.FC<TimerModeProps> = ({
     onSetupComplete(hours, minutes, seconds);
   };
 
+  const adjustValue = (
+    type: "hours" | "minutes" | "seconds",
+    delta: number
+  ) => {
+    if (type === "hours") {
+      setHours((prev) => Math.max(0, Math.min(23, prev + delta)));
+    } else if (type === "minutes") {
+      setMinutes((prev) => Math.max(0, Math.min(59, prev + delta)));
+    } else if (type === "seconds") {
+      setSeconds((prev) => Math.max(0, Math.min(59, prev + delta)));
+    }
+  };
+
   const handleInputChange = (
     type: "hours" | "minutes" | "seconds",
     value: string
@@ -63,42 +76,104 @@ const TimerMode: React.FC<TimerModeProps> = ({
             <div className="timer-setup-container">
               <div className="timer-setup-inputs">
                 <div className="time-input-group">
-                  <input
-                    type="number"
-                    min="0"
-                    max="23"
-                    value={hours}
-                    onChange={(e) => handleInputChange("hours", e.target.value)}
-                    className="time-input"
-                  />
+                  <div className="time-input-with-steps">
+                    <input
+                      type="number"
+                      min="0"
+                      max="23"
+                      value={hours}
+                      onChange={(e) =>
+                        handleInputChange("hours", e.target.value)
+                      }
+                      className="time-input"
+                    />
+                    <div className="time-stepper">
+                      <button
+                        type="button"
+                        className="time-stepper-button"
+                        aria-label="Increase hours"
+                        onClick={() => adjustValue("hours", 1)}
+                      >
+                        ▲
+                      </button>
+                      <button
+                        type="button"
+                        className="time-stepper-button"
+                        aria-label="Decrease hours"
+                        onClick={() => adjustValue("hours", -1)}
+                      >
+                        ▼
+                      </button>
+                    </div>
+                  </div>
                   <label>H</label>
                 </div>
                 <span className="time-separator">:</span>
                 <div className="time-input-group">
-                  <input
-                    type="number"
-                    min="0"
-                    max="59"
-                    value={minutes}
-                    onChange={(e) =>
-                      handleInputChange("minutes", e.target.value)
-                    }
-                    className="time-input"
-                  />
+                  <div className="time-input-with-steps">
+                    <input
+                      type="number"
+                      min="0"
+                      max="59"
+                      value={minutes}
+                      onChange={(e) =>
+                        handleInputChange("minutes", e.target.value)
+                      }
+                      className="time-input"
+                    />
+                    <div className="time-stepper">
+                      <button
+                        type="button"
+                        className="time-stepper-button"
+                        aria-label="Increase minutes"
+                        onClick={() => adjustValue("minutes", 1)}
+                      >
+                        ▲
+                      </button>
+                      <button
+                        type="button"
+                        className="time-stepper-button"
+                        aria-label="Decrease minutes"
+                        onClick={() => adjustValue("minutes", -1)}
+                      >
+                        ▼
+                      </button>
+                    </div>
+                  </div>
                   <label>M</label>
                 </div>
                 <span className="time-separator">:</span>
                 <div className="time-input-group">
-                  <input
-                    type="number"
-                    min="0"
-                    max="59"
-                    value={seconds}
-                    onChange={(e) =>
-                      handleInputChange("seconds", e.target.value)
-                    }
-                    className="time-input"
-                  />
+                  <div className="time-input-with-steps">
+                    <input
+                      type="number"
+                      min="0"
+                      max="59"
+                      value={seconds}
+                      onChange={(e) =>
+                        handleInputChange("seconds", e.target.value)
+                      }
+                      className="time-input"
+                    />
+                    <div className="time-stepper">
+                      <button
+                        type="button"
+                        className="time-stepper-button"
+                        aria-label="Increase seconds"
+                        onClick={() => adjustValue("seconds", 1)}
+                      >
+                        ▲
+                      </button>
+                      <button
+                        type="button"
+                        className="time-stepper-button"
+                        aria-label="Decrease seconds"
+                        onClick={() => adjustValue("seconds", -1)}
+                      >
+                        ▼
+                      </button>
+                    </div>
+                  </div>
                   <label>S</label>
                 </div>
               </div>
@@ -126,9 +201,9 @@ const TimerMode: React.FC<TimerModeProps> = ({
   };
 
   const getStatusIcon = () => {
-    if (isOvertime) return "⚠";
-    if (isRunning) return "⏱";
-    return "⏱";
+    if (isOvertime) return "⚠"; // Warning when below zero
+    if (isRunning) return "▶"; // Running
+    return "⏸"; // Paused
   };
 
   const getStatusClassName = () => {
@@ -141,7 +216,19 @@ const TimerMode: React.FC<TimerModeProps> = ({
     <div className={`timer-container ${isDimmed ? "dimmed" : ""}`}>
       <ThreeColumnLayout
         label={isOvertime ? "Timer (Overtime)" : "Countdown Timer"}
-        left={<span className={getStatusClassName()}>{getStatusIcon()}</span>}
+        left={
+          <div className="icon-with-edit">
+            <span className={getStatusClassName()}>{getStatusIcon()}</span>
+            <button
+              type="button"
+              className="edit-link"
+              onClick={onEnterSetup}
+              title="Set Duration"
+            >
+              Edit
+            </button>
+          </div>
+        }
         center={
           <div onClick={onToggle} className={getTimerClassName()}>
             {formattedTime}

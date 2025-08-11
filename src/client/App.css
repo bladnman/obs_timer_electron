@@ -46,6 +46,12 @@ body, html {
     font-size: 16px; /* Set a base font size for rem units */
 }
 
+/* Re-enable selection in form controls so users can type/select easily */
+input, textarea, select, button {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
 #root {
     width: 100%;
     height: 100%;
@@ -252,8 +258,8 @@ body, html {
 .status-icon.stopwatch-running { color: #4da6ff; } /* Blue */
 .status-icon.stopwatch-stopped { color: var(--color-stopped); }
 
-/* Timer specific colors - Orange theme */
-.status-icon.timer-running { color: #ffa500; } /* Orange */
+/* Timer specific colors - align with Stopwatch: blue running, gray paused, red overtime */
+.status-icon.timer-running { color: #4da6ff; }
 .status-icon.timer-stopped { color: var(--color-stopped); }
 .status-icon.timer-overtime { color: var(--color-trouble); }
 
@@ -299,7 +305,7 @@ body, html {
 
 /* Timer display colors */
 .timer-display.main-timer-display.timer-running .time-numbers {
-  color: #ffa500 !important; /* Orange for timer running */
+  color: #4da6ff !important; /* Blue for timer running */
 }
 
 .timer-display.main-timer-display.timer-stopped .time-numbers {
@@ -745,7 +751,7 @@ body, html {
   justify-content: center;
   width: 100%;
   gap: 0.6em;
-  font-size: 16px; /* Override the large responsive font from timer-container */
+    font-size: 1em; /* Inherit scaling from .timer-container */
 }
 
 .timer-setup-inputs {
@@ -764,8 +770,8 @@ body, html {
 }
 
 .time-input {
-  width: 2.5em;
-  padding: 0.3em;
+  width: 4ch; /* Fit at least two digits comfortably */
+  padding: 0.3em 0.5em;
   border: 1px solid #555;
   border-radius: 4px;
   background-color: #333;
@@ -773,6 +779,16 @@ body, html {
   font-size: 1em;
   text-align: center;
   font-family: 'Consolas', 'Monaco', 'Lucida Console', monospace;
+}
+
+/* Hide native number steppers to prevent occluding content */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
 }
 
 .time-input:focus {
@@ -791,6 +807,40 @@ body, html {
   color: rgba(255, 255, 255, 0.6);
   font-size: 1.2em;
   margin: 0 0.2em;
+}
+
+/* Custom stepper buttons beside inputs */
+.time-input-with-steps {
+  display: flex;
+  align-items: stretch;
+  gap: 0.2em;
+}
+
+.time-stepper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15em;
+}
+
+.time-stepper-button {
+  background: #3a3a3a;
+  border: 1px solid #555;
+  color: rgba(255, 255, 255, 0.85);
+  width: 1.6em;
+  height: 1.1em;
+  line-height: 1;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 0.7em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.time-stepper-button:hover {
+  background: #4a4a4a;
+  border-color: #666;
 }
 
 .timer-setup-actions {
@@ -928,6 +978,22 @@ body, html {
 }
 
 /* Settings Panel Styles */
+.icon-with-edit { display: flex; flex-direction: column; align-items: center; gap: 0.3em; }
+.edit-link {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.45em;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  padding: 0.2em 0.3em;
+  border-radius: 0.2em;
+}
+.edit-link:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.85);
+}
 .settings-panel {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
@@ -1062,7 +1128,8 @@ body, html {
 .time-text.overtime, .status-icon.overtime { color: var(--color-trouble); animation: overtime-throb 1s ease-in-out infinite alternate; }
 .time-text.stopwatch-running { color: #4da6ff; }
 .time-text.stopwatch-stopped { color: var(--color-stopped); }
-.time-text.timer-running { color: #ffa500; } /* Orange for running timer */
+.time-text.timer-stopped { color: var(--color-stopped); }
+.time-text.timer-running { color: #4da6ff; } /* Blue for running timer */
 
 /* Secondary total time display for OBS mode */
 .time-text.total-time {

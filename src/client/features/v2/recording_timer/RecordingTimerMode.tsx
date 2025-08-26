@@ -70,7 +70,8 @@ const RecordingTimerMode: React.FC<RecordingTimerModeProps> = ({
       }
       centerContent={
         <span className="v2-total-time">
-          Total: {totalTime}
+          <span className="v2-total-label">Total:</span>
+          <span className="v2-total-value">{totalTime}</span>
         </span>
       }
       rightContent={

@@ -1,17 +1,16 @@
 const { app, BrowserWindow, Menu } = require('electron'); // Added Menu
 const path = require('path');
 const Store = require('electron-store');
+const { ASPECT_RATIO, calculateHeight, getDefaultDimensions, getMinimumDimensions } = require('./config/dimensions');
 
 const store = new Store();
 
-const INITIAL_WIDTH = 422;
-const ASPECT_RATIO = INITIAL_WIDTH / 102;
-// eslint-disable-next-line no-unused-vars
-const INITIAL_HEIGHT = Math.round(INITIAL_WIDTH / ASPECT_RATIO);
+const defaultDimensions = getDefaultDimensions();
+const minDimensions = getMinimumDimensions();
 
 function createWindow() {
-  const { width: savedWidth, x, y } = store.get('windowBounds', { width: INITIAL_WIDTH });
-  const height = Math.round(savedWidth / ASPECT_RATIO);
+  const { width: savedWidth, x, y } = store.get('windowBounds', { width: defaultDimensions.width });
+  const height = calculateHeight(savedWidth);
 
   const mainWindow = new BrowserWindow({
     width: savedWidth,
@@ -30,14 +29,14 @@ function createWindow() {
       // Consider sandbox: true for more security if preload is minimal/empty
     },
     // Setting a minimum size can be useful
-    minWidth: 211, // Half of the initial size
-    minHeight: Math.round(211 / ASPECT_RATIO),
-    aspectRatio: ASPECT_RATIO,
+    minWidth: minDimensions.width,
+    minHeight: minDimensions.height,
+    aspectRatio: 1 / ASPECT_RATIO.HEIGHT_RATIO, // Electron expects width/height ratio
   });
 
   mainWindow.on('resize', () => {
     const [width, height] = mainWindow.getSize();
-    const newHeight = Math.round(width / ASPECT_RATIO);
+    const newHeight = calculateHeight(width);
     
     // Enforce the aspect ratio if the height is not correct
     if (height !== newHeight) {

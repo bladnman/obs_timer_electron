@@ -1,26 +1,26 @@
-/* V2 Design System - Accurate to Design */
+/* V2 Responsive Design System - All EM-based for proportional scaling */
 
-/* CSS Variables matching the actual design */
+/* CSS Variables - Colors remain the same */
 :root {
-  /* Backgrounds - matching the screenshot */
+  /* Backgrounds */
   --v2-bg-body: #2a2a2a;
   --v2-bg-footer: #1d1d1d;
   --v2-separator: rgba(255, 255, 255, 0.08);
   
-  /* Status colors - matching the vibrant lime/yellow from design */
-  --v2-color-recording: #00ff00;  /* Bright lime green */
-  --v2-color-paused: #ffff00;     /* Bright yellow */
-  --v2-color-stopped: #7a7a7a;    /* Medium gray */
-  --v2-color-error: #ff4444;      /* Bright red */
+  /* Status colors */
+  --v2-color-recording: #00ff00;
+  --v2-color-paused: #ffff00;
+  --v2-color-stopped: #7a7a7a;
+  --v2-color-error: #ff4444;
   
   /* Text colors */
   --v2-text-primary: #ffffff;
-  --v2-text-label: #5a5a5a;       /* Dimmed gray for labels */
-  --v2-text-dimmed: #4a4a4a;      /* Very dim for gear/clock */
-  --v2-text-secondary: #8a8a8a;   /* For total time */
+  --v2-text-label: #5a5a5a;
+  --v2-text-dimmed: #4a4a4a;
+  --v2-text-secondary: #8a8a8a;
 }
 
-/* Reset for V2 */
+/* Reset for V2 - Base font size will be set dynamically by ScalingContext */
 .AppV2 {
   width: 100%;
   height: 100%;
@@ -33,9 +33,11 @@
   position: absolute;
   top: 0;
   left: 0;
+  /* Base font-size is set dynamically via JavaScript based on window size */
+  transition: font-size 0.15s ease-out; /* Smooth scaling during resize */
 }
 
-/* Two Panel Layout - Matching exact proportions */
+/* Two Panel Layout - Using EM for proportional sizing */
 .two-panel-layout {
   display: flex;
   flex-direction: column;
@@ -53,53 +55,56 @@
   background: var(--v2-bg-body);
   position: relative;
   min-height: 0;
-  overflow: hidden;  /* Prevent content from overlapping */
+  overflow: hidden;
 }
 
 .panel-status-bar {
-  height: 36px;  /* Smaller footer matching design */
+  height: 2.25em; /* 36px at base size */
   background: var(--v2-bg-footer);
-  border-top: 1px solid var(--v2-separator);
+  border-top: 0.0625em solid var(--v2-separator); /* 1px at base */
   display: flex;
   align-items: center;
   flex-shrink: 0;
   position: relative;
-  z-index: 10;  /* Ensure it stays above body content */
+  z-index: 10;
 }
 
-/* Element Layout - Compact and centered */
+/* Element Layout - Three-part flex layout for proper centering */
 .element-layout {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0;
-  padding: 20px;
+  padding: 0.75em 1.25em; /* Reduced vertical padding to prevent cutoff */
+  height: 100%;
+  position: relative;
+  gap: 1.5em; /* Add consistent spacing between elements */
 }
 
 .element-top-label {
-  font-size: 11px;
+  font-size: 0.6875em; /* 11px at base */
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.15em;
   color: var(--v2-text-label);
-  margin-bottom: 20px;
-  opacity: 1;  /* Make title more visible */
+  flex: 0 0 auto;
+  opacity: 1;
 }
 
 .element-main-row {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 30px;
-  height: 80px;  /* Fixed height for main content */
+  gap: 1.875em; /* 30px at base */
+  flex: 0 0 auto;
+  min-height: 5em; /* 80px at base */
 }
 
 .element-left-icon {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
+  width: 2.5em; /* 40px at base */
   flex-shrink: 0;
 }
 
@@ -113,11 +118,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
+  width: 2.5em; /* 40px at base */
   flex-shrink: 0;
 }
 
-/* Status Icons - Smaller and more subtle */
+/* Status Icons - EM-based sizing */
 .v2-status-icon-container {
   display: flex;
   align-items: center;
@@ -125,7 +130,7 @@
 }
 
 .v2-status-icon {
-  font-size: 24px;  /* Much smaller than before */
+  font-size: 1.5em; /* 24px at base */
   line-height: 1;
   font-weight: bold;
 }
@@ -145,7 +150,7 @@
 
 .v2-status-icon.error {
   color: var(--v2-color-error);
-  font-size: 32px;  /* Larger X icon for error state */
+  font-size: 2em; /* 32px at base - larger X for error */
   font-weight: 300;
 }
 
@@ -154,13 +159,13 @@
   50% { opacity: 0.8; }
 }
 
-/* Time Display - Properly sized */
+/* Time Display - EM-based for proportional scaling */
 .v2-time-display {
-  font-size: 48px;  /* Reduced size to match design */
-  font-weight: 300;  /* Light weight */
+  font-size: 3em; /* 48px at base */
+  font-weight: 300;
   font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace;
-  font-variant-numeric: tabular-nums;  /* Monospace numbers */
-  letter-spacing: 0.02em;  /* Tighter spacing */
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
   line-height: 1;
 }
 
@@ -171,7 +176,7 @@
 .v2-time-separator {
   display: inline-block;
   color: var(--v2-text-dimmed);
-  margin: 0 2px;  /* Tight colon spacing */
+  margin: 0 0.125em; /* 2px at base */
   opacity: 0.5;
 }
 
@@ -189,7 +194,7 @@
 }
 
 .v2-time-error .v2-time-segment {
-  color: #1a1a1a;  /* Very dark gray/black for error state */
+  color: #1a1a1a;
 }
 
 /* Dimmed state */
@@ -198,13 +203,13 @@
   opacity: 0.2;
 }
 
-/* Status Bar - Compact footer */
+/* Status Bar - EM-based sizing */
 .v2-status-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
   height: 100%;
-  padding: 0 8px;  /* Tighter padding for edge alignment */
+  padding: 0 0.5em; /* 8px at base */
   width: 100%;
 }
 
@@ -213,7 +218,7 @@
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  min-width: 40px;  /* Ensure consistent spacing */
+  min-width: 2.5em; /* 40px at base */
 }
 
 .v2-status-bar-center {
@@ -229,42 +234,41 @@
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  min-width: 60px;  /* Space for time display */
+  min-width: 3.75em; /* 60px at base */
 }
 
-/* Status bar text */
+/* Status bar text - EM-based */
 .v2-total-time {
-  font-size: 13px;  /* Larger font for total timer */
+  font-size: 0.8125em; /* 13px at base */
   font-weight: 500;
   letter-spacing: 0.02em;
 }
 
-/* Two-color styling for total time */
 .v2-total-label {
-  color: var(--v2-text-label);  /* Dimmed gray for 'Total:' */
+  color: var(--v2-text-label);
   opacity: 0.7;
 }
 
 .v2-total-value {
-  color: var(--v2-text-primary);  /* Brighter white for the time value */
-  margin-left: 4px;
+  color: var(--v2-text-primary);
+  margin-left: 0.25em; /* 4px at base */
 }
 
 .v2-clock-time {
-  font-size: 11px;
+  font-size: 0.6875em; /* 11px at base */
   color: var(--v2-text-dimmed);
   font-weight: 400;
   letter-spacing: 0.02em;
 }
 
-/* Buttons */
+/* Buttons - EM-based sizing */
 .v2-action-button {
   background: transparent;
   border: none;
   color: var(--v2-text-dimmed);
-  font-size: 20px;  /* Smaller action button */
+  font-size: 1.25em; /* 20px at base */
   cursor: pointer;
-  padding: 4px;
+  padding: 0.25em; /* 4px at base */
   transition: color 0.15s ease, opacity 0.15s ease;
   outline: none;
   display: flex;
@@ -282,14 +286,14 @@
   opacity: 1;
 }
 
-/* Settings gear - very small and subtle */
+/* Settings gear - EM-based */
 .v2-settings-button {
   background: transparent;
   border: none;
   color: var(--v2-text-dimmed);
-  font-size: 12px;  /* Very small gear */
+  font-size: 0.75em; /* 12px at base */
   cursor: pointer;
-  padding: 4px;
+  padding: 0.25em; /* 4px at base */
   transition: opacity 0.2s ease, transform 0.3s ease;
   outline: none;
   display: flex;
@@ -303,23 +307,26 @@
   transform: rotate(90deg);
 }
 
-/* Error Banner - Centered and prominent */
+/* Error Banner - Compact, translucent overlay */
 .v2-error-banner {
   position: absolute;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%);  /* Perfectly centered */
-  background: rgba(211, 47, 47, 0.85);  /* Translucent red background */
+  transform: translate(-50%, -50%);
+  background: rgba(211, 47, 47, 0.3); /* 70% translucent (30% opacity) */
   color: white;
-  padding: 16px 40px;
-  border-radius: 8px;
-  font-size: 18px;  /* Larger, bolder font */
+  padding: 0.75em 1.5em; /* Smaller padding for compact size */
+  border-radius: 0.375em; /* 6px at base */
+  font-size: 1.125em; /* 18px at base */
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
-  z-index: 1000;
-  backdrop-filter: blur(4px);  /* Slight blur effect */
+  box-shadow: 0 0.25em 0.75em rgba(0, 0, 0, 0.3); /* Subtler shadow */
+  z-index: 50; /* Above content but below status bar */
+  backdrop-filter: blur(0.125em); /* Subtle blur - 2px at base */
+  white-space: nowrap; /* Prevent text wrapping */
+  display: inline-block;
+  text-align: center;
 }
 
 .v2-error-banner-text {
@@ -336,16 +343,23 @@
 
 .recording-timer-body {
   width: 100%;
-  height: 100%;  /* Full height to properly center */
+  height: 100%;
   display: flex;
-  align-items: center;
+  align-items: stretch; /* Allow element-layout to fill height */
   justify-content: center;
-  padding: 20px;
+  padding: 0; /* Remove padding as element-layout handles it */
 }
 
-/* Remove any default margins/padding */
+/* Reset margins/padding */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+}
+
+/* Ensure React Icons scale with EM units */
+.v2-action-button svg,
+.v2-settings-button svg {
+  width: 1em;
+  height: 1em;
 }

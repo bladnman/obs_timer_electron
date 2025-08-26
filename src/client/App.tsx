@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import "./App.css";
-import "./AppV2.css";
+import "./AppV2Responsive.css";
 import { useAppContext } from "./contexts/AppContext";
+import { AspectRatioContainer } from "./components/AspectRatioContainer";
 import ClockMode from "./features/clock_mode/ClockMode";
 import MenuBar from "./features/layout/MenuBar";
 import ModeSelector from "./features/layout/ModeSelector";
@@ -180,72 +181,76 @@ function App() {
     const clockTimeFormatted = `${displayHours}:${minutes.toString().padStart(2, "0")} ${period}`;
     
     return (
-      <div className="AppV2">
-        <RecordingTimerMode
-          state={recordingState}
-          currentTime={formattedCurrentTime}
-          totalTime={formattedTotalTime}
-          clockTime={clockTimeFormatted}
-          errorMessage={errorMsg}
-          onReset={resetTotalTime}
-          onSettingsClick={openSettingsModal}
-          isDimmed={isDimmed}
-        />
-        
-        {isSettingsModalOpen && (
-          <SettingsModal
-            isOpen={isSettingsModalOpen}
-            onClose={closeSettingsModal}
-            onSave={saveSettings}
-            onTestConnection={testOBSConnection}
-            initialHost={settings.host}
-            initialPort={settings.port}
-            initialPassword={settings.password}
-            connectionResult={connectionTestResult}
-            isTestingConnection={isTestingConnection}
+      <AspectRatioContainer>
+        <div className="AppV2">
+          <RecordingTimerMode
+            state={recordingState}
+            currentTime={formattedCurrentTime}
+            totalTime={formattedTotalTime}
+            clockTime={clockTimeFormatted}
+            errorMessage={errorMsg}
+            onReset={resetTotalTime}
+            onSettingsClick={openSettingsModal}
+            isDimmed={isDimmed}
           />
-        )}
-      </div>
+          
+          {isSettingsModalOpen && (
+            <SettingsModal
+              isOpen={isSettingsModalOpen}
+              onClose={closeSettingsModal}
+              onSave={saveSettings}
+              onTestConnection={testOBSConnection}
+              initialHost={settings.host}
+              initialPort={settings.port}
+              initialPassword={settings.password}
+              connectionResult={connectionTestResult}
+              isTestingConnection={isTestingConnection}
+            />
+          )}
+        </div>
+      </AspectRatioContainer>
     );
   }
   
   // V1 Layout - Original design
   return (
-    <ModeNavigator
-      currentMode={currentMode}
-      showSettings={showSettings}
-      onModeChange={setMode}
-    >
-      <div className="App">
-        <div className="left-sidebar">
-          <MenuBar
-            onSettingsClick={openSettingsModal}
-            onResetClick={currentMode === "obs" ? resetTotalTime : undefined}
-            onBrightnessToggle={toggleBrightness}
-            onSettingsToggle={toggleSettings}
-            isDimmed={isDimmed}
-            showSettings={showSettings}
-          />
-          <ModeSelector currentMode={currentMode} onModeChange={setMode} />
+    <AspectRatioContainer>
+      <ModeNavigator
+        currentMode={currentMode}
+        showSettings={showSettings}
+        onModeChange={setMode}
+      >
+        <div className="App">
+          <div className="left-sidebar">
+            <MenuBar
+              onSettingsClick={openSettingsModal}
+              onResetClick={currentMode === "obs" ? resetTotalTime : undefined}
+              onBrightnessToggle={toggleBrightness}
+              onSettingsToggle={toggleSettings}
+              isDimmed={isDimmed}
+              showSettings={showSettings}
+            />
+            <ModeSelector currentMode={currentMode} onModeChange={setMode} />
+          </div>
+
+          <div className="timer-container-wrapper">{renderCurrentMode()}</div>
+
+          {isSettingsModalOpen && (
+            <SettingsModal
+              isOpen={isSettingsModalOpen}
+              onClose={closeSettingsModal}
+              onSave={saveSettings}
+              onTestConnection={testOBSConnection}
+              initialHost={settings.host}
+              initialPort={settings.port}
+              initialPassword={settings.password}
+              connectionResult={connectionTestResult}
+              isTestingConnection={isTestingConnection}
+            />
+          )}
         </div>
-
-        <div className="timer-container-wrapper">{renderCurrentMode()}</div>
-
-        {isSettingsModalOpen && (
-          <SettingsModal
-            isOpen={isSettingsModalOpen}
-            onClose={closeSettingsModal}
-            onSave={saveSettings}
-            onTestConnection={testOBSConnection}
-            initialHost={settings.host}
-            initialPort={settings.port}
-            initialPassword={settings.password}
-            connectionResult={connectionTestResult}
-            isTestingConnection={isTestingConnection}
-          />
-        )}
-      </div>
-    </ModeNavigator>
+      </ModeNavigator>
+    </AspectRatioContainer>
   );
 }
 

@@ -1,0 +1,336 @@
+/* V2 Design System - Accurate to Design */
+
+/* CSS Variables matching the actual design */
+:root {
+  /* Backgrounds - matching the screenshot */
+  --v2-bg-body: #2a2a2a;
+  --v2-bg-footer: #1d1d1d;
+  --v2-separator: rgba(255, 255, 255, 0.08);
+  
+  /* Status colors - matching the vibrant lime/yellow from design */
+  --v2-color-recording: #00ff00;  /* Bright lime green */
+  --v2-color-paused: #ffff00;     /* Bright yellow */
+  --v2-color-stopped: #7a7a7a;    /* Medium gray */
+  --v2-color-error: #ff4444;      /* Bright red */
+  
+  /* Text colors */
+  --v2-text-primary: #ffffff;
+  --v2-text-label: #5a5a5a;       /* Dimmed gray for labels */
+  --v2-text-dimmed: #4a4a4a;      /* Very dim for gear/clock */
+  --v2-text-secondary: #8a8a8a;   /* For total time */
+}
+
+/* Reset for V2 */
+.AppV2 {
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Two Panel Layout - Matching exact proportions */
+.two-panel-layout {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  background: var(--v2-bg-body);
+}
+
+.panel-body {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--v2-bg-body);
+  position: relative;
+  min-height: 0;
+  overflow: hidden;  /* Prevent content from overlapping */
+}
+
+.panel-status-bar {
+  height: 36px;  /* Smaller footer matching design */
+  background: var(--v2-bg-footer);
+  border-top: 1px solid var(--v2-separator);
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 10;  /* Ensure it stays above body content */
+}
+
+/* Element Layout - Compact and centered */
+.element-layout {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  padding: 20px;
+}
+
+.element-top-label {
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--v2-text-label);
+  margin-bottom: 20px;
+  opacity: 0.6;
+}
+
+.element-main-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 30px;
+  height: 80px;  /* Fixed height for main content */
+}
+
+.element-left-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  flex-shrink: 0;
+}
+
+.element-center-display {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.element-right-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  flex-shrink: 0;
+}
+
+/* Status Icons - Smaller and more subtle */
+.v2-status-icon-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.v2-status-icon {
+  font-size: 24px;  /* Much smaller than before */
+  line-height: 1;
+  font-weight: bold;
+}
+
+.v2-status-icon.recording {
+  color: var(--v2-color-recording);
+  animation: subtle-pulse 2s ease-in-out infinite;
+}
+
+.v2-status-icon.paused {
+  color: var(--v2-color-paused);
+}
+
+.v2-status-icon.stopped {
+  color: var(--v2-color-stopped);
+}
+
+.v2-status-icon.error {
+  color: var(--v2-color-error);
+  font-size: 32px;  /* Larger X icon for error state */
+  font-weight: 300;
+}
+
+@keyframes subtle-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.8; }
+}
+
+/* Time Display - Properly sized */
+.v2-time-display {
+  font-size: 48px;  /* Reduced size to match design */
+  font-weight: 300;  /* Light weight */
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace;
+  font-variant-numeric: tabular-nums;  /* Monospace numbers */
+  letter-spacing: 0.02em;  /* Tighter spacing */
+  line-height: 1;
+}
+
+.v2-time-segment {
+  display: inline-block;
+}
+
+.v2-time-separator {
+  display: inline-block;
+  color: var(--v2-text-dimmed);
+  margin: 0 2px;  /* Tight colon spacing */
+  opacity: 0.5;
+}
+
+/* State-based colors for time */
+.v2-time-recording .v2-time-segment {
+  color: var(--v2-color-recording);
+}
+
+.v2-time-paused .v2-time-segment {
+  color: var(--v2-color-paused);
+}
+
+.v2-time-stopped .v2-time-segment {
+  color: var(--v2-color-stopped);
+}
+
+.v2-time-error .v2-time-segment {
+  color: #1a1a1a;  /* Very dark gray/black for error state */
+}
+
+/* Dimmed state */
+.v2-recording-timer-mode.dimmed .v2-time-display,
+.v2-recording-timer-mode.dimmed .v2-status-icon {
+  opacity: 0.2;
+}
+
+/* Status Bar - Compact footer */
+.v2-status-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 100%;
+  padding: 0 8px;  /* Tighter padding for edge alignment */
+  width: 100%;
+}
+
+.v2-status-bar-left {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  min-width: 40px;  /* Ensure consistent spacing */
+}
+
+.v2-status-bar-center {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.v2-status-bar-right {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-width: 60px;  /* Space for time display */
+}
+
+/* Status bar text */
+.v2-total-time {
+  font-size: 11px;
+  color: var(--v2-text-secondary);
+  font-weight: 400;
+  letter-spacing: 0.02em;
+}
+
+.v2-clock-time {
+  font-size: 11px;
+  color: var(--v2-text-dimmed);
+  font-weight: 400;
+  letter-spacing: 0.02em;
+}
+
+/* Buttons */
+.v2-action-button {
+  background: transparent;
+  border: none;
+  color: var(--v2-text-dimmed);
+  font-size: 20px;  /* Smaller action button */
+  cursor: pointer;
+  padding: 4px;
+  transition: color 0.15s ease, opacity 0.15s ease;
+  outline: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.5;
+}
+
+.v2-action-button:hover {
+  color: var(--v2-text-secondary);
+  opacity: 0.8;
+}
+
+.v2-action-button:active {
+  opacity: 1;
+}
+
+/* Settings gear - very small and subtle */
+.v2-settings-button {
+  background: transparent;
+  border: none;
+  color: var(--v2-text-dimmed);
+  font-size: 12px;  /* Very small gear */
+  cursor: pointer;
+  padding: 4px;
+  transition: opacity 0.2s ease, transform 0.3s ease;
+  outline: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.4;
+}
+
+.v2-settings-button:hover {
+  opacity: 0.7;
+  transform: rotate(90deg);
+}
+
+/* Error Banner - Centered and prominent */
+.v2-error-banner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);  /* Perfectly centered */
+  background: #d32f2f;  /* Material red for error */
+  color: white;
+  padding: 10px 32px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  z-index: 1000;
+}
+
+.v2-error-banner-text {
+  display: block;
+  text-align: center;
+}
+
+/* Recording Timer Mode Container */
+.v2-recording-timer-mode {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.recording-timer-body {
+  width: 100%;
+  height: auto;  /* Don't force full height */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+/* Remove any default margins/padding */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}

@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useState } from "react";
 import "./App.css";
+import "./AppV2.css";
 import { useAppContext } from "./contexts/AppContext";
 import ClockMode from "./features/clock_mode/ClockMode";
 import MenuBar from "./features/layout/MenuBar";
@@ -10,8 +11,11 @@ import SettingsPanel from "./features/settings/SettingsPanel";
 import StopwatchMode from "./features/stopwatch_mode/StopwatchMode";
 import TimerMode from "./features/timer_mode/TimerMode";
 import SettingsModal from "./shared/components/SettingsModal";
+import RecordingTimerMode from "./features/v2/recording_timer/RecordingTimerMode";
 
 function App() {
+  const [useV2Layout] = useState(true); // Toggle this to switch between v1 and v2
+  
   const {
     // State
     settings,
@@ -150,6 +154,62 @@ function App() {
     }
   };
 
+  // V2 Layout - New design system
+  if (useV2Layout && currentMode === "obs") {
+    // Determine recording state
+    let recordingState: "recording" | "paused" | "stopped" | "error" = "stopped";
+    let errorMsg: string | undefined;
+    
+    if (obsConnection.error || !obsConnection.isConnected) {
+      recordingState = "error";
+      errorMsg = "OBS NOT FOUND";
+    } else if (currentStatusIconClass === "recording") {
+      recordingState = "recording";
+    } else if (currentStatusIconClass === "paused") {
+      recordingState = "paused";
+    } else {
+      recordingState = "stopped";
+    }
+    
+    // Format current time for display
+    const currentTime = new Date();
+    const hours = currentTime.getHours();
+    const minutes = currentTime.getMinutes();
+    const period = hours >= 12 ? "PM" : "AM";
+    const displayHours = hours % 12 || 12;
+    const clockTimeFormatted = `${displayHours}:${minutes.toString().padStart(2, "0")} ${period}`;
+    
+    return (
+      <div className="AppV2">
+        <RecordingTimerMode
+          state={recordingState}
+          currentTime={formattedCurrentTime}
+          totalTime={formattedTotalTime}
+          clockTime={clockTimeFormatted}
+          errorMessage={errorMsg}
+          onReset={resetTotalTime}
+          onSettingsClick={openSettingsModal}
+          isDimmed={isDimmed}
+        />
+        
+        {isSettingsModalOpen && (
+          <SettingsModal
+            isOpen={isSettingsModalOpen}
+            onClose={closeSettingsModal}
+            onSave={saveSettings}
+            onTestConnection={testOBSConnection}
+            initialHost={settings.host}
+            initialPort={settings.port}
+            initialPassword={settings.password}
+            connectionResult={connectionTestResult}
+            isTestingConnection={isTestingConnection}
+          />
+        )}
+      </div>
+    );
+  }
+  
+  // V1 Layout - Original design
   return (
     <ModeNavigator
       currentMode={currentMode}

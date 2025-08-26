@@ -1,5 +1,5 @@
 import "@testing-library/jest-dom";
-import {render, screen} from "@testing-library/react";
+import {render, screen, waitFor} from "@testing-library/react";
 import React from "react";
 import App from "../src/client/App";
 import {AppProvider} from "../src/client/contexts/AppContext";
@@ -38,35 +38,41 @@ describe("<App />", () => {
     localStorage.clear();
   });
 
-  test("renders main application structure", () => {
+  test("renders main application structure", async () => {
     // For this test, since AppProvider attempts connection on mount,
     // ensure obsService.connect is appropriately mocked or spied upon.
     renderWithProvider(<App />);
 
-    // Check for some key elements to ensure basic rendering
-    // Menu buttons (title is a good way to find them if text is just icons)
+    // Wait for v2 layout elements to appear
+    await waitFor(() => {
+      // Check for v2 label
+      expect(screen.getByText("RECORDING TIMER")).toBeInTheDocument();
+    });
+
+    // Check for Settings button in v2 layout
     expect(screen.getByTitle("Settings")).toBeInTheDocument();
-    const resetButtons = screen.getAllByTitle("Reset Total");
-    expect(resetButtons.length).toBe(1); // We expect 1 reset button in OBS mode
+    
+    // Check that we have time displays in v2 format
+    const timeSegments = document.querySelectorAll(".v2-time-segment");
+    expect(timeSegments.length).toBeGreaterThanOrEqual(1); // At least one time segment
 
-    // Timer displays - check for time-text containers
-    const timerContainers = document.querySelectorAll(".time-text");
-    expect(timerContainers.length).toBeGreaterThanOrEqual(1); // Expect at least one timer display
-
-    // Check that we have time displays - the clock mode may show different format
-    // OBS mode shows "00:00:00" format, but clock mode might show "12:00" or "00:00"
-    const timeTextElements = document.querySelectorAll(".time-text");
-    expect(timeTextElements.length).toBeGreaterThanOrEqual(1); // At least one time display
-
-    // Check that a status icon is present (class-based, not ID)
-    const statusIcons = document.querySelectorAll(".status-icon");
+    // Check that a status icon is present (v2 class)
+    const statusIcons = document.querySelectorAll(".v2-status-icon");
     expect(statusIcons.length).toBeGreaterThanOrEqual(1);
   });
 
-  test("shows retry button when connection fails", async () => {
+  test("shows error state when connection fails", async () => {
     (obsService.connect as jest.Mock).mockRejectedValueOnce(new Error("fail"));
     renderWithProvider(<App />);
-    expect(await screen.findByTitle("Retry Connection")).toBeInTheDocument();
+    
+    // In v2 layout, we show error banner instead of retry button
+    await waitFor(() => {
+      expect(screen.getByText("OBS NOT FOUND")).toBeInTheDocument();
+    });
+    
+    // Check that error icon is displayed
+    const errorIcon = screen.getByText("×");
+    expect(errorIcon).toBeInTheDocument();
   });
 
   // Add more tests:

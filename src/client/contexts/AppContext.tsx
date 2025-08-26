@@ -350,14 +350,14 @@ export const AppProvider: React.FC<AppProviderProps> = ({children}) => {
         obsConnectOpts
       );
       await obsService.connect(obsConnectOpts);
-    } catch (error: any) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: unknown) {
+       
       if (!obsService.isConnected) {
         setObsConnection((prev) => ({
           ...prev,
           isConnected: false,
           isConnecting: false,
-          error: error.message || "Connection failed directly",
+          error: (error as Error).message || "Connection failed directly",
           hasInitialStatus: false,
         }));
       }
@@ -406,10 +406,10 @@ export const AppProvider: React.FC<AppProviderProps> = ({children}) => {
       const versionInfo = await testObs.call("GetVersion");
       setConnectionTestResult(`✓ Connected to OBS ${versionInfo.obsVersion}`);
       await testObs.disconnect();
-    } catch (error: any) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: unknown) {
+       
       setConnectionTestResult(
-        `✗ Connection failed: ${error.message || "Unknown error"}`
+        `✗ Connection failed: ${(error as Error).message || "Unknown error"}`
       );
     } finally {
       setIsTestingConnection(false);
@@ -469,8 +469,8 @@ export const AppProvider: React.FC<AppProviderProps> = ({children}) => {
             "AppProvider: Version fetched successfully:",
             version?.obsVersion
           );
-        } catch (e: any) {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } catch (e: unknown) {
+           
           console.error("Error fetching OBS version:", e);
         }
 
@@ -503,8 +503,8 @@ export const AppProvider: React.FC<AppProviderProps> = ({children}) => {
               prevOutputActiveRef.current = false;
             }
           }
-        } catch (e: any) {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } catch (e: unknown) {
+           
           console.error("Error fetching initial OBS record status:", e);
           prevOutputActiveRef.current = false;
         }
@@ -683,6 +683,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({children}) => {
         autoReconnectInterval.current = null;
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [obsConnection.isConnected, obsConnection.isConnecting]);
 
   // Derived state for status icon

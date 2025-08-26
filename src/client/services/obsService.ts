@@ -110,7 +110,7 @@ class OBSService {
         rpcVersion: 1, // Specify RPC version if needed, defaults to latest supported by lib
       });
       // ConnectionOpened event will handle setting isConnected
-    } catch (error: any) {
+    } catch (error: unknown) {
       this.isAttemptingConnection = false; // Reset on direct connect method failure
       // The 'ConnectionError' event should also fire, but catch direct errors too.
       console.error("Direct connection error:", error);
@@ -118,7 +118,7 @@ class OBSService {
         const err =
           error instanceof Error
             ? error
-            : new Error(error.message || JSON.stringify(error));
+            : new Error((error as any)?.message || JSON.stringify(error));
         this.callbacks.onConnectionError(err);
       }
       // Rethrow or handle as appropriate for the calling context

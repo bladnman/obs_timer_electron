@@ -151,10 +151,10 @@ input, textarea, select, button {
 /* Timer Container - Main content area with proper layout */
 .timer-container {
     position: absolute;
-    left: 2.2em; /* Tighter left margin */
-    right: 0.5em; /* Tighter right margin */
-    top: 0;
-    bottom: 0;
+    left: 3.5rem; /* Account for left sidebar */
+    right: 1rem; /* Add padding on right to prevent clipping */
+    top: 1rem; /* Add top padding to prevent label clipping */
+    bottom: 1rem; /* Add bottom padding to prevent total time clipping */
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -186,15 +186,16 @@ input, textarea, select, button {
 
 /* Mode Label - standalone above the 3-part layout */
 .mode-label {
-    font-size: 0.75em; /* SIZE: 0.75 */
+    font-size: 0.5em; /* SIZE: 0.5 - reduced from 0.75 */
     color: rgba(255, 255, 255, 0.6);
     font-weight: normal;
     text-transform: uppercase;
     letter-spacing: 0.1em;
     opacity: 0.9;
     text-align: center;
-    margin-bottom: 0.2em;
+    margin-bottom: 0.4em; /* More space below label */
     white-space: nowrap;
+    line-height: 1.2;
 }
 
 /* 3-Part Layout: icon | display | action */
@@ -429,19 +430,23 @@ input, textarea, select, button {
     color: rgba(255, 255, 255, 0.7);
 }
 
-/* Connection Status - Original positioning and style */
+/* Connection Status - Floating overlay centered over main timer */
 .connection-status {
     position: absolute;
-    top: 0.3em; /* Adjusted slightly */
-    right: 0.3em; /* Adjusted slightly */
-    font-size: 0.5em; /* Original font size relative to container */
-    opacity: 0.7; /* Slightly more visible than original 0.6 */
-    background-color: rgba(0, 0, 0, 0.4); /* Darker background */
-    padding: 0.2em 0.4em; /* Adjusted padding */
-    border-radius: 0.15em;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 0.35em; /* Small but readable */
+    opacity: 0.95;
+    background-color: rgba(20, 20, 20, 0.95); /* Dark background with good contrast */
+    padding: 0.3em 0.6em;
+    border-radius: 0.3em;
     transition: opacity 0.3s ease, color 0.3s ease, background-color 0.3s ease;
-    line-height: 1.2; /* Adjusted for better readability */
-    z-index: 10; /* Ensure it's above timer text if overlapping */
+    line-height: 1.2;
+    white-space: nowrap;
+    z-index: 15; /* Above timer content but below modals */
+    pointer-events: auto;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4); /* Add shadow for depth */
 }
 .connection-status.connected { color: var(--color-running); } /* Green for connected */
 .connection-status.disconnected { color: var(--color-stopped); } /* Gray for disconnected */
@@ -799,8 +804,11 @@ input[type="number"] {
 
 .time-input-group label {
   color: rgba(255, 255, 255, 0.6);
-  font-size: 0.7em;
+  font-size: 0.6em; /* Reduced from 0.7em to prevent clipping */
   font-weight: 500;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .time-separator {
@@ -1070,10 +1078,12 @@ input[type="number"] {
 /* 3-Column Flex Row Layout */
 .timer-display-row { 
     width: 100%; 
+    max-width: 95%; /* Prevent edge clipping */
     display: flex; 
     align-items: center; 
     justify-content: space-between; 
     gap: 1.5em; /* Increased gap for more breathing room */
+    padding: 0 0.5em; /* Add horizontal padding */
 }
 
 /* C & F: Icon and Action Columns */
@@ -1097,7 +1107,7 @@ input[type="number"] {
 
 /* D: Title */
 .mode-label { 
-    font-size: 0.75em; /* SIZE: 0.75 */
+    font-size: 0.5em; /* SIZE: 0.5 - reduced from 0.75 */
     color: rgba(255, 255, 255, 0.6); 
     text-transform: uppercase; 
     letter-spacing: 0.1em; 
@@ -1133,7 +1143,7 @@ input[type="number"] {
 
 /* Secondary total time display for OBS mode */
 .time-text.total-time {
-  font-size: 0.75em; /* Larger, more readable size */
+  font-size: 0.6em; /* Reduced from 0.75em for better fit */
   color: #cccccc; /* Neutral light gray color */
   margin-top: 0.2em; /* Spacing below primary time */
 }
@@ -1142,7 +1152,45 @@ input[type="number"] {
 .total-time-container {
   display: flex;
   align-items: center;
+  justify-content: center; /* Center the total time */
   gap: 0.3em;
+  font-size: 0.5em; /* Reduce size of total time display */
+  margin-top: 0.3em;
+}
+
+/* Total time label text */
+.total-time-label {
+  font-size: 1em; /* Inherit from container (0.5em) */
+  opacity: 0.7;
+  color: #ccc;
+  margin-right: 0.2em;
+}
+
+/* Adjustment hint for time segments */
+.adjustment-hint {
+  font-size: 0.35em; /* Small hint text to prevent clipping */
+  color: rgba(255, 255, 255, 0.5);
+  margin-top: 0.2em;
+  opacity: 0;
+  animation: fadeIn 0.3s ease forwards;
+  line-height: 1.2;
+  text-align: center;
+}
+
+@keyframes fadeIn {
+  to {
+    opacity: 1;
+  }
+}
+
+/* OBS center display container */
+.obs-center-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  text-align: center;
 }
 
 /* Individual time segments for manual adjustment */

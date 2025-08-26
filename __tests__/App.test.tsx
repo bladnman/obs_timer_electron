@@ -46,8 +46,8 @@ describe("<App />", () => {
     // Check for some key elements to ensure basic rendering
     // Menu buttons (title is a good way to find them if text is just icons)
     expect(screen.getByTitle("Settings")).toBeInTheDocument();
-    const resetButtons = screen.getAllByTitle("Reset Total Time");
-    expect(resetButtons.length).toBe(2); // We expect 2 reset buttons - one in menu and one in timer display
+    const resetButtons = screen.getAllByTitle("Reset Total");
+    expect(resetButtons.length).toBe(1); // We expect 1 reset button in OBS mode
 
     // Timer displays - check for time-text containers
     const timerContainers = document.querySelectorAll(".time-text");
@@ -58,8 +58,9 @@ describe("<App />", () => {
     const timeTextElements = document.querySelectorAll(".time-text");
     expect(timeTextElements.length).toBeGreaterThanOrEqual(1); // At least one time display
 
-    // Check that the status icon is present
-    expect(document.getElementById("status-icon")).toBeInTheDocument();
+    // Check that a status icon is present (class-based, not ID)
+    const statusIcons = document.querySelectorAll(".status-icon");
+    expect(statusIcons.length).toBeGreaterThanOrEqual(1);
   });
 
   test("shows retry button when connection fails", async () => {

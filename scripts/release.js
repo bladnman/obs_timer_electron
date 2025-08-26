@@ -20,9 +20,9 @@ function run(command, description) {
   try {
     const output = execSync(command, { stdio: 'inherit', cwd: process.cwd() });
     return output;
-  // eslint-disable-next-line no-unused-vars
+   
   } catch (err) {
-    error(`Failed: ${description}\nCommand: ${command}\nError: ${err.message}`);
+    error(`Failed: ${description}\nCommand: ${command}\nError: ${err?.message || err}`);
   }
 }
 

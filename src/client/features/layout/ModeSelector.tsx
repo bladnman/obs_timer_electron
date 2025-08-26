@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { BiVideo, BiStopwatch, BiTimer, BiTime, BiGridAlt } from "react-icons/bi";
-import { AppMode } from "../contexts/AppContext";
+import { AppMode } from "../../contexts/AppContext";
 
 interface ModeSelectorProps {
   currentMode: AppMode;

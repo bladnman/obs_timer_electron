@@ -1,6 +1,6 @@
 import React from "react";
-import {BiReset} from "react-icons/bi";
-import ThreeColumnLayout from "./ThreeColumnLayout";
+import { BiReset } from "react-icons/bi";
+import ThreeColumnLayout from "../layout/ThreeColumnLayout";
 
 interface StopwatchModeProps {
   formattedTime: string;

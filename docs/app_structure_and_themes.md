@@ -5,6 +5,7 @@
 * **Mental Model First:** The file/folder structure must mirror the visual structure of the app. A developer should be able to find code for a UI element by navigating to the page/feature it appears on.
 * **Separation of Concerns:** Break code into small, single-responsibility files (components, hooks, utils). Avoid monolithic files.
 * **DRY but Clear:** Reuse code where possible, but never at the expense of clarity or the mental model.
+**Test, check and Validate:** Always look for and clean _lint_ as you move around the system. Create, update and excecute any test relevant to changes.
 
 ### 2.1. Separation of Concerns
 

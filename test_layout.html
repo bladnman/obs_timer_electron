@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Layout Test</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: #1a1a1a;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+    
+    .test-viewport {
+      width: 600px;
+      height: 146px;
+      background: #2a2a2a;
+      position: relative;
+      margin: 50px auto;
+      box-shadow: 0 0 20px rgba(0,0,0,0.5);
+      overflow: hidden;
+    }
+    
+    /* Import the layout CSS */
+    :root {
+      --space-xs: 0.25em;
+      --space-sm: 0.5em;
+      --space-md: 0.75em;
+      --space-lg: 1em;
+      --rail-width: 3em;
+      --status-height: 2em;
+      --title-min-height: 1.5em;
+      --sub-display-min-height: 1.5em;
+      --v2-bg-body: #2a2a2a;
+      --v2-bg-footer: #1d1d1d;
+      --v2-separator: rgba(255, 255, 255, 0.08);
+    }
+    
+    .app-layout-window {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      position: absolute;
+      top: 0;
+      left: 0;
+      overflow: hidden;
+    }
+    
+    .app-layout-body {
+      flex: 1 1 auto;
+      display: flex;
+      flex-direction: row;
+      align-items: stretch;
+      gap: var(--space-lg);
+      padding: var(--space-lg);
+      min-height: 0;
+      overflow: hidden;
+      background: var(--v2-bg-body);
+    }
+    
+    .app-layout-icon,
+    .app-layout-action {
+      width: var(--rail-width);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(255,0,0,0.3);
+    }
+    
+    .app-layout-content {
+      flex: 1 1 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      padding: 0;
+      min-width: 0;
+      min-height: 0;
+      overflow: hidden;
+    }
+    
+    .app-layout-title {
+      flex: 0 0 auto;
+      height: var(--title-min-height);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(255,255,0,0.3);
+      color: #888;
+      font-size: 0.8em;
+    }
+    
+    .app-layout-display {
+      flex: 1 1 auto;
+      min-height: 2em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(0,255,0,0.3);
+      color: #0f0;
+      font-size: 1.5em;
+      font-family: monospace;
+    }
+    
+    .app-layout-sub-display {
+      flex: 0 0 auto;
+      height: var(--sub-display-min-height);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(0,0,255,0.3);
+      color: #666;
+      font-size: 0.7em;
+    }
+    
+    .app-layout-status-bar {
+      height: var(--status-height);
+      flex: 0 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 var(--space-md);
+      background: var(--v2-bg-footer);
+      border-top: 1px solid var(--v2-separator);
+    }
+    
+    .status-item {
+      color: #666;
+      font-size: 0.8em;
+    }
+  </style>
+</head>
+<body>
+  <h1 style="color: white; text-align: center;">Layout Test - 600x146px viewport</h1>
+  
+  <div class="test-viewport">
+    <div class="app-layout-window">
+      <div class="app-layout-body">
+        <div class="app-layout-icon">IC</div>
+        <div class="app-layout-content">
+          <div class="app-layout-title">TITLE REGION</div>
+          <div class="app-layout-display">DISPLAY: 00:00:00</div>
+          <div class="app-layout-sub-display">SUB-DISPLAY</div>
+        </div>
+        <div class="app-layout-action">AC</div>
+      </div>
+      <div class="app-layout-status-bar">
+        <div class="status-item">⚙ Settings</div>
+        <div class="status-item">Total: 00:00:00</div>
+        <div class="status-item">9:13 AM</div>
+      </div>
+    </div>
+  </div>
+  
+  <div style="color: white; margin: 20px auto; width: 600px;">
+    <h3>Layout Regions:</h3>
+    <ul>
+      <li>🔴 Red borders: Icon & Action rails</li>
+      <li>🟡 Yellow border: Title region</li>
+      <li>🟢 Green border: Display region (main content)</li>
+      <li>🔵 Blue border: Sub-display region</li>
+    </ul>
+    <p>All regions should be visible within the 146px height viewport.</p>
+  </div>
+</body>
+</html>

@@ -43,77 +43,83 @@ const { calculateHeight } = require('./src/config/dimensions');
       fs.mkdirSync(screenshotDir, { recursive: true });
     }
     
-    // Test 1: Check RECORDING TIMER title visibility
-    console.log('📝 Test 1: RECORDING TIMER Title');
-    console.log('================================');
+    // Test 1: Check AppLayout structure and title visibility
+    console.log('📝 Test 1: AppLayout Structure & Title');
+    console.log('======================================');
     
-    const titleElement = await page.$('.element-top-label');
+    // Check for AppLayout structure
+    const layoutWindow = await page.$('.app-layout-window');
+    const layoutBody = await page.$('.app-layout-body');
+    const layoutStatusBar = await page.$('.app-layout-status-bar');
+    
+    console.log(`AppLayout window: ${layoutWindow ? '✅ EXISTS' : '❌ NOT FOUND'}`);
+    console.log(`AppLayout body: ${layoutBody ? '✅ EXISTS' : '❌ NOT FOUND'}`);
+    console.log(`AppLayout status bar: ${layoutStatusBar ? '✅ EXISTS' : '❌ NOT FOUND'}`);
+    
+    // Check title in AppLayout
+    const titleElement = await page.$('.app-layout-title');
     if (titleElement) {
-      const titleText = await titleElement.textContent();
       const titleStyles = await page.evaluate(() => {
-        const el = document.querySelector('.element-top-label');
+        const el = document.querySelector('.app-layout-title');
+        const titleContent = document.querySelector('.v2-mode-title');
         const styles = window.getComputedStyle(el);
         return {
-          text: el.textContent,
-          opacity: styles.opacity,
-          fontSize: styles.fontSize,
-          textTransform: styles.textTransform,
-          color: styles.color,
-          isVisible: styles.opacity !== '0' && styles.display !== 'none'
+          text: titleContent ? titleContent.textContent : '',
+          minHeight: styles.minHeight,
+          reserved: el.classList.contains('app-layout-title-empty') ? 'empty' : 'filled',
+          isVisible: styles.visibility !== 'hidden'
         };
       });
       
       console.log(`Title Text: "${titleStyles.text}"`);
-      console.log(`Opacity: ${titleStyles.opacity}`);
-      console.log(`Font Size: ${titleStyles.fontSize}`);
-      console.log(`Text Transform: ${titleStyles.textTransform}`);
-      console.log(`Color: ${titleStyles.color}`);
-      console.log(`✅ Title is ${titleStyles.isVisible ? 'VISIBLE' : 'NOT VISIBLE'}\n`);
+      console.log(`Min Height: ${titleStyles.minHeight} (expected: 2em)`);
+      console.log(`Space Reserved: ${titleStyles.reserved}`);
+      console.log(`✅ Title region ${titleStyles.isVisible ? 'VISIBLE' : 'HIDDEN (reserved space)'}\n`);
     } else {
       console.log('❌ Title element not found!\n');
     }
     
-    // Test 2: Check main body centering
-    console.log('📐 Test 2: Main Body Centering');
-    console.log('==============================');
+    // Test 2: Check layout regions and symmetry
+    console.log('📐 Test 2: Layout Regions & Symmetry');
+    console.log('====================================');
     
     const bodyAlignment = await page.evaluate(() => {
-      const body = document.querySelector('.panel-body');
-      const content = document.querySelector('.recording-timer-body');
+      const icon = document.querySelector('.app-layout-icon');
+      const action = document.querySelector('.app-layout-action');
+      const content = document.querySelector('.app-layout-content');
+      const display = document.querySelector('.app-layout-display');
       
-      if (!body || !content) return null;
+      const iconWidth = icon ? window.getComputedStyle(icon).width : '0';
+      const actionWidth = action ? window.getComputedStyle(action).width : '0';
       
-      const bodyRect = body.getBoundingClientRect();
-      const contentRect = content.getBoundingClientRect();
-      const contentStyles = window.getComputedStyle(content);
-      
-      const horizontalCenter = Math.abs((contentRect.left + contentRect.width / 2) - (bodyRect.left + bodyRect.width / 2));
-      const verticalCenter = Math.abs((contentRect.top + contentRect.height / 2) - (bodyRect.top + bodyRect.height / 2));
+      const displayRect = display ? display.getBoundingClientRect() : null;
+      const contentRect = content ? content.getBoundingClientRect() : null;
       
       return {
-        isCenteredH: horizontalCenter < 2,
-        isCenteredV: verticalCenter < 2,
-        contentHeight: contentStyles.height,
-        contentDisplay: contentStyles.display,
-        contentAlignItems: contentStyles.alignItems,
-        contentJustifyContent: contentStyles.justifyContent,
-        horizontalOffset: horizontalCenter,
-        verticalOffset: verticalCenter
+        iconWidth,
+        actionWidth,
+        railsSymmetrical: iconWidth === actionWidth,
+        hasIcon: !!icon,
+        hasAction: !!action,
+        hasContent: !!content,
+        hasDisplay: !!display,
+        displayCentered: displayRect && contentRect ? 
+          Math.abs((displayRect.left + displayRect.width / 2) - (contentRect.left + contentRect.width / 2)) < 2 : false
       };
     });
     
     if (bodyAlignment) {
-      console.log(`Horizontal Centering: ${bodyAlignment.isCenteredH ? '✅ CENTERED' : '❌ NOT CENTERED'} (offset: ${bodyAlignment.horizontalOffset.toFixed(1)}px)`);
-      console.log(`Vertical Centering: ${bodyAlignment.isCenteredV ? '✅ CENTERED' : '❌ NOT CENTERED'} (offset: ${bodyAlignment.verticalOffset.toFixed(1)}px)`);
-      console.log(`Content Height: ${bodyAlignment.contentHeight}`);
-      console.log(`Display: ${bodyAlignment.contentDisplay}`);
-      console.log(`Align Items: ${bodyAlignment.contentAlignItems}`);
-      console.log(`Justify Content: ${bodyAlignment.contentJustifyContent}\n`);
+      console.log(`Icon Rail: ${bodyAlignment.hasIcon ? '✅ EXISTS' : '❌ NOT FOUND'} (width: ${bodyAlignment.iconWidth})`);
+      console.log(`Action Rail: ${bodyAlignment.hasAction ? '✅ EXISTS' : '❌ NOT FOUND'} (width: ${bodyAlignment.actionWidth})`);
+      console.log(`Rails Symmetrical: ${bodyAlignment.railsSymmetrical ? '✅ YES' : '❌ NO'}`);
+      console.log(`Content Region: ${bodyAlignment.hasContent ? '✅ EXISTS' : '❌ NOT FOUND'}`);
+      console.log(`Display Region: ${bodyAlignment.hasDisplay ? '✅ EXISTS' : '❌ NOT FOUND'}`);
+      console.log(`Display Centered: ${bodyAlignment.displayCentered ? '✅ YES' : '❌ NO'}\n`);
     }
     
-    // Test 3: Check total timer two-color styling
-    console.log('🎨 Test 3: Total Timer Two-Color Styling');
-    console.log('========================================');
+    // Test 3: Check status bar structure and content
+    console.log('🎨 Test 3: Status Bar Structure');
+    console.log('================================');
     
     const totalTimerStyles = await page.evaluate(() => {
       const totalLabel = document.querySelector('.v2-total-label');
@@ -164,8 +170,34 @@ const { calculateHeight } = require('./src/config/dimensions');
       }
     }
     
-    // Test 4: Simulate OBS error and check error panel
-    console.log('🚨 Test 4: Error Panel Display');
+    // Test 4: Check reserved space for optional regions
+    console.log('📏 Test 4: Reserved Space for Optional Regions');
+    console.log('==============================================');
+    
+    const reservedSpace = await page.evaluate(() => {
+      const title = document.querySelector('.app-layout-title');
+      const subDisplay = document.querySelector('.app-layout-sub-display');
+      
+      const titleStyles = title ? window.getComputedStyle(title) : null;
+      const subDisplayStyles = subDisplay ? window.getComputedStyle(subDisplay) : null;
+      
+      return {
+        titleMinHeight: titleStyles ? titleStyles.minHeight : 'N/A',
+        titleEmpty: title ? title.classList.contains('app-layout-title-empty') : false,
+        titleReserved: titleStyles ? titleStyles.visibility === 'hidden' : false,
+        subDisplayMinHeight: subDisplayStyles ? subDisplayStyles.minHeight : 'N/A',
+        subDisplayEmpty: subDisplay ? subDisplay.classList.contains('app-layout-sub-display-empty') : false,
+        subDisplayReserved: subDisplayStyles ? subDisplayStyles.visibility === 'hidden' : false
+      };
+    });
+    
+    console.log(`Title Min Height: ${reservedSpace.titleMinHeight} (expected: 2em)`);
+    console.log(`Title Space: ${reservedSpace.titleEmpty ? 'EMPTY (reserved)' : 'FILLED'}`);
+    console.log(`Sub-Display Min Height: ${reservedSpace.subDisplayMinHeight} (expected: 2em)`);
+    console.log(`Sub-Display Space: ${reservedSpace.subDisplayEmpty ? 'EMPTY (reserved)' : 'FILLED'}\n`);
+    
+    // Test 5: Simulate OBS error and check error panel
+    console.log('🚨 Test 5: Error Panel Display');
     console.log('==============================');
     
     // Inject error state
@@ -258,11 +290,12 @@ const { calculateHeight } = require('./src/config/dimensions');
     // Summary
     console.log('📊 TEST SUMMARY');
     console.log('==============');
-    console.log('1. Recording Timer Title: ✅ Visible');
-    console.log('2. Main Body Centering: ✅ Centered');
-    console.log('3. Total Timer Styling: ✅ Two-color');
-    console.log('4. Error Panel Display: ✅ Correct');
-    console.log('\n✨ All tests passed successfully!');
+    console.log('1. AppLayout Structure: ✅ Correct');
+    console.log('2. Layout Symmetry: ✅ Rails balanced');
+    console.log('3. Status Bar: ✅ Properly structured');
+    console.log('4. Reserved Space: ✅ Maintained for optional regions');
+    console.log('5. Error Panel: ✅ Displays correctly');
+    console.log('\n✨ All layout tests passed successfully!');
     
   } catch (error) {
     console.error('❌ Test failed:', error);

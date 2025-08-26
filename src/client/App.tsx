@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import "./App.css";
-import "./AppV2Responsive.css";
+import "./AppV2.css";
 import { useAppContext } from "./contexts/AppContext";
 import { AspectRatioContainer } from "./components/AspectRatioContainer";
 import ClockMode from "./features/clock_mode/ClockMode";

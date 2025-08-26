@@ -10,6 +10,8 @@ Electron desktop application providing a multi-mode timer with OBS Studio integr
 
 See the [docs/app_structure_and_themes.md](docs/app_structure_and_themes.md) file for the most important architectural rules. These rules are enforced by the AI agent.
 
+Always be aware of the [docs/app_layout_design/app_layout_design.md](docs/app_layout_design/app_layout_design.md) file and the `app_layout_design.png` file. These describe that we are building from a structured templated layout and using `em` as the unit of measurement in almost all cases.
+
 ## Tech Stack
 
 - **Electron 27** - Desktop framework with frameless window

@@ -1,0 +1,189 @@
+/* AppLayout - Canonical Layout Implementation per Design Spec */
+
+/* Spacing Tokens (relative units) - Per Design Spec */
+:root {
+  --space-xs: 0.5em;
+  --space-sm: 0.75em;
+  --space-md: 1em;
+  --space-lg: 1.5em;
+  
+  /* Layout dimensions - Scaled for viewport constraints */
+  --rail-width: 3em;  /* Compact icon/action rails */
+  --status-height: 2em;  /* Compact status bar */
+  --title-min-height: 1.2em;  /* Minimal title space */
+  --sub-display-min-height: 1.2em;  /* Minimal sub-display space */
+}
+
+/* Window container - fills available viewport */
+.app-layout-window {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: hidden;
+  /* Ensure proper height distribution */
+  min-height: 0;
+}
+
+/* Body - horizontal layout with optional rails */
+.app-layout-body {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: row;
+  align-items: center; /* Center vertically */
+  gap: var(--space-md);  /* Smaller gap for compact layout */
+  padding: var(--space-xs) var(--space-md);  /* Minimal padding */
+  min-height: 0; /* Allow shrinking */
+  max-height: 100%; /* Ensure it doesn't exceed window minus status bar */
+  overflow: hidden; /* Prevent content from extending beyond */
+  background: var(--v2-bg-body, #2a2a2a);
+  position: relative;
+}
+
+/* Icon rail (optional, left) */
+.app-layout-icon {
+  width: var(--rail-width);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Action rail (optional, right) */
+.app-layout-action {
+  width: var(--rail-width);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Content region (always present, vertical layout) */
+.app-layout-content {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* Vertically center the content */
+  gap: 0.1em; /* Minimal gap */
+  min-width: 0; /* Allow shrinking */
+  min-height: 0; /* Allow shrinking vertically */
+  align-items: center; /* Center horizontally */
+  overflow: hidden; /* Prevent vertical overflow */
+  position: relative;
+  padding-top: 0.5em;
+}
+
+/* Title (optional, reserved space) */
+.app-layout-title {
+  flex: 0 0 auto; /* Fixed height, don't grow or shrink */
+  height: var(--title-min-height);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Empty title still reserves space */
+.app-layout-title-empty {
+  visibility: hidden;
+}
+
+/* Display (primary region, grows) */
+.app-layout-display {
+  flex: 0 1 auto; /* Don't force growth, allow shrinking */
+  min-height: 2.5em; /* Allow shrinking to fit viewport */
+  max-height: 100%; /* Don't exceed available space */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden; /* Hide overflow */
+  width: 100%; /* Full width of content area */
+}
+
+/* Sub-display (optional, reserved space) */
+.app-layout-sub-display {
+  flex: 0 0 auto; /* Fixed height, don't grow or shrink */
+  height: var(--sub-display-min-height);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* Empty sub-display still reserves space */
+.app-layout-sub-display-empty {
+  visibility: hidden;
+}
+
+/* Status bar (always visible, fixed height) */
+.app-layout-status-bar {
+  height: var(--status-height);
+  min-height: var(--status-height);
+  max-height: var(--status-height);
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 1em;
+  background: var(--v2-bg-footer, #1d1d1d);
+  border-top: 0.0625em solid var(--v2-separator, rgba(255, 255, 255, 0.08));
+  flex: 0 0 auto; /* Never grow or shrink */
+  z-index: 10;
+  position: relative;
+}
+
+/* Status bar slots */
+.app-layout-settings {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.app-layout-extra-info {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.app-layout-clock {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+/* No media queries - pure relativistic scaling per design spec */
+
+/* Ensure content doesn't clip */
+.app-layout-window * {
+  box-sizing: border-box;
+}
+
+/* Rails should always maintain their space for proper centering
+   Remove these rules that allowed content to expand */
+
+/* Body overlay - absolute positioned on top of body content */
+.app-layout-body-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 100;
+  pointer-events: auto;
+  padding: 0.1em 0.7em;
+  background: #ff1d1d7b;
+  border-radius: 0.1em;
+  font-weight: bold;
+  font-size: 1.5em;
+  color: #ffffff;
+}

@@ -45,11 +45,18 @@ describe("<App />", () => {
 
     // Wait for v2 layout elements to appear
     await waitFor(() => {
-      // Check for v2 label
-      expect(screen.getByText("RECORDING TIMER")).toBeInTheDocument();
+      // Check for AppLayout structure
+      expect(document.querySelector(".app-layout-window")).toBeInTheDocument();
     });
 
-    // Check for Settings button in v2 layout
+    // Check for main layout regions
+    expect(document.querySelector(".app-layout-body")).toBeInTheDocument();
+    expect(document.querySelector(".app-layout-status-bar")).toBeInTheDocument();
+    
+    // Check for title
+    expect(screen.getByText("RECORDING TIMER")).toBeInTheDocument();
+
+    // Check for Settings button in status bar
     expect(screen.getByTitle("Settings")).toBeInTheDocument();
     
     // Check that we have time displays in v2 format
@@ -59,6 +66,22 @@ describe("<App />", () => {
     // Check that a status icon is present (v2 class)
     const statusIcons = document.querySelectorAll(".v2-status-icon");
     expect(statusIcons.length).toBeGreaterThanOrEqual(1);
+    
+    // Verify layout structure follows design spec
+    const content = document.querySelector(".app-layout-content");
+    expect(content).toBeInTheDocument();
+    
+    const display = document.querySelector(".app-layout-display");
+    expect(display).toBeInTheDocument();
+    
+    // Check icon rail exists
+    const icon = document.querySelector(".app-layout-icon");
+    expect(icon).toBeInTheDocument();
+    
+    // Action rail may or may not exist depending on state
+    // Just verify it can be queried without error
+    const action = document.querySelector(".app-layout-action");
+    // Action is conditional, so we don't assert its existence
   });
 
   test("shows error state when connection fails", async () => {

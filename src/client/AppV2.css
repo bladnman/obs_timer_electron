@@ -269,6 +269,36 @@
   margin-left: 0.25em;
 }
 
+/* Editable total time segments in status bar */
+.v2-total-value {
+  font-family: 'Roboto Mono', 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+.v2-total-segment {
+  display: inline-block;
+  cursor: pointer;
+  padding: 0 0.2em;
+  border-radius: 0.2em;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.v2-total-segment:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+.v2-total-segment.selected {
+  background-color: #0066cc;
+  color: #ffffff;
+}
+
+.v2-total-separator {
+  display: inline-block;
+  margin: 0 0.15em;
+  color: var(--v2-text-dimmed);
+  opacity: 0.6;
+}
+
 .v2-clock-time {
   font-size: 0.6875em;
   color: var(--v2-text-dimmed);

@@ -3,10 +3,10 @@ import {useWindowDimensions} from "../hooks/useWindowDimensions";
 
 // Import from JS file instead of TS since this is what's used by the build
 const ASPECT_RATIO = {
-  HEIGHT_RATIO: 0.07,
+  HEIGHT_RATIO: 0.03,
   // HEIGHT_RATIO: 0.244,
   DEFAULT_WIDTH: 422,
-  MIN_WIDTH: 211,
+  MIN_WIDTH: 170,
 };
 
 interface ScalingContextValue {

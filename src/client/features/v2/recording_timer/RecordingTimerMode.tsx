@@ -1,10 +1,68 @@
-import React from "react";
-import { IoReloadOutline } from "react-icons/io5";
-import { BsGearFill } from "react-icons/bs";
+import React, {useEffect, useRef} from "react";
+import {BsGearFill} from "react-icons/bs";
+import {IoReloadOutline} from "react-icons/io5";
+import {TimeSegment} from "../../../contexts/AppContext";
+import {useTimeAdjustment} from "../../obs_mode/hooks/use_time_adjustment";
 import AppLayout from "../layout/AppLayout";
+import ErrorBanner from "../shared/components/ErrorBanner";
 import StatusIcon from "../shared/components/StatusIcon";
 import TimeDisplay from "../shared/components/TimeDisplay";
-import ErrorBanner from "../shared/components/ErrorBanner";
+
+interface EditableTotalTimeProps {
+  time: string;
+  selectedSegment: TimeSegment;
+  onSelectSegment: (segment: TimeSegment) => void;
+}
+
+const EditableTotalTime: React.FC<EditableTotalTimeProps> = ({
+  time,
+  selectedSegment,
+  onSelectSegment,
+}) => {
+  const [hours, minutes, seconds] = time.split(":");
+
+  const handleClick = (segment: TimeSegment) => {
+    if (selectedSegment === segment) {
+      onSelectSegment(null);
+    } else {
+      onSelectSegment(segment);
+    }
+  };
+
+  return (
+    <span
+      className="v2-total-value clickable-timer"
+      aria-label="Total time editable"
+    >
+      <span
+        className={`v2-total-segment clickable-timer ${
+          selectedSegment === "hours" ? "selected" : ""
+        }`}
+        onClick={() => handleClick("hours")}
+      >
+        {hours}
+      </span>
+      <span className="v2-total-separator">:</span>
+      <span
+        className={`v2-total-segment clickable-timer ${
+          selectedSegment === "minutes" ? "selected" : ""
+        }`}
+        onClick={() => handleClick("minutes")}
+      >
+        {minutes}
+      </span>
+      <span className="v2-total-separator">:</span>
+      <span
+        className={`v2-total-segment clickable-timer ${
+          selectedSegment === "seconds" ? "selected" : ""
+        }`}
+        onClick={() => handleClick("seconds")}
+      >
+        {seconds}
+      </span>
+    </span>
+  );
+};
 
 export type RecordingState = "recording" | "paused" | "stopped" | "error";
 
@@ -17,6 +75,9 @@ interface RecordingTimerModeProps {
   onReset: () => void;
   onSettingsClick: () => void;
   isDimmed?: boolean;
+  selectedTimeSegment?: TimeSegment;
+  onSelectTimeSegment?: (segment: TimeSegment) => void;
+  onAdjustTotalTime?: (amount: number) => void;
 }
 
 const RecordingTimerMode: React.FC<RecordingTimerModeProps> = ({
@@ -28,31 +89,148 @@ const RecordingTimerMode: React.FC<RecordingTimerModeProps> = ({
   onReset,
   onSettingsClick,
   isDimmed = false,
+  selectedTimeSegment = null,
+  onSelectTimeSegment = () => {},
+  onAdjustTotalTime = () => {},
 }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const {startKeyHold, stopKeyHold} = useTimeAdjustment();
+  const totalTimeRef = useRef<string>(totalTime);
+
+  useEffect(() => {
+    totalTimeRef.current = totalTime;
+  }, [totalTime]);
+
+  // Keyboard handling for adjusting total time
+  useEffect(() => {
+    const debug = (...args: unknown[]) => {
+      if (typeof window !== "undefined" && (window as any).__DEBUG_KEYS) {
+        // eslint-disable-next-line no-console
+        console.log("[RecordingTimerMode]", ...args);
+      }
+    };
+
+    const multipliers: Record<"hours" | "minutes" | "seconds", number> = {
+      hours: 3600,
+      minutes: 60,
+      seconds: 1,
+    };
+
+    const calcDelta = (
+      segment: "hours" | "minutes" | "seconds",
+      direction: 1 | -1
+    ) => {
+      // Always return the raw step in seconds; carrying/borrowing is handled
+      // by the total-seconds representation and clamped at 0 upstream.
+      return direction * multipliers[segment];
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const activeSegment: "hours" | "minutes" | "seconds" | null =
+        selectedTimeSegment ?? null;
+      if (e.key === "ArrowUp" || e.key === "k" || e.key === "K") {
+        e.preventDefault();
+        if (!activeSegment) {
+          debug("ArrowUp ignored (no selection)");
+          return;
+        }
+        debug("ArrowUp start", {activeSegment, repeat: (e as any).repeat});
+        startKeyHold(1, () => {
+          const delta = calcDelta(activeSegment, 1);
+          if (delta !== 0) onAdjustTotalTime(delta);
+        });
+      } else if (e.key === "ArrowDown" || e.key === "j" || e.key === "J") {
+        e.preventDefault();
+        if (!activeSegment) {
+          debug("ArrowDown ignored (no selection)");
+          return;
+        }
+        debug("ArrowDown start", {activeSegment, repeat: (e as any).repeat});
+        startKeyHold(-1, () => {
+          const delta = calcDelta(activeSegment, -1);
+          if (delta !== 0) onAdjustTotalTime(delta);
+        });
+      } else if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
+        e.preventDefault();
+        if (!activeSegment) {
+          debug("Left/Right ignored (no selection)");
+          return;
+        }
+        const order: Array<"hours" | "minutes" | "seconds"> = [
+          "hours",
+          "minutes",
+          "seconds",
+        ];
+        const idx = order.indexOf(activeSegment);
+        if (e.key === "ArrowRight" && idx < order.length - 1) {
+          onSelectTimeSegment(order[idx + 1]);
+        } else if (e.key === "ArrowLeft" && idx > 0) {
+          onSelectTimeSegment(order[idx - 1]);
+        }
+      } else if (e.key === "Escape") {
+        e.preventDefault();
+        onSelectTimeSegment(null);
+      }
+    };
+
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (
+        e.key === "ArrowUp" ||
+        e.key === "ArrowDown" ||
+        e.key === "j" ||
+        e.key === "J" ||
+        e.key === "k" ||
+        e.key === "K"
+      ) {
+        debug("keyUp", e.key);
+        stopKeyHold();
+      }
+    };
+
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(e.target as Node)
+      ) {
+        onSelectTimeSegment(null);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown, {capture: true});
+    window.addEventListener("keyup", handleKeyUp, {capture: true});
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown, {
+        capture: true,
+      } as any);
+      window.removeEventListener("keyup", handleKeyUp, {capture: true} as any);
+      document.removeEventListener("mousedown", handleClickOutside);
+      stopKeyHold();
+    };
+  }, [
+    selectedTimeSegment,
+    onAdjustTotalTime,
+    onSelectTimeSegment,
+    startKeyHold,
+    stopKeyHold,
+  ]);
+
   // Title component - always show
-  const titleComponent = (
-    <div className="v2-mode-title">RECORDING TIMER</div>
-  );
-  
+  const titleComponent = <div className="v2-mode-title">RECORDING TIMER</div>;
+
   // Icon component (status indicator)
-  const iconComponent = (
-    <StatusIcon state={state} />
-  );
-  
+  const iconComponent = <StatusIcon state={state} />;
+
   // Main display component - always show time display
   const displayComponent = (
     <div className="v2-display-container">
-      <TimeDisplay 
-        time={currentTime} 
-        state={state}
-        isDimmed={isDimmed}
-      />
+      <TimeDisplay time={currentTime} state={state} isDimmed={isDimmed} />
     </div>
   );
-  
+
   // Sub-display component - empty
   const subDisplayComponent = undefined;
-  
+
   // Action component (reset button) - always show to maintain layout
   const actionComponent = (
     <div className="v2-action-wrapper">
@@ -60,14 +238,14 @@ const RecordingTimerMode: React.FC<RecordingTimerModeProps> = ({
         onClick={onReset}
         className="v2-action-button"
         title="Reset"
-        disabled={state === "error"}  
-        style={{ opacity: state === "error" ? 0.3 : undefined }}
+        disabled={state === "error"}
+        style={{opacity: state === "error" ? 0.3 : undefined}}
       >
         <IoReloadOutline />
       </button>
     </div>
   );
-  
+
   // Settings component
   const settingsComponent = (
     <button
@@ -78,29 +256,33 @@ const RecordingTimerMode: React.FC<RecordingTimerModeProps> = ({
       <BsGearFill />
     </button>
   );
-  
+
   // Extra info component (total time)
   const extraInfoComponent = (
     <span className="v2-total-time">
       <span className="v2-total-label">Total:</span>
-      <span className="v2-total-value">{totalTime}</span>
+      <EditableTotalTime
+        time={totalTime}
+        selectedSegment={selectedTimeSegment}
+        onSelectSegment={onSelectTimeSegment}
+      />
     </span>
   );
-  
+
   // Clock component
-  const clockComponent = (
-    <span className="v2-clock-time">
-      {clockTime}
-    </span>
-  );
+  const clockComponent = <span className="v2-clock-time">{clockTime}</span>;
 
   // Error overlay - render as part of body
-  const bodyOverlay = state === "error" && errorMessage ? (
-    <ErrorBanner message={errorMessage} />
-  ) : undefined;
+  const bodyOverlay =
+    state === "error" && errorMessage ? (
+      <ErrorBanner message={errorMessage} />
+    ) : undefined;
 
   return (
-    <div className={`v2-recording-timer-mode ${isDimmed ? "dimmed" : ""}`}>
+    <div
+      className={`v2-recording-timer-mode ${isDimmed ? "dimmed" : ""}`}
+      ref={containerRef}
+    >
       <AppLayout
         icon={iconComponent}
         title={titleComponent}

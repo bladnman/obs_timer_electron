@@ -40,32 +40,62 @@ const OBSMode: React.FC<OBSModeProps> = ({
   const { startKeyHold, stopKeyHold } = useTimeAdjustment();
 
   useEffect(() => {
+    const debug = (...args: unknown[]) => {
+      if (typeof window !== 'undefined' && (window as any).__DEBUG_KEYS) {
+        // eslint-disable-next-line no-console
+        console.log('[OBSMode]', ...args);
+      }
+    };
+
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (!selectedTimeSegment) return;
+      const activeSegment: 'hours' | 'minutes' | 'seconds' | null = selectedTimeSegment ?? null;
 
       const multipliers = {
         hours: 3600,
         minutes: 60,
         seconds: 1,
-      };
-      const multiplier = multipliers[selectedTimeSegment];
+      } as const;
+      const multiplier = multipliers[activeSegment];
 
-      if (e.key === "ArrowUp") {
+      if (e.key === 'ArrowUp' || e.key === 'k' || e.key === 'K') {
         e.preventDefault();
-        if (e.repeat) return;
+        if (!activeSegment) {
+          debug('ArrowUp ignored (no selection)');
+          return;
+        }
+        debug('ArrowUp start', { activeSegment, repeat: (e as any).repeat });
         startKeyHold(1, (amount) => onAdjustTotalTime(amount * multiplier));
-      } else if (e.key === "ArrowDown") {
+      } else if (e.key === 'ArrowDown' || e.key === 'j' || e.key === 'J') {
         e.preventDefault();
-        if (e.repeat) return;
+        if (!activeSegment) {
+          debug('ArrowDown ignored (no selection)');
+          return;
+        }
+        debug('ArrowDown start', { activeSegment, repeat: (e as any).repeat });
+        // Always apply negative step; adjustTotalTime clamps at 0 so this borrows naturally.
         startKeyHold(-1, (amount) => onAdjustTotalTime(amount * multiplier));
-      } else if (e.key === "Escape") {
+      } else if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+        e.preventDefault();
+        if (!activeSegment) {
+          debug('Left/Right ignored (no selection)');
+          return;
+        }
+        const order: Array<'hours' | 'minutes' | 'seconds'> = ['hours', 'minutes', 'seconds'];
+        const idx = order.indexOf(activeSegment);
+        if (e.key === 'ArrowRight' && idx < order.length - 1) {
+          onSelectTimeSegment(order[idx + 1]);
+        } else if (e.key === 'ArrowLeft' && idx > 0) {
+          onSelectTimeSegment(order[idx - 1]);
+        }
+      } else if (e.key === 'Escape') {
         e.preventDefault();
         onSelectTimeSegment(null);
       }
     };
 
     const handleKeyUp = (e: KeyboardEvent) => {
-      if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+      if (e.key === 'ArrowUp' || e.key === 'ArrowDown' || e.key === 'j' || e.key === 'J' || e.key === 'k' || e.key === 'K') {
+        debug('keyUp', e.key);
         stopKeyHold();
       }
     };
@@ -79,18 +109,16 @@ const OBSMode: React.FC<OBSModeProps> = ({
       }
     };
 
-    if (selectedTimeSegment) {
-      window.addEventListener("keydown", handleKeyDown);
-      window.addEventListener("keyup", handleKeyUp);
-      document.addEventListener("mousedown", handleClickOutside);
+    window.addEventListener('keydown', handleKeyDown, { capture: true });
+    window.addEventListener('keyup', handleKeyUp, { capture: true });
+    document.addEventListener('mousedown', handleClickOutside);
 
-      return () => {
-        window.removeEventListener("keydown", handleKeyDown);
-        window.removeEventListener("keyup", handleKeyUp);
-        document.removeEventListener("mousedown", handleClickOutside);
-        stopKeyHold();
-      };
-    }
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown, { capture: true } as any);
+      window.removeEventListener('keyup', handleKeyUp, { capture: true } as any);
+      document.removeEventListener('mousedown', handleClickOutside);
+      stopKeyHold();
+    };
   }, [selectedTimeSegment, onAdjustTotalTime, onSelectTimeSegment, startKeyHold, stopKeyHold]);
 
   return (

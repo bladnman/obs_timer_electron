@@ -192,6 +192,9 @@ function App() {
             onReset={resetTotalTime}
             onSettingsClick={openSettingsModal}
             isDimmed={isDimmed}
+            selectedTimeSegment={selectedTimeSegment}
+            onSelectTimeSegment={selectTimeSegment}
+            onAdjustTotalTime={adjustTotalTime}
           />
           
           {isSettingsModalOpen && (

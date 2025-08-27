@@ -23,23 +23,23 @@ const TimeSegmentSelector: React.FC<TimeSegmentSelectorProps> = ({
   };
 
   return (
-    <div className="manual-time-display">
+    <div className="manual-time-display clickable-timer">
       <span
-        className={`time-segment ${selectedTimeSegment === "hours" ? "selected" : ""}`}
+        className={`time-segment clickable-timer ${selectedTimeSegment === "hours" ? "selected" : ""}`}
         onClick={() => handleSegmentClick("hours")}
       >
         {hours}
       </span>
       <span className="time-separator">:</span>
       <span
-        className={`time-segment ${selectedTimeSegment === "minutes" ? "selected" : ""}`}
+        className={`time-segment clickable-timer ${selectedTimeSegment === "minutes" ? "selected" : ""}`}
         onClick={() => handleSegmentClick("minutes")}
       >
         {minutes}
       </span>
       <span className="time-separator">:</span>
       <span
-        className={`time-segment ${selectedTimeSegment === "seconds" ? "selected" : ""}`}
+        className={`time-segment clickable-timer ${selectedTimeSegment === "seconds" ? "selected" : ""}`}
         onClick={() => handleSegmentClick("seconds")}
       >
         {seconds}

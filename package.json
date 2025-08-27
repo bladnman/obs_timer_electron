@@ -9,6 +9,7 @@
         "build:client": "vite build --config vite.config.js --mode production",
         "dev": "npm run dev:client & VITE_DEV_SERVER_URL=http://localhost:3000 electron . --dev",
         "test": "jest",
+        "test:e2e": "playwright test",
         "lint": "eslint .",
         "lint:fix": "eslint . --fix",
         "prestart": "npm run lint && npm run build:client",

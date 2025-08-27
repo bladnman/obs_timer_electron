@@ -297,6 +297,17 @@ export const AppProvider: React.FC<AppProviderProps> = ({children}) => {
     if (storedClockFormat !== null) {
       setClock({is24Hour: storedClockFormat === "true"});
     }
+    // Allow overriding initial mode via URL query (?mode=obs|stopwatch|timer|clock)
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const modeParam = params.get('mode');
+      if (modeParam && ["obs", "stopwatch", "timer", "clock"].includes(modeParam)) {
+        setCurrentMode(modeParam as AppMode);
+      }
+    } catch (e) {
+      // Ignore URL parsing issues in non-browser contexts
+      void e;
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Connect on mount
 

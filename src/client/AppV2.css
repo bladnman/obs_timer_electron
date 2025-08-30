@@ -18,6 +18,13 @@
   --v2-text-label: #5a5a5a;       /* Dimmed gray for labels */
   --v2-text-dimmed: #d9d9d9;      /* For gear/clock */
   --v2-text-secondary: #8a8a8a;   /* For total time */
+
+  /* Status bar minimum legibility dial
+     Change this to set a hard floor for status text
+     Example for ~10pt: 13.33px */
+  --v2-status-font-min: 12px;
+  /* Optional upper cap (can be omitted) */
+  --v2-status-font-max: 1rem;
 }
 
 /* Reset for V2 */
@@ -180,7 +187,25 @@
   line-height: 1;
   color: var(--v2-text-primary);
   display: inline-block;
+  white-space: nowrap; /* Keep time on one line */
   -webkit-app-region: no-drag; /* ensure clicks register in Electron */
+}
+
+/* When the layout collapses empty title/sub-display, allow the main time
+   numbers to claim more space for better legibility. Uses em units to keep
+   proportional with the scaling system. */
+.app-layout-window.app-layout-compact-when-empty .v2-time-display {
+  font-size: 4.2em; /* tuned in compact layout */
+  letter-spacing: 0.005em; /* tighter tracking to reduce width */
+}
+
+/* In compact layout, make separators visually slimmer and closer so the
+   display is less likely to wrap while preserving digit size. */
+.app-layout-window.app-layout-compact-when-empty .v2-time-separator {
+  font-size: 0.7em;
+  margin: 0 0.01em;
+  transform: translateY(-0.1em) scaleX(0.85);
+  transform-origin: center;
 }
 
 /* Edit mode styling for large time display (matches blue selection tone) */
@@ -281,7 +306,8 @@
 
 /* Status bar text */
 .v2-total-time {
-  font-size: 0.8125em;
+  /* Maintain relative size but never drop below the minimum */
+  font-size: clamp(var(--v2-status-font-min), 0.8125em, var(--v2-status-font-max));
   font-weight: 500;
   letter-spacing: 0.02em;
 }
@@ -327,7 +353,8 @@
 }
 
 .v2-clock-time {
-  font-size: 0.6875em;
+  /* Maintain relative size but never drop below the minimum */
+  font-size: clamp(var(--v2-status-font-min), 0.6875em, var(--v2-status-font-max));
   color: var(--v2-text-dimmed);
   font-weight: 400;
   letter-spacing: 0.02em;
@@ -386,6 +413,11 @@
 .v2-settings-button:hover {
   opacity: 0.7;
   transform: rotate(90deg);
+}
+
+/* Make the settings gear obey the status-bar minimum size dial */
+.app-layout-status-bar .v2-settings-button {
+  font-size: clamp(var(--v2-status-font-min), 0.75em, var(--v2-status-font-max));
 }
 
 /* Error Banner */
@@ -447,6 +479,12 @@
   letter-spacing: 0.1em;
   color: var(--v2-text-label);
   text-align: center;
+}
+
+/* When the mode title is shown inside the status bar center (extra-info),
+   ensure it also observes the status minimum size. */
+.app-layout-status-bar .v2-mode-title {
+  font-size: clamp(var(--v2-status-font-min), 1em, var(--v2-status-font-max));
 }
 
 /* Ensure React Icons scale with EM units */

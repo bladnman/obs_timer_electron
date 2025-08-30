@@ -122,6 +122,21 @@
   visibility: hidden;
 }
 
+/* Compact variant: when a mode intentionally omits both title and sub-display,
+   allow the display to reclaim their space for larger content. This keeps
+   default invariants intact elsewhere while enabling mode-specific behavior. */
+.app-layout-window.app-layout-compact-when-empty .app-layout-title-empty {
+  height: 0;
+}
+.app-layout-window.app-layout-compact-when-empty .app-layout-sub-display-empty {
+  height: 0;
+}
+.app-layout-window.app-layout-compact-when-empty .app-layout-display {
+  /* Let primary display expand vertically to fill freed space */
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
 /* Status bar (always visible, fixed height) */
 .app-layout-status-bar {
   height: var(--status-height);

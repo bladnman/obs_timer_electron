@@ -156,7 +156,9 @@ const TimerV2Mode: React.FC<TimerV2ModeProps> = ({
   }, [selectedTimeSegment, isRunning, startKeyHold, stopKeyHold, onAdjustTimerBy, onSelectTimeSegment]);
 
   // Header and rails
-  const titleComponent = <div className="v2-mode-title">TIMER</div>;
+  // For Timer, we prefer the mode label in the status bar center.
+  // Keep a component for reuse but we will render it in extraInfo, not title.
+  const modeLabel = <div className="v2-mode-title">TIMER</div>;
 
   const settingsComponent = (
     <button className="v2-settings-button" onClick={onEnterSetup} title="Set Duration">
@@ -182,10 +184,13 @@ const TimerV2Mode: React.FC<TimerV2ModeProps> = ({
     return (
       <div className={`v2-recording-timer-mode ${isDimmed ? "dimmed" : ""}`}>
         <AppLayout
-          // Keep rails to reserve layout
-          title={titleComponent}
+          // Timer mode: keep title/sub-display as potential regions.
+          // Collapse reserved space only if both are empty (compact class below).
+          className={"app-layout-compact-when-empty"}
+          title={null}
           display={<div />}
           settings={settingsComponent}
+          extraInfo={modeLabel}
           clock={clockComponent}
           contentOverride={
             <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "10em" }}>
@@ -257,12 +262,23 @@ const TimerV2Mode: React.FC<TimerV2ModeProps> = ({
     </div>
   );
 
+  // Determine whether to collapse reserved title/sub-display space.
+  // Keep this future-proof by deriving from content variables below.
+  const titleContent: React.ReactNode | null = null;
+  const subDisplayContent: React.ReactNode | null = null;
+  const hasTitle = !!titleContent;
+  const hasSubDisplay = !!subDisplayContent;
+  const isCompact = !hasTitle && !hasSubDisplay;
+
   return (
     <div className={`v2-recording-timer-mode ${isDimmed ? "dimmed" : ""}`} ref={containerRef}>
       <AppLayout
-        title={titleComponent}
+        // Timer mode: keep regions but move label to status bar center
+        className={isCompact ? "app-layout-compact-when-empty" : undefined}
+        title={titleContent}
         display={displayComponent}
         settings={settingsComponent}
+        extraInfo={modeLabel}
         clock={clockComponent}
         action={actionComponent}
       />

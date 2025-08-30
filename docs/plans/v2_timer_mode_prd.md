@@ -8,7 +8,7 @@
 
 ## Summary
 
-Port the legacy “Timer” mode into the new V2 screen architecture, using the standardized layout structure defined in `docs/app_layout_design/app_layout_design.md` (and `app_layout_design.png`) and adhering to architectural rules in `docs/app_structure_and_themes.md`. Implement unified mode navigation with arrow keys while preserving in-mode edit behavior. Outcome: two V2 modes available and navigable in order — Recording Timer (first) then Timer (second) — with correct arrow-key behavior, edit-mode gating, and consistent layout/theming using `em` units.
+Port the legacy “Timer” mode into the new V2 screen architecture, using the standardized layout structure defined in `docs/app_layout_design/app_layout_design.md` (see canonical `app_layout_design_compact.svg`) and adhering to architectural rules in `docs/app_structure_and_themes.md`. Implement unified mode navigation with arrow keys while preserving in-mode edit behavior. Outcome: two V2 modes available and navigable in order — Recording Timer (first) then Timer (second) — with correct arrow-key behavior, edit-mode gating, and consistent layout/theming using `em` units.
 
 ## Goals
 
@@ -40,7 +40,7 @@ Port the legacy “Timer” mode into the new V2 screen architecture, using the 
 
 ## Non-Functional Requirements
 
-- Layout/theming: Follow `docs/app_layout_design/app_layout_design.md` and `app_layout_design.png`; use `em` units.
+- Layout/theming: Follow `docs/app_layout_design/app_layout_design.md` (SVG diagram is canonical: `app_layout_design_compact.svg`); use `em` units.
 - Architecture guardrails: Respect `docs/app_structure_and_themes.md` conventions and constraints.
 - Accessibility: Keyboard operable; logical focus order; labels for controls; avoid focus loss on mode switch.
 - Performance: No jank on transitions; avoid excessive re-renders.
@@ -133,4 +133,3 @@ Port the legacy “Timer” mode into the new V2 screen architecture, using the 
 - M1–M2: 1–2 days
 - M3–M4: 2–3 days
 - M5–M6: 1–2 days
-

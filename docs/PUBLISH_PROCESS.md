@@ -10,7 +10,7 @@ For a streamlined release process, run this single command:
 npm run release:patch:github
 ```
 
-This automated command handles version bumping, testing, building, and GitHub release creation.
+This automated command handles version bumping, testing (unit + e2e), linting, type checks, building, and GitHub release creation.
 
 ## Manual Publish Process
 
@@ -21,7 +21,7 @@ If you need to run the publish process manually, follow these steps:
 Run tests and linting to ensure code quality:
 
 ```bash
-# Run all tests
+# Run unit tests
 npm test
 
 # Run linting (warnings are acceptable, errors must be fixed)
@@ -29,6 +29,12 @@ npm run lint
 
 # Optional: Fix auto-fixable lint issues
 npm run lint:fix
+
+# TypeScript type checks (no emit)
+npm run typecheck
+
+# End-to-end (Playwright) tests
+npm run test:e2e
 ```
 
 ### 2. Build Production Version

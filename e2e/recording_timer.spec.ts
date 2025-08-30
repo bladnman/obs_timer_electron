@@ -3,6 +3,7 @@ import { createServer, ViteDevServer } from 'vite';
 import path from 'path';
 
 let server: ViteDevServer;
+let serverUrl: string;
 
 test.beforeAll(async () => {
   server = await createServer({
@@ -10,6 +11,8 @@ test.beforeAll(async () => {
     mode: 'development',
   });
   await server.listen();
+  const urls: any = (server as any).resolvedUrls;
+  serverUrl = urls?.local?.[0] || `http://localhost:${server.config.server?.port || 3000}`;
 });
 
 test.afterAll(async () => {
@@ -17,7 +20,7 @@ test.afterAll(async () => {
 });
 
 test('Recording Timer: hold k/j repeats on Total minutes (requires selection)', async ({ page }) => {
-  await page.goto('/?mode=obs');
+  await page.goto(`${serverUrl}/?mode=obs`);
   // Ensure the UI is rendered
   await expect(page.locator('.v2-total-value')).toBeVisible();
 
@@ -47,7 +50,7 @@ test('Recording Timer: hold k/j repeats on Total minutes (requires selection)', 
 });
 
 test('Recording Timer: borrow/carry across segments without clearing right side', async ({ page }) => {
-  await page.goto('/?mode=obs');
+  await page.goto(`${serverUrl}/?mode=obs`);
   const total = page.locator('.v2-total-value');
   await expect(total).toBeVisible();
 

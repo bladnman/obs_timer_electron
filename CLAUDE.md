@@ -10,7 +10,9 @@ Electron desktop application providing a multi-mode timer with OBS Studio integr
 
 See the [docs/app_structure_and_themes.md](docs/app_structure_and_themes.md) file for the most important architectural rules. These rules are enforced by the AI agent.
 
-Always be aware of the [docs/app_layout_design/app_layout_design.md](docs/app_layout_design/app_layout_design.md) file and the `app_layout_design.png` file. These describe that we are building from a structured templated layout and using `em` as the unit of measurement in almost all cases.
+Always be aware of the [docs/app_layout_design/app_layout_design.md](docs/app_layout_design/app_layout_design.md) file and the SVG diagram `docs/app_layout_design/app_layout_design_compact.svg` (canonical). The older PNG is kept for reference only. These describe that we are building from a structured templated layout and using `em` as the unit of measurement in almost all cases.
+
+Layout v2 note: Title and sub-display reserve space by default, but modes may opt into a compact-on-empty variant. In compact mode, when both are empty, their heights collapse to 0 and the main display reclaims the space. Reference class hooks: `.app-layout-window.app-layout-compact-when-empty`, `.app-layout-title-empty`, `.app-layout-sub-display-empty`, and status bar center `.app-layout-extra-info` for placing a small mode label.
 
 ## Tech Stack
 
@@ -31,7 +33,10 @@ Always be aware of the [docs/app_layout_design/app_layout_design.md](docs/app_la
 ```bash
 npm run dev                  # Start development
 npm run lint                 # Run linting
+npm run typecheck            # Run TypeScript type checks (no emit)
 npm test                     # Run tests
+npm run test:e2e             # Run Playwright e2e tests
+npm run verify               # Lint + typecheck + unit + e2e
 
 # Production builds (includes test + lint)
 npm run build:prod           # Current platform
@@ -42,6 +47,7 @@ npm run build:prod:linux     # Linux AppImage
 # Release management
 npm run version:patch        # Bump patch version
 npm run release:patch:github # Automated GitHub release
+npm run publish:patch        # Alias for release:patch:github
 ```
 
 ## Important Notes

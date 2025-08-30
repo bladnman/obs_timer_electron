@@ -50,19 +50,14 @@ const OBSMode: React.FC<OBSModeProps> = ({
     const handleKeyDown = (e: KeyboardEvent) => {
       const activeSegment: 'hours' | 'minutes' | 'seconds' | null = selectedTimeSegment ?? null;
 
-      const multipliers = {
-        hours: 3600,
-        minutes: 60,
-        seconds: 1,
-      } as const;
-      const multiplier = multipliers[activeSegment];
-
       if (e.key === 'ArrowUp' || e.key === 'k' || e.key === 'K') {
         e.preventDefault();
         if (!activeSegment) {
           debug('ArrowUp ignored (no selection)');
           return;
         }
+        const multipliers = { hours: 3600, minutes: 60, seconds: 1 } as const;
+        const multiplier = multipliers[activeSegment];
         debug('ArrowUp start', { activeSegment, repeat: (e as any).repeat });
         const shift = e.shiftKey === true;
         startKeyHold(1, (amount) => onAdjustTotalTime(amount * multiplier * (shift ? 10 : 1)));
@@ -72,6 +67,8 @@ const OBSMode: React.FC<OBSModeProps> = ({
           debug('ArrowDown ignored (no selection)');
           return;
         }
+        const multipliers = { hours: 3600, minutes: 60, seconds: 1 } as const;
+        const multiplier = multipliers[activeSegment];
         debug('ArrowDown start', { activeSegment, repeat: (e as any).repeat });
         // Always apply negative step; adjustTotalTime clamps at 0 so this borrows naturally.
         const shift = e.shiftKey === true;

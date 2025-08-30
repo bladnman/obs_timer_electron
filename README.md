@@ -1,6 +1,6 @@
 # OBS Timer
 
-A sleek, feature-rich desktop timer for macOS and Windows. This always-on-top application offers multiple timer modes, including seamless integration with OBS Studio. Position it anywhere on your screen, resize it to your liking, and enjoy a modern, frameless design that complements any workspace.
+A sleek, feature-rich desktop timer for macOS, Windows, and Linux. This always-on-top application offers multiple timer modes, including seamless integration with OBS Studio. Position it anywhere on your screen, resize it to your liking, and enjoy a modern, frameless design that complements any workspace.
 
 **Note:** _This is a great platform for creating your own timer app -- timers or otherwise. Fork this repo and get started!_
 
@@ -32,7 +32,7 @@ Choose from four distinct modes to suit your needs:
 - **Persistent Session Time**: Keeps track of your total recording time across multiple sessions.
 - **Modern Design**: A clean, frameless, and transparent UI that looks great.
 - **Auto-Reconnection**: Automatically attempts to reconnect if the OBS connection is lost.
-- **Cross-Platform**: Built with Electron to run on both macOS and Windows.
+- **Cross-Platform**: Built with Electron to run on macOS, Windows, and Linux (AppImage).
 
 ## Installation
 

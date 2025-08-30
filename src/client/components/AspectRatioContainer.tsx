@@ -13,7 +13,10 @@ interface AspectRatioContainerProps {
  */
 export function AspectRatioContainer({ children }: AspectRatioContainerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [dimensions, setDimensions] = useState({ width: ASPECT_RATIO.DEFAULT_WIDTH, height: calculateHeight(ASPECT_RATIO.DEFAULT_WIDTH) });
+  const [dimensions, setDimensions] = useState<{ width: number; height: number }>(() => ({
+    width: ASPECT_RATIO.DEFAULT_WIDTH,
+    height: calculateHeight(ASPECT_RATIO.DEFAULT_WIDTH),
+  }));
   
   useEffect(() => {
     // Check if we're in Electron (Electron handles its own window sizing)

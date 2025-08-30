@@ -152,12 +152,14 @@ Examples:
   log(`Version bumped to ${newVersion}`);
 
   // Run tests and build
-  run('npm run test', 'Running tests');
   run('npm run lint', 'Running linter');
+  run('npm run typecheck', 'Running TypeScript type checks');
+  run('npm run test', 'Running unit tests');
+  run('npm run test:e2e', 'Running Playwright e2e tests');
   run('npm run build', 'Building application');
 
   // Git operations
-  run('git add package.json', 'Staging version change');
+  run('git add package.json package-lock.json', 'Staging version change');
   run(`git commit -m "chore: bump version to ${newVersion}"`, 'Committing version bump');
   run(`git tag v${newVersion}`, 'Creating git tag');
   run('git push origin', 'Pushing to origin');

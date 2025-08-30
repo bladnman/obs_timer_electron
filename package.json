@@ -9,9 +9,12 @@
         "build:client": "vite build --config vite.config.js --mode production",
         "dev": "npm run dev:client & VITE_DEV_SERVER_URL=http://localhost:3000 electron . --dev",
         "test": "jest",
+        "test:all": "npm run test && npm run test:e2e",
         "test:e2e": "playwright test",
         "lint": "eslint .",
         "lint:fix": "eslint . --fix",
+        "typecheck": "tsc -p tsconfig.json --noEmit",
+        "verify": "npm run lint && npm run typecheck && npm run test && npm run test:e2e",
         "prestart": "npm run lint && npm run build:client",
         "clean": "node -e \"const fs = require('fs'); const path = require('path'); const dir = path.join(__dirname, 'dist'); if (fs.existsSync(dir)) { fs.rmSync(dir, { recursive: true, force: true }); console.log('✓ Cleaned dist directory'); } else { console.log('✓ No dist directory to clean'); }\"",
         "prebuild": "npm run clean && npm run build:client",
@@ -39,6 +42,10 @@
         "release:patch:github": "node scripts/release.js patch --github",
         "release:minor:github": "node scripts/release.js minor --github",
         "release:major:github": "node scripts/release.js major --github",
+        "publish": "node scripts/release.js",
+        "publish:patch": "npm run release:patch:github",
+        "publish:minor": "npm run release:minor:github",
+        "publish:major": "npm run release:major:github",
         "postinstall": "electron-builder install-app-deps"
     },
     "build": {

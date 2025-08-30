@@ -48,13 +48,11 @@ const TimeDisplay: React.FC<TimeDisplayProps> = ({
       <Fragment key={index}>
         <span
           className={`v2-time-segment ${selectedIndex === index ? "selected" : ""}`}
-          ref={(el) => (segmentRefs.current[index] = el)}
+          ref={(el) => { segmentRefs.current[index] = el; }}
           onClick={(e) => {
             if (onSegmentClick) {
               e.stopPropagation();
               onSegmentClick(index);
-            } else if (onClick) {
-              onClick(e);
             }
           }}
           role={clickable ? "button" : undefined}
@@ -79,10 +77,8 @@ const TimeDisplay: React.FC<TimeDisplayProps> = ({
         if (!clickable) return;
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
-          // Coerce types to reuse onClick signature for simplicity
-          if (onClick) {
-            onClick(e as unknown as React.MouseEvent<HTMLDivElement>);
-          }
+          // Trigger the container click programmatically for keyboard activation
+          (e.currentTarget as HTMLDivElement).click();
         }
       }}
       role={clickable ? "button" : undefined}
@@ -95,7 +91,7 @@ const TimeDisplay: React.FC<TimeDisplayProps> = ({
 
 // Hook into focus updates
 function useSegmentFocus(
-  container: React.RefObject<HTMLDivElement>,
+  container: React.RefObject<HTMLDivElement | null>,
   segments: React.RefObject<Array<HTMLSpanElement | null>>,
   index: number | null
 ) {

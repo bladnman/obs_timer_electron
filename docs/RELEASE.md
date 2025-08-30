@@ -6,12 +6,13 @@ This document explains how to create releases for the OBS Timer application.
 
 The release process automatically:
 1. ✅ **Runs all tests** - Ensures code quality
-2. 🔍 **Runs linting** - Checks code standards  
-3. 📦 **Builds the application** - Creates distributables
-4. 🏷️ **Bumps version** - Updates package.json
-5. 📝 **Commits & tags** - Creates git commit and tag
-6. 🚀 **Pushes to GitHub** - Uploads changes and tags
-7. 🎯 **Creates GitHub release** (optional) - With built artifacts
+2. 🔍 **Runs linting + typecheck** - ESLint + TypeScript checks
+3. 🧪 **Runs e2e tests** - Playwright browser tests
+4. 📦 **Builds the application** - Creates distributables
+5. 🏷️ **Bumps version** - Updates package.json
+6. 📝 **Commits & tags** - Creates git commit and tag
+7. 🚀 **Pushes to GitHub** - Uploads changes and tags
+8. 🎯 **Creates GitHub release** (optional) - With built artifacts
 
 ## Prerequisites
 
@@ -98,8 +99,10 @@ We follow [semantic versioning](https://semver.org/):
 - Validates release type (patch/minor/major)
 
 ### 2. Testing & Quality
-- Runs Jest test suite (`npm run test`)
-- Runs ESLint checks (`npm run lint`)
+- Runs ESLint (`npm run lint`)
+- Runs TypeScript type checks (`npm run typecheck`)
+- Runs Jest unit tests (`npm run test`)
+- Runs Playwright e2e tests (`npm run test:e2e`)
 - Stops immediately if any step fails
 
 ### 3. Building
@@ -167,8 +170,7 @@ npm install
 ```bash
 # 1. Make sure you're ready
 git status
-npm run test
-npm run lint
+npm run verify
 
 # 2. Create a patch release with GitHub artifacts
 npm run release:patch:github

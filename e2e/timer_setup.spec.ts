@@ -3,6 +3,7 @@ import { createServer, ViteDevServer } from 'vite';
 import path from 'path';
 
 let server: ViteDevServer;
+let serverUrl: string;
 
 test.beforeAll(async () => {
   server = await createServer({
@@ -10,6 +11,8 @@ test.beforeAll(async () => {
     mode: 'development',
   });
   await server.listen();
+  const urls: any = (server as any).resolvedUrls;
+  serverUrl = urls?.local?.[0] || `http://localhost:${server.config.server?.port || 3000}`;
 });
 
 test.afterAll(async () => {
@@ -17,7 +20,9 @@ test.afterAll(async () => {
 });
 
 async function enterTimerSetup(page) {
-  await page.goto('/?mode=timer');
+  await page.goto(`${serverUrl}/?mode=timer`);
+  // Enter setup via the status bar settings button
+  await page.getByTitle('Set Duration').click();
   await expect(page.getByRole('group', { name: 'Set duration' })).toBeVisible();
 }
 

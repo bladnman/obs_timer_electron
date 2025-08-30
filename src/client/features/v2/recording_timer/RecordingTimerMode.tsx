@@ -3,6 +3,7 @@ import {BsGearFill} from "react-icons/bs";
 import {IoReloadOutline} from "react-icons/io5";
 import {TimeSegment} from "../../../contexts/AppContext";
 import {useTimeAdjustment} from "../../obs_mode/hooks/use_time_adjustment";
+import { computeAdjustment } from "../shared/utils/timeAdjustment";
 import AppLayout from "../layout/AppLayout";
 import ErrorBanner from "../shared/components/ErrorBanner";
 import StatusIcon from "../shared/components/StatusIcon";
@@ -110,20 +111,12 @@ const RecordingTimerMode: React.FC<RecordingTimerModeProps> = ({
       }
     };
 
-    const multipliers: Record<"hours" | "minutes" | "seconds", number> = {
-      hours: 3600,
-      minutes: 60,
-      seconds: 1,
-    };
-
+    // Compute per-tick adjustment with optional Shift x10 factor
     const calcDelta = (
       segment: "hours" | "minutes" | "seconds",
-      direction: 1 | -1
-    ) => {
-      // Always return the raw step in seconds; carrying/borrowing is handled
-      // by the total-seconds representation and clamped at 0 upstream.
-      return direction * multipliers[segment];
-    };
+      direction: 1 | -1,
+      shiftKey: boolean
+    ) => computeAdjustment(segment, direction, { shiftKey });
 
     const handleKeyDown = (e: KeyboardEvent) => {
       const activeSegment: "hours" | "minutes" | "seconds" | null =
@@ -135,8 +128,10 @@ const RecordingTimerMode: React.FC<RecordingTimerModeProps> = ({
           return;
         }
         debug("ArrowUp start", {activeSegment, repeat: (e as any).repeat});
+        const shift = e.shiftKey === true;
+        const seg = activeSegment as "hours" | "minutes" | "seconds";
         startKeyHold(1, () => {
-          const delta = calcDelta(activeSegment, 1);
+          const delta = calcDelta(seg, 1, shift);
           if (delta !== 0) onAdjustTotalTime(delta);
         });
       } else if (e.key === "ArrowDown" || e.key === "j" || e.key === "J") {
@@ -146,8 +141,10 @@ const RecordingTimerMode: React.FC<RecordingTimerModeProps> = ({
           return;
         }
         debug("ArrowDown start", {activeSegment, repeat: (e as any).repeat});
+        const shift = e.shiftKey === true;
+        const seg = activeSegment as "hours" | "minutes" | "seconds";
         startKeyHold(-1, () => {
-          const delta = calcDelta(activeSegment, -1);
+          const delta = calcDelta(seg, -1, shift);
           if (delta !== 0) onAdjustTotalTime(delta);
         });
       } else if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
@@ -215,8 +212,8 @@ const RecordingTimerMode: React.FC<RecordingTimerModeProps> = ({
     stopKeyHold,
   ]);
 
-  // Title component - always show
-  const titleComponent = <div className="v2-mode-title">RECORDING TIMER</div>;
+  // Title component - removed per request to allow compact layout
+  const titleComponent = null;
 
   // Icon component (status indicator)
   const iconComponent = <StatusIcon state={state} />;
@@ -228,7 +225,7 @@ const RecordingTimerMode: React.FC<RecordingTimerModeProps> = ({
     </div>
   );
 
-  // Sub-display component - empty
+  // Sub-display component - keep empty to enable compact layout
   const subDisplayComponent = undefined;
 
   // Action component (reset button) - always show to maintain layout
@@ -284,6 +281,7 @@ const RecordingTimerMode: React.FC<RecordingTimerModeProps> = ({
       ref={containerRef}
     >
       <AppLayout
+        className={"app-layout-compact-when-empty"}
         icon={iconComponent}
         title={titleComponent}
         display={displayComponent}

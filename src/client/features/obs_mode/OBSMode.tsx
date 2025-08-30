@@ -64,7 +64,8 @@ const OBSMode: React.FC<OBSModeProps> = ({
           return;
         }
         debug('ArrowUp start', { activeSegment, repeat: (e as any).repeat });
-        startKeyHold(1, (amount) => onAdjustTotalTime(amount * multiplier));
+        const shift = e.shiftKey === true;
+        startKeyHold(1, (amount) => onAdjustTotalTime(amount * multiplier * (shift ? 10 : 1)));
       } else if (e.key === 'ArrowDown' || e.key === 'j' || e.key === 'J') {
         e.preventDefault();
         if (!activeSegment) {
@@ -73,7 +74,8 @@ const OBSMode: React.FC<OBSModeProps> = ({
         }
         debug('ArrowDown start', { activeSegment, repeat: (e as any).repeat });
         // Always apply negative step; adjustTotalTime clamps at 0 so this borrows naturally.
-        startKeyHold(-1, (amount) => onAdjustTotalTime(amount * multiplier));
+        const shift = e.shiftKey === true;
+        startKeyHold(-1, (amount) => onAdjustTotalTime(amount * multiplier * (shift ? 10 : 1)));
       } else if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
         e.preventDefault();
         if (!activeSegment) {
@@ -134,7 +136,6 @@ const OBSMode: React.FC<OBSModeProps> = ({
         />
       )}
       <ThreeColumnLayout
-        label="Recording Timer"
         left={
           <RecordingIndicator
             statusIcon={currentStatusIcon}
@@ -153,7 +154,7 @@ const OBSMode: React.FC<OBSModeProps> = ({
               />
             </div>
             {selectedTimeSegment && (
-              <div className="adjustment-hint">Use ↑↓ to adjust</div>
+              <div className="adjustment-hint">Use ↑↓ (Shift = ×10)</div>
             )}
           </div>
         }

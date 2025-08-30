@@ -53,8 +53,12 @@ describe("<App />", () => {
     expect(document.querySelector(".app-layout-body")).toBeInTheDocument();
     expect(document.querySelector(".app-layout-status-bar")).toBeInTheDocument();
     
-    // Check for title
-    expect(screen.getByText("RECORDING TIMER")).toBeInTheDocument();
+    // OBS mode now omits the title; compact layout should be applied
+    const windowEl = document.querySelector(".app-layout-window");
+    expect(windowEl).toBeInTheDocument();
+    expect(windowEl?.classList.contains("app-layout-compact-when-empty")).toBe(true);
+    // Verify status bar shows OBS total time label
+    expect(screen.getByText("Total:")).toBeInTheDocument();
 
     // Check for Settings button in status bar
     expect(screen.getByTitle("Settings")).toBeInTheDocument();

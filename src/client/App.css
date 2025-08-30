@@ -481,15 +481,21 @@ input, textarea, select, button {
   z-index: 1000;
   font-size: 14px; /* Original fixed font size for modal */
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* More standard UI font for modal */
+  -webkit-app-region: no-drag; /* ensure interactivity in Electron */
 }
 
 .modal-content {
   background-color: #2a2a2a; /* Original */
   border-radius: 8px;
   padding: 20px;
-  width: 90%;
-  max-width: 400px; /* Original */
+  width: clamp(340px, 70vw, 960px); /* Expand on wide windows */
+  max-width: 960px;
+  max-height: 90vh; /* Keep within viewport */
+  overflow: hidden; /* Let body scroll */
+  display: flex;
+  flex-direction: column;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5); /* Original */
+  -webkit-app-region: no-drag; /* ensure interactivity in Electron */
 }
 
 .modal-header {
@@ -527,7 +533,19 @@ input, textarea, select, button {
   color: #ffffff;
 }
 
-.modal-body { color: #ffffff; }
+.modal-body {
+  color: #ffffff;
+  overflow: auto; /* Allow scrolling when content exceeds */
+}
+
+/* Grid layout for responsive, wide settings */
+.modal-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 12px 16px;
+  align-items: end;
+}
+.grid-span-all { grid-column: 1 / -1; }
 
 .form-group { margin-bottom: 15px; }
 .form-group label {
@@ -607,6 +625,23 @@ input, textarea, select, button {
   color: var(--color-connecting);
   border: 1px solid var(--color-connecting);
 }
+
+/* Too small message */
+.modal-too-small {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6em;
+  min-height: 40vh;
+  text-align: center;
+}
+.modal-too-small-title {
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+.modal-too-small-desc { opacity: 0.85; }
+.modal-too-small-hint { opacity: 0.6; font-size: 0.9rem; }
 /* Mode Selector - positioned within sidebar */
 .mode-selector {
   position: relative;

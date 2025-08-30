@@ -14,6 +14,8 @@ import TimerMode from "./features/timer_mode/TimerMode";
 import SettingsModal from "./shared/components/SettingsModal";
 import RecordingTimerMode from "./features/v2/recording_timer/RecordingTimerMode";
 import TimerV2Mode from "./features/v2/timer/TimerV2Mode";
+import StopwatchV2Mode from "./features/v2/stopwatch/StopwatchV2Mode";
+import ClockV2Mode from "./features/v2/clock/ClockV2Mode";
 import { modeOrder } from "./constants/modes";
 
 function App() {
@@ -202,7 +204,7 @@ function App() {
   };
 
   // V2 Layout - New design system
-  if (useV2Layout && (currentMode === "obs" || currentMode === "timer")) {
+  if (useV2Layout && (currentMode === "obs" || currentMode === "timer" || currentMode === "stopwatch" || currentMode === "clock")) {
     // Determine recording state
     let recordingState: "recording" | "paused" | "stopped" | "error" = "stopped";
     let errorMsg: string | undefined;
@@ -238,7 +240,7 @@ function App() {
               onSelectTimeSegment={selectTimeSegment}
               onAdjustTotalTime={adjustTotalTime}
             />
-          ) : (
+          ) : currentMode === "timer" ? (
             <TimerV2Mode
               formattedTime={formattedTimerTime}
               isRunning={timer.isRunning}
@@ -251,6 +253,22 @@ function App() {
               selectedTimeSegment={selectedTimeSegment}
               onSelectTimeSegment={selectTimeSegment}
               onAdjustTimerBy={adjustTimerBy}
+              isDimmed={isDimmed}
+            />
+          ) : currentMode === "stopwatch" ? (
+            <StopwatchV2Mode
+              formattedTime={formattedStopwatchTime}
+              isRunning={stopwatch.isRunning}
+              onToggle={toggleStopwatch}
+              onReset={resetStopwatch}
+              onSettingsClick={openSettingsModal}
+              isDimmed={isDimmed}
+            />
+          ) : (
+            <ClockV2Mode
+              is24Hour={clock.is24Hour}
+              onToggleFormat={toggleClockFormat}
+              onSettingsClick={openSettingsModal}
               isDimmed={isDimmed}
             />
           )}

@@ -37,7 +37,8 @@ describe("V2 Arrow Navigation", () => {
     renderApp();
 
     await waitFor(() => {
-      expect(screen.getByText("RECORDING TIMER")).toBeInTheDocument();
+      // OBS mode now has no title; verify via status bar total label
+      expect(screen.getByText("Total:")).toBeInTheDocument();
     });
 
     // Simulate ArrowRight
@@ -55,7 +56,7 @@ describe("V2 Arrow Navigation", () => {
     renderApp();
 
     await waitFor(() => {
-      expect(screen.getByText("RECORDING TIMER")).toBeInTheDocument();
+      expect(screen.getByText("Total:")).toBeInTheDocument();
     });
 
     // Select minutes segment by clicking the middle segment
@@ -65,9 +66,9 @@ describe("V2 Arrow Navigation", () => {
 
     window.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight" }));
 
-    // Still on recording timer
+    // Still on recording timer (verify by status bar total label)
     await waitFor(() => {
-      expect(screen.getByText("RECORDING TIMER")).toBeInTheDocument();
+      expect(screen.getByText("Total:")).toBeInTheDocument();
     });
   });
 

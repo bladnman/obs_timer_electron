@@ -6,6 +6,7 @@ import TimeDisplay from "../shared/components/TimeDisplay";
 import TimerSetup from "../../timer_mode/components/TimerSetup";
 import { useTimeAdjustment } from "../../obs_mode/hooks/use_time_adjustment";
 import { TimeSegment } from "../../../contexts/AppContext";
+import { computeAdjustment } from "../shared/utils/timeAdjustment";
 
 interface TimerV2ModeProps {
   formattedTime: string;
@@ -87,15 +88,29 @@ const TimerV2Mode: React.FC<TimerV2ModeProps> = ({
 
   useEffect(() => { if (isRunning) onSelectTimeSegment(null); }, [isRunning, onSelectTimeSegment]);
 
+  // Space bar toggles start/pause when not editing or in setup
+  useEffect(() => {
+    const handleSpaceToggle = (e: KeyboardEvent) => {
+      // Normalize detection of Space key
+      const isSpace = e.code === 'Space' || e.key === ' ' || (e as any).key === 'Spacebar';
+      if (!isSpace) return;
+      // Don't hijack when focused inside inputs/buttons or when editing timer segments
+      const target = e.target as HTMLElement | null;
+      const tag = target?.tagName?.toLowerCase();
+      if (tag && ['input','textarea','select','button'].includes(tag)) return;
+      if (isSetupMode) return;
+      if (selectedTimeSegment !== null) return;
+      e.preventDefault();
+      (e as any).stopImmediatePropagation?.();
+      onToggle();
+    };
+    window.addEventListener('keydown', handleSpaceToggle, { capture: true });
+    return () => window.removeEventListener('keydown', handleSpaceToggle, { capture: true } as any);
+  }, [onToggle, isSetupMode, selectedTimeSegment]);
+
   // Keyboard adjustment and navigation when a segment is selected
   useEffect(() => {
     if (!selectedTimeSegment || isRunning) return;
-    const multipliers: Record<Exclude<Segment, null>, number> = {
-      hours: 3600,
-      minutes: 60,
-      seconds: 1,
-    };
-
     const handleKeyDown = (e: KeyboardEvent) => {
       // Left/Right move selection across segments
       if (e.key === "ArrowLeft" || e.key === "h" || e.key === "H") {
@@ -129,8 +144,12 @@ const TimerV2Mode: React.FC<TimerV2ModeProps> = ({
       if (dir === null) return;
       e.preventDefault();
       (e as any).stopImmediatePropagation?.();
-      const step = multipliers[selectedTimeSegment];
-      startKeyHold(dir, () => onAdjustTimerBy(dir * step));
+      const shift = e.shiftKey === true;
+      const seg = selectedTimeSegment as Exclude<Segment, null>;
+      startKeyHold(dir, () => {
+        const delta = computeAdjustment(seg, dir, { shiftKey: shift });
+        onAdjustTimerBy(delta);
+      });
     };
 
     const handleKeyUp = (e: KeyboardEvent) => {

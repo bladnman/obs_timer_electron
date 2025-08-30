@@ -1,8 +1,8 @@
 import { ASPECT_RATIO, calculateHeight, calculateWidth, getDefaultDimensions, getMinimumDimensions } from '../src/config/dimensions';
 
 describe('Dimensions Configuration', () => {
-  test('aspect ratio constant is 0.244', () => {
-    expect(ASPECT_RATIO.HEIGHT_RATIO).toBe(0.244);
+  test('aspect ratio constant is 0.3', () => {
+    expect(ASPECT_RATIO.HEIGHT_RATIO).toBe(0.3);
   });
 
   test('default width is 422px', () => {
@@ -14,27 +14,27 @@ describe('Dimensions Configuration', () => {
   });
 
   test('calculateHeight returns correct height for given width', () => {
-    expect(calculateHeight(422)).toBe(103); // 422 * 0.244 = 102.968 → rounds to 103
-    expect(calculateHeight(600)).toBe(146); // 600 * 0.244 = 146.4 → rounds to 146
-    expect(calculateHeight(211)).toBe(51);  // 211 * 0.244 = 51.484 → rounds to 51
+    expect(calculateHeight(422)).toBe(127); // 422 * 0.3 = 126.6 → rounds to 127
+    expect(calculateHeight(600)).toBe(180); // 600 * 0.3 = 180
+    expect(calculateHeight(211)).toBe(63);  // 211 * 0.3 = 63.3 → rounds to 63
   });
 
   test('calculateWidth returns correct width for given height', () => {
-    expect(calculateWidth(103)).toBe(422); // 103 / 0.244 = 422.13... → rounds to 422
-    expect(calculateWidth(146)).toBe(598); // 146 / 0.244 = 598.36... → rounds to 598
-    expect(calculateWidth(51)).toBe(209);  // 51 / 0.244 = 209.01... → rounds to 209
+    expect(calculateWidth(127)).toBe(423); // 127 / 0.3 = 423.33... → rounds to 423
+    expect(calculateWidth(180)).toBe(600); // 180 / 0.3 = 600
+    expect(calculateWidth(63)).toBe(210);  // 63 / 0.3 = 210
   });
 
   test('getDefaultDimensions returns correct default dimensions', () => {
     const dims = getDefaultDimensions();
     expect(dims.width).toBe(422);
-    expect(dims.height).toBe(103);
+    expect(dims.height).toBe(127);
   });
 
   test('getMinimumDimensions returns correct minimum dimensions', () => {
     const dims = getMinimumDimensions();
     expect(dims.width).toBe(211);
-    expect(dims.height).toBe(51);
+    expect(dims.height).toBe(63);
   });
 
   test('aspect ratio is consistent across calculations', () => {
@@ -51,6 +51,6 @@ describe('Dimensions Configuration', () => {
     // Common test widths should produce correct heights
     const testWidth = 600;
     const expectedHeight = calculateHeight(testWidth);
-    expect(expectedHeight).toBe(146); // This is what Playwright tests should use
+    expect(expectedHeight).toBe(180); // This is what Playwright tests should use
   });
 });

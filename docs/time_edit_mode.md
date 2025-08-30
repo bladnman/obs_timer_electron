@@ -17,7 +17,8 @@ Enter/Exit Edit Mode:
 
 While Editing:
 - Up/Down (or K/J) adjust the selected segment by: hours ±3600s, minutes ±60s, seconds ±1s.
-- Holding Up/Down (or K/J) repeats adjustments after a short delay, then at a steady interval.
+- Hold Shift while pressing Up/Down (or K/J) to adjust by x10 the normal step (e.g., minutes ±600s, seconds ±10s).
+- Holding Up/Down (or K/J) repeats adjustments after a short delay, then at a steady interval. The Shift factor is captured at the start of the hold.
 - Left/Right (or H/L) move the selection across segments, wrapping around.
 - Arrow keys used for editing MUST NOT trigger app-level mode navigation while editing.
 
@@ -32,4 +33,3 @@ Architecture & Reuse:
 
 Tests:
 - Include tests that verify: enter/exit edit mode, per-segment selection, left/right navigation, up/down adjustment, and key-hold repeat.
-

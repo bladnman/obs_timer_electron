@@ -244,6 +244,17 @@
   opacity: 0.5;
 }
 
+/* Clock-specific subtle blink for separators to show liveness */
+.v2-clock-display .v2-time-separator {
+  animation: v2-clock-blink 1s steps(2, end) infinite;
+}
+
+@keyframes v2-clock-blink {
+  0% { opacity: 0.35; }
+  50% { opacity: 0.9; }
+  100% { opacity: 0.35; }
+}
+
 /* State-based colors for time */
 .v2-time-recording .v2-time-segment {
   color: var(--v2-color-recording);
@@ -347,7 +358,6 @@
 
 .v2-total-separator {
   display: inline-block;
-  margin: 0 0.15em;
   color: var(--v2-text-dimmed);
   opacity: 0.6;
 }
@@ -448,6 +458,31 @@
   position: relative;
   display: flex;
   flex-direction: column;
+}
+
+/* Clock container extras */
+.v2-clock-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3em;
+  -webkit-app-region: no-drag;
+}
+
+.v2-clock-ampm {
+  font-size: 0.8em;
+  color: var(--v2-text-dimmed);
+  letter-spacing: 0.06em;
+}
+
+/* AM/PM shown in the action rail for Clock mode */
+.v2-clock-ampm-action {
+  font-size: 0.8em;
+  color: var(--v2-text-dimmed);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  -webkit-app-region: no-drag;
 }
 
 /* Display container for centering time */

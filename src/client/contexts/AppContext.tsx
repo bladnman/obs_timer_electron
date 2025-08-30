@@ -94,6 +94,7 @@ interface AppContextValue extends AppState {
   toggleTimer: () => void;
   resetTimer: () => void;
   enterTimerSetup: () => void;
+  adjustTimerBy: (amountSeconds: number) => void;
   toggleClockFormat: () => void;
   toggleSettings: () => void; // For hamburger menu toggle
   selectTimeSegment: (segment: TimeSegment) => void;
@@ -134,9 +135,9 @@ const initialStopwatchState: StopwatchState = {
 
 const initialTimerState: TimerState = {
   isRunning: false,
-  isSetupMode: true,
-  totalSeconds: 0,
-  remainingSeconds: 0,
+  isSetupMode: false,
+  totalSeconds: 5 * 60,
+  remainingSeconds: 5 * 60,
   startTime: null,
   isOvertime: false,
 };
@@ -185,6 +186,7 @@ const AppContext = createContext<AppContextValue>({
   toggleTimer: () => {},
   resetTimer: () => {},
   enterTimerSetup: () => {},
+  adjustTimerBy: () => {},
   toggleClockFormat: () => {},
   toggleSettings: () => {},
   selectTimeSegment: () => {},
@@ -884,6 +886,21 @@ export const AppProvider: React.FC<AppProviderProps> = ({children}) => {
     setShowSettings(false); // Close settings when entering timer setup
   };
 
+  const adjustTimerBy = (amountSeconds: number) => {
+    setTimer((prev) => {
+      if (prev.isRunning) return prev; // Don't adjust while running
+      const newTotal = Math.max(0, prev.totalSeconds + amountSeconds);
+      const newRemainingRaw = prev.remainingSeconds + amountSeconds;
+      const newRemaining = Math.max(0, Math.min(newTotal, newRemainingRaw));
+      return {
+        ...prev,
+        totalSeconds: newTotal,
+        remainingSeconds: newRemaining,
+        isOvertime: false,
+      };
+    });
+  };
+
   const getCurrentTimerSeconds = () => {
     if (!timer.isRunning || !timer.startTime) return timer.remainingSeconds;
     const elapsed = Math.floor((Date.now() - timer.startTime) / 1000);
@@ -962,6 +979,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({children}) => {
     toggleTimer,
     resetTimer,
     enterTimerSetup,
+    adjustTimerBy,
     toggleClockFormat,
     toggleSettings,
     selectTimeSegment,

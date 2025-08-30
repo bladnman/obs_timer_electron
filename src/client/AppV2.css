@@ -180,12 +180,36 @@
   line-height: 1;
   color: var(--v2-text-primary);
   display: inline-block;
+  -webkit-app-region: no-drag; /* ensure clicks register in Electron */
+}
+
+/* Edit mode styling for large time display (matches blue selection tone) */
+.v2-time-segment.selected {
+  background-color: #0066cc;
+  color: #ffffff;
+  border-radius: 0.12em;
+  padding: 0 0.12em;
+}
+
+/* Click affordance when the time display is meant to be interactive */
+.v2-time-display.clickable {
+  cursor: pointer;
+}
+.v2-time-display.editing {
+  cursor: default;
 }
 
 .v2-time-segment {
   display: inline-block;
   font-family: 'Roboto Mono', monospace;
   font-weight: bold;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.v2-time-segment:focus,
+.v2-time-segment:focus-visible {
+  outline: none;
 }
 
 .v2-time-separator {
@@ -211,6 +235,9 @@
 .v2-time-error .v2-time-segment {
   color: var(--v2-color-error);
 }
+
+/* Ensure edit mode text color wins over state colors */
+.v2-time-segment.selected { color: #ffffff; }
 
 /* Dimmed state */
 .v2-recording-timer-mode.dimmed .v2-time-display,

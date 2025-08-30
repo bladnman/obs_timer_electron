@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import "./App.css";
 import "./AppV2.css";
 import { useAppContext } from "./contexts/AppContext";
@@ -13,9 +13,21 @@ import StopwatchMode from "./features/stopwatch_mode/StopwatchMode";
 import TimerMode from "./features/timer_mode/TimerMode";
 import SettingsModal from "./shared/components/SettingsModal";
 import RecordingTimerMode from "./features/v2/recording_timer/RecordingTimerMode";
+import TimerV2Mode from "./features/v2/timer/TimerV2Mode";
+import { modeOrder } from "./constants/modes";
 
 function App() {
   const [useV2Layout] = useState(true); // Toggle this to switch between v1 and v2
+  
+  // Helper to format clock time without hooks (avoid conditional hook calls)
+  const getClockTimeFormatted = () => {
+    const currentTime = new Date();
+    const hours = currentTime.getHours();
+    const minutes = currentTime.getMinutes();
+    const period = hours >= 12 ? "PM" : "AM";
+    const displayHours = hours % 12 || 12;
+    return `${displayHours}:${minutes.toString().padStart(2, "0")} ${period}`;
+  };
   
   const {
     // State
@@ -51,12 +63,46 @@ function App() {
     toggleTimer,
     resetTimer,
     enterTimerSetup,
+    adjustTimerBy,
     toggleClockFormat,
     toggleSettings,
     connectToOBS,
     selectTimeSegment,
     adjustTotalTime,
   } = useAppContext();
+
+  // Global keyboard navigation for V2 modes with edit gating
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!useV2Layout) return;
+      if (isSettingsModalOpen || showSettings) return;
+      const isArrow = e.key === "ArrowRight" || e.key === "ArrowLeft" || e.key === "ArrowUp" || e.key === "ArrowDown";
+      if (!isArrow) return;
+
+      // Edit gating: if editing a time segment (OBS or Timer) or timer setup, do not navigate
+      const isObsEditing = currentMode === "obs" && selectedTimeSegment !== null;
+      const isTimerEditing = currentMode === "timer" && (timer.isSetupMode || selectedTimeSegment !== null);
+      if (isObsEditing || isTimerEditing) return;
+
+      // Determine direction: Right/Down => next, Left/Up => prev
+      const dir: "next" | "prev" = (e.key === "ArrowRight" || e.key === "ArrowDown") ? "next" : "prev";
+      const currentIndex = modeOrder.indexOf(currentMode);
+      if (currentIndex === -1) return;
+      let newIndex = currentIndex;
+      if (dir === "next") {
+        newIndex = currentIndex === modeOrder.length - 1 ? 0 : currentIndex + 1;
+      } else {
+        newIndex = currentIndex === 0 ? modeOrder.length - 1 : currentIndex - 1;
+      }
+      e.preventDefault();
+      setMode(modeOrder[newIndex]);
+    };
+
+    window.addEventListener("keydown", handleKeyDown, { capture: true });
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown, { capture: true } as any);
+    };
+  }, [useV2Layout, isSettingsModalOpen, showSettings, currentMode, selectedTimeSegment, timer.isSetupMode, setMode]);
 
   // Determine connection status for OBS mode
   let statusMessage = "";
@@ -156,7 +202,7 @@ function App() {
   };
 
   // V2 Layout - New design system
-  if (useV2Layout && currentMode === "obs") {
+  if (useV2Layout && (currentMode === "obs" || currentMode === "timer")) {
     // Determine recording state
     let recordingState: "recording" | "paused" | "stopped" | "error" = "stopped";
     let errorMsg: string | undefined;
@@ -172,30 +218,42 @@ function App() {
       recordingState = "stopped";
     }
     
-    // Format current time for display
-    const currentTime = new Date();
-    const hours = currentTime.getHours();
-    const minutes = currentTime.getMinutes();
-    const period = hours >= 12 ? "PM" : "AM";
-    const displayHours = hours % 12 || 12;
-    const clockTimeFormatted = `${displayHours}:${minutes.toString().padStart(2, "0")} ${period}`;
+    // Format current time for display (without hooks inside conditional path)
+    const clockTimeFormatted = getClockTimeFormatted();
     
     return (
       <AspectRatioContainer>
         <div className="AppV2">
-          <RecordingTimerMode
-            state={recordingState}
-            currentTime={formattedCurrentTime}
-            totalTime={formattedTotalTime}
-            clockTime={clockTimeFormatted}
-            errorMessage={errorMsg}
-            onReset={resetTotalTime}
-            onSettingsClick={openSettingsModal}
-            isDimmed={isDimmed}
-            selectedTimeSegment={selectedTimeSegment}
-            onSelectTimeSegment={selectTimeSegment}
-            onAdjustTotalTime={adjustTotalTime}
-          />
+          {currentMode === "obs" ? (
+            <RecordingTimerMode
+              state={recordingState}
+              currentTime={formattedCurrentTime}
+              totalTime={formattedTotalTime}
+              clockTime={clockTimeFormatted}
+              errorMessage={errorMsg}
+              onReset={resetTotalTime}
+              onSettingsClick={openSettingsModal}
+              isDimmed={isDimmed}
+              selectedTimeSegment={selectedTimeSegment}
+              onSelectTimeSegment={selectTimeSegment}
+              onAdjustTotalTime={adjustTotalTime}
+            />
+          ) : (
+            <TimerV2Mode
+              formattedTime={formattedTimerTime}
+              isRunning={timer.isRunning}
+              isSetupMode={timer.isSetupMode}
+              isOvertime={timer.isOvertime}
+              onToggle={toggleTimer}
+              onReset={resetTimer}
+              onSetupComplete={setupTimer}
+              onEnterSetup={enterTimerSetup}
+              selectedTimeSegment={selectedTimeSegment}
+              onSelectTimeSegment={selectTimeSegment}
+              onAdjustTimerBy={adjustTimerBy}
+              isDimmed={isDimmed}
+            />
+          )}
           
           {isSettingsModalOpen && (
             <SettingsModal

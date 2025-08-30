@@ -5,7 +5,7 @@
 
 const ASPECT_RATIO = {
   /** Height to width ratio (height = width * HEIGHT_RATIO) */
-  HEIGHT_RATIO: 0.244,
+  HEIGHT_RATIO: 0.3,
   
   /** Default window width in pixels */
   DEFAULT_WIDTH: 422,

@@ -61,3 +61,12 @@ npm run release:patch:github # Automated GitHub release
 - App ID: `com.obstools.timer`
 - Vite outputs to `dist/client/`
 - Node.js >= 18.0.0 required
+
+## Agent Guidance: Time Edit Mode
+
+When implementing or modifying any feature that edits a displayed time (e.g., OBS Total Time, Timer), follow the shared specification in `docs/time_edit_mode.md`.
+
+- Reuse `selectedTimeSegment` from `src/client/contexts/AppContext.tsx` for segment selection state.
+- Reuse `use_time_adjustment` for key-hold behavior.
+- Ensure arrow keys do not trigger mode navigation while a segment is selected.
+- Apply `.v2-time-segment.selected` for the active segment styling; ensure interactive areas are `-webkit-app-region: no-drag` in Electron.

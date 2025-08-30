@@ -53,3 +53,13 @@ test('ArrowDown hold repeats on minutes field', async ({ page }) => {
   const after = await minutesBtn.textContent();
   expect(after).not.toBe(initial);
 });
+
+test('Set exits setup and shows timer display without crashing', async ({ page }) => {
+  await enterTimerSetup(page);
+  // Click Set button
+  await page.getByRole('button', { name: 'Set', exact: true }).click();
+
+  // Should remove the setup group and show V2 display container
+  await expect(page.getByRole('group', { name: 'Set duration' })).toHaveCount(0);
+  await expect(page.locator('.v2-display-container')).toBeVisible();
+});

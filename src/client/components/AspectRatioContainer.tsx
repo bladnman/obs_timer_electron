@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ASPECT_RATIO, calculateHeight } from '../../config/dimensions.ts';
+import { ASPECT_RATIO, calculateHeight } from '../utils/dimensions';
 import { ScalingProvider } from '../contexts/ScalingContext';
 import '../AspectRatioContainer.css';
 

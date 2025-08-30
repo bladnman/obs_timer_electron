@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { AppMode } from "../../contexts/AppContext";
+import { modeOrder } from "../../constants/modes";
 import { useSwipeNavigation } from "./hooks/use_swipe_navigation";
 import { useWheelNavigation } from "./hooks/use_wheel_navigation";
 
@@ -17,7 +18,7 @@ const ModeNavigator: React.FC<ModeNavigatorProps> = ({
   children,
 }) => {
   const [showModeTransition, setShowModeTransition] = useState(false);
-  const modes: AppMode[] = ["obs", "stopwatch", "timer", "clock"];
+  const modes: AppMode[] = modeOrder;
   
   const swipeNav = useSwipeNavigation();
   const wheelNav = useWheelNavigation();

@@ -235,8 +235,6 @@ const RecordingTimerMode: React.FC<RecordingTimerModeProps> = ({
         onClick={onReset}
         className="v2-action-button"
         title="Reset"
-        disabled={state === "error"}
-        style={{opacity: state === "error" ? 0.3 : undefined}}
       >
         <IoReloadOutline />
       </button>

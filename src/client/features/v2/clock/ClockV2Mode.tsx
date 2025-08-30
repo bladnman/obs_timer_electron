@@ -86,7 +86,7 @@ const ClockV2Mode: React.FC<ClockV2ModeProps> = ({
         extraInfo={undefined}
         clock={<div />}
         action={
-          !!ampm ? (
+          ampm ? (
             <div className="v2-action-wrapper">
               <div className="v2-clock-ampm-action">{ampm}</div>
             </div>

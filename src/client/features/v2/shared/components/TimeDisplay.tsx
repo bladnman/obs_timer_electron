@@ -80,7 +80,9 @@ const TimeDisplay: React.FC<TimeDisplayProps> = ({
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
           // Coerce types to reuse onClick signature for simplicity
-          onClick && onClick((e as unknown) as React.MouseEvent<HTMLDivElement>);
+          if (onClick) {
+            onClick(e as unknown as React.MouseEvent<HTMLDivElement>);
+          }
         }
       }}
       role={clickable ? "button" : undefined}

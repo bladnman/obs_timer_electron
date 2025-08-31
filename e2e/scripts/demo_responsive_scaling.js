@@ -4,7 +4,7 @@
  */
 
 const { chromium } = require('@playwright/test');
-const { calculateHeight, ASPECT_RATIO } = require('./src/config/dimensions');
+const { calculateHeight, ASPECT_RATIO } = require('../../src/config/dimensions');
 
 (async () => {
   const browser = await chromium.launch({ 

@@ -1,6 +1,6 @@
 const { chromium } = require('@playwright/test');
 const path = require('path');
-const { calculateHeight } = require('./src/config/dimensions');
+const { calculateHeight } = require('../../src/config/dimensions');
 
 (async () => {
   const browser = await chromium.launch({ 

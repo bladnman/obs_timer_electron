@@ -1,7 +1,7 @@
 const { chromium } = require('@playwright/test');
 const path = require('path');
 const fs = require('fs');
-const { calculateHeight, ASPECT_RATIO } = require('./src/config/dimensions');
+const { calculateHeight, ASPECT_RATIO } = require('../../src/config/dimensions');
 
 /**
  * Comprehensive Playwright test suite for responsive scaling behavior

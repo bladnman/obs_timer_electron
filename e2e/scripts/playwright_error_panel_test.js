@@ -1,7 +1,7 @@
 const { chromium } = require('@playwright/test');
 const path = require('path');
 const fs = require('fs');
-const { calculateHeight } = require('./src/config/dimensions');
+const { calculateHeight } = require('../../src/config/dimensions');
 
 // Test configuration for error panel
 const ERROR_PANEL_CONFIG = {

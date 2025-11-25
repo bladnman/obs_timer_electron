@@ -1,8 +1,9 @@
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect } from "react";
 import { BsGearFill } from "react-icons/bs";
 import { IoReloadOutline } from "react-icons/io5";
 import AppLayout from "../layout/AppLayout";
 import TimeDisplay from "../shared/components/TimeDisplay";
+import { useFooterClock } from "../shared/hooks/useFooterClock";
 
 interface StopwatchV2ModeProps {
   formattedTime: string;
@@ -23,14 +24,7 @@ const StopwatchV2Mode: React.FC<StopwatchV2ModeProps> = ({
 }) => {
   const modeLabel = <div className="v2-mode-title">STOPWATCH</div>;
 
-  const clockTime = useMemo(() => {
-    const now = new Date();
-    const h = now.getHours();
-    const m = now.getMinutes();
-    const period = h >= 12 ? "PM" : "AM";
-    const displayH = h % 12 || 12;
-    return `${displayH}:${m.toString().padStart(2, "0")} ${period}`;
-  }, []);
+  const clockTime = useFooterClock();
 
   const settingsComponent = (
     <button

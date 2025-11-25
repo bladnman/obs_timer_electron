@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { BsGearFill } from "react-icons/bs";
 import { IoReloadOutline } from "react-icons/io5";
 import AppLayout from "../layout/AppLayout";
@@ -7,6 +7,7 @@ import TimerSetup from "../../timer_mode/components/TimerSetup";
 import { useTimeAdjustment } from "../../obs_mode/hooks/use_time_adjustment";
 import { TimeSegment } from "../../../contexts/AppContext";
 import { computeAdjustment } from "../shared/utils/timeAdjustment";
+import { useFooterClock } from "../shared/hooks/useFooterClock";
 
 interface TimerV2ModeProps {
   formattedTime: string;
@@ -185,14 +186,7 @@ const TimerV2Mode: React.FC<TimerV2ModeProps> = ({
     </button>
   );
 
-  const clockTime = useMemo(() => {
-    const now = new Date();
-    const h = now.getHours();
-    const m = now.getMinutes();
-    const period = h >= 12 ? "PM" : "AM";
-    const displayH = h % 12 || 12;
-    return `${displayH}:${m.toString().padStart(2, "0")} ${period}`;
-  }, []);
+  const clockTime = useFooterClock();
 
   const clockComponent = <span className="v2-clock-time">{clockTime}</span>;
 

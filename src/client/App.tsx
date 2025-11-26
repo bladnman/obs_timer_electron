@@ -17,19 +17,13 @@ import TimerV2Mode from "./features/v2/timer/TimerV2Mode";
 import StopwatchV2Mode from "./features/v2/stopwatch/StopwatchV2Mode";
 import ClockV2Mode from "./features/v2/clock/ClockV2Mode";
 import { modeOrder } from "./constants/modes";
+import { useFooterClock } from "./features/v2/shared/hooks/useFooterClock";
 
 function App() {
   const [useV2Layout] = useState(true); // Toggle this to switch between v1 and v2
-  
-  // Helper to format clock time without hooks (avoid conditional hook calls)
-  const getClockTimeFormatted = () => {
-    const currentTime = new Date();
-    const hours = currentTime.getHours();
-    const minutes = currentTime.getMinutes();
-    const period = hours >= 12 ? "PM" : "AM";
-    const displayHours = hours % 12 || 12;
-    return `${displayHours}:${minutes.toString().padStart(2, "0")} ${period}`;
-  };
+
+  // Footer clock time (auto-updates every 30 seconds)
+  const footerClockTime = useFooterClock();
   
   const {
     // State
@@ -220,8 +214,8 @@ function App() {
       recordingState = "stopped";
     }
     
-    // Format current time for display (without hooks inside conditional path)
-    const clockTimeFormatted = getClockTimeFormatted();
+    // Use the footer clock time from the hook
+    const clockTimeFormatted = footerClockTime;
     
     return (
       <AspectRatioContainer>

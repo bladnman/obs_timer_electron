@@ -51,7 +51,7 @@ function validateReleaseType(type) {
 
 function createGitHubRelease(version) {
   log('Creating GitHub release...');
-  
+
   const releaseNotes = `# Release v${version}
 
 ## What's New
@@ -61,10 +61,41 @@ function createGitHubRelease(version) {
 ## Download
 Download the appropriate installer for your platform from the assets below.
 
+### macOS Downloads
+- **Apple Silicon (M1/M2/M3/M4)**: \`OBS Timer-${version}-arm64.dmg\`
+- **Intel Mac**: \`OBS Timer-${version}.dmg\`
+
 ## Installation
-- **macOS**: Download and install the .dmg file
-- **Windows**: Download and run the .exe installer
-- **Linux**: Download and run the .AppImage file
+
+### macOS (Important!)
+
+This app is not signed with an Apple Developer certificate, so macOS will block it by default. Use one of these methods to install:
+
+**Method 1: Right-click to Open (try this first)**
+1. Download the appropriate .dmg file for your Mac
+2. Open the .dmg and drag OBS Timer to Applications
+3. **Right-click** (or Control-click) on OBS Timer in Applications
+4. Select "Open" from the context menu
+5. Click "Open" in the dialog that appears
+
+**Method 2: Remove Quarantine Attribute (if Method 1 fails)**
+\`\`\`bash
+# Run this in Terminal after downloading:
+xattr -cr ~/Downloads/OBS\\ Timer-${version}*.dmg
+
+# Or if already installed to Applications:
+xattr -cr /Applications/OBS\\ Timer.app
+\`\`\`
+Then open the app normally.
+
+**Why is this necessary?**
+macOS Gatekeeper quarantines apps downloaded from the internet that aren't signed with an Apple Developer ID certificate ($99/year). The app is safe—it's just not signed.
+
+### Windows
+- Download and run the .exe installer
+
+### Linux
+- Download and run the .AppImage file
 
 ---
 *This release was automatically generated and tested.*`;

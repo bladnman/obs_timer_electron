@@ -17,13 +17,9 @@ import TimerV2Mode from "./features/v2/timer/TimerV2Mode";
 import StopwatchV2Mode from "./features/v2/stopwatch/StopwatchV2Mode";
 import ClockV2Mode from "./features/v2/clock/ClockV2Mode";
 import { modeOrder } from "./constants/modes";
-import { useFooterClock } from "./features/v2/shared/hooks/useFooterClock";
 
 function App() {
   const [useV2Layout] = useState(true); // Toggle this to switch between v1 and v2
-
-  // Footer clock time (auto-updates every 30 seconds)
-  const footerClockTime = useFooterClock();
   
   const {
     // State
@@ -213,10 +209,7 @@ function App() {
     } else {
       recordingState = "stopped";
     }
-    
-    // Use the footer clock time from the hook
-    const clockTimeFormatted = footerClockTime;
-    
+
     return (
       <AspectRatioContainer>
         <div className="AppV2">
@@ -225,7 +218,6 @@ function App() {
               state={recordingState}
               currentTime={formattedCurrentTime}
               totalTime={formattedTotalTime}
-              clockTime={clockTimeFormatted}
               errorMessage={errorMsg}
               onReset={resetTotalTime}
               onSettingsClick={openSettingsModal}

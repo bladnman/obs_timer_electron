@@ -3,7 +3,7 @@ import { BsGearFill } from "react-icons/bs";
 import { IoReloadOutline } from "react-icons/io5";
 import AppLayout from "../layout/AppLayout";
 import TimeDisplay from "../shared/components/TimeDisplay";
-import { useFooterClock } from "../shared/hooks/useFooterClock";
+import StatusBarClock from "../shared/components/StatusBarClock";
 
 interface StopwatchV2ModeProps {
   formattedTime: string;
@@ -24,8 +24,6 @@ const StopwatchV2Mode: React.FC<StopwatchV2ModeProps> = ({
 }) => {
   const modeLabel = <div className="v2-mode-title">STOPWATCH</div>;
 
-  const clockTime = useFooterClock();
-
   const settingsComponent = (
     <button
       onClick={onSettingsClick}
@@ -37,7 +35,7 @@ const StopwatchV2Mode: React.FC<StopwatchV2ModeProps> = ({
     </button>
   );
 
-  const clockComponent = <span className="v2-clock-time">{clockTime}</span>;
+  const clockComponent = <StatusBarClock />;
 
   const displayComponent = (
     <div className="v2-display-container">

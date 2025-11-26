@@ -8,6 +8,7 @@ import AppLayout from "../layout/AppLayout";
 import ErrorBanner from "../shared/components/ErrorBanner";
 import StatusIcon from "../shared/components/StatusIcon";
 import TimeDisplay from "../shared/components/TimeDisplay";
+import StatusBarClock from "../shared/components/StatusBarClock";
 
 interface EditableTotalTimeProps {
   time: string;
@@ -71,7 +72,6 @@ interface RecordingTimerModeProps {
   state: RecordingState;
   currentTime: string;
   totalTime: string;
-  clockTime: string;
   errorMessage?: string;
   onReset: () => void;
   onSettingsClick: () => void;
@@ -85,7 +85,6 @@ const RecordingTimerMode: React.FC<RecordingTimerModeProps> = ({
   state,
   currentTime,
   totalTime,
-  clockTime,
   errorMessage,
   onReset,
   onSettingsClick,
@@ -166,7 +165,12 @@ const RecordingTimerMode: React.FC<RecordingTimerModeProps> = ({
         }
       } else if (e.key === "Escape") {
         e.preventDefault();
-        onSelectTimeSegment(null);
+        // If editing a segment, deselect it; otherwise trigger reset dialog
+        if (activeSegment) {
+          onSelectTimeSegment(null);
+        } else {
+          onReset();
+        }
       }
     };
 
@@ -208,6 +212,7 @@ const RecordingTimerMode: React.FC<RecordingTimerModeProps> = ({
     selectedTimeSegment,
     onAdjustTotalTime,
     onSelectTimeSegment,
+    onReset,
     startKeyHold,
     stopKeyHold,
   ]);
@@ -265,7 +270,7 @@ const RecordingTimerMode: React.FC<RecordingTimerModeProps> = ({
   );
 
   // Clock component
-  const clockComponent = <span className="v2-clock-time">{clockTime}</span>;
+  const clockComponent = <StatusBarClock />;
 
   // Error overlay - render as part of body
   const bodyOverlay =

@@ -7,7 +7,7 @@ import TimerSetup from "../../timer_mode/components/TimerSetup";
 import { useTimeAdjustment } from "../../obs_mode/hooks/use_time_adjustment";
 import { TimeSegment } from "../../../contexts/AppContext";
 import { computeAdjustment } from "../shared/utils/timeAdjustment";
-import { useFooterClock } from "../shared/hooks/useFooterClock";
+import StatusBarClock from "../shared/components/StatusBarClock";
 
 interface TimerV2ModeProps {
   formattedTime: string;
@@ -186,9 +186,7 @@ const TimerV2Mode: React.FC<TimerV2ModeProps> = ({
     </button>
   );
 
-  const clockTime = useFooterClock();
-
-  const clockComponent = <span className="v2-clock-time">{clockTime}</span>;
+  const clockComponent = <StatusBarClock />;
 
   // For setup mode, inject TimerSetup as content override
   if (isSetupMode) {

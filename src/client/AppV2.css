@@ -370,6 +370,31 @@
   letter-spacing: 0.02em;
 }
 
+/* Status bar clock with blinking colon */
+.v2-status-bar-clock {
+  font-size: clamp(var(--v2-status-font-min), 0.6875em, var(--v2-status-font-max));
+  color: var(--v2-text-dimmed);
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  display: inline-flex;
+  align-items: baseline;
+}
+
+.v2-status-bar-clock-time {
+  color: var(--v2-text-dimmed);
+}
+
+.v2-status-bar-clock-separator {
+  color: var(--v2-text-dimmed);
+  animation: v2-clock-blink 1s steps(2, end) infinite;
+}
+
+.v2-status-bar-clock-period {
+  color: var(--v2-text-dimmed);
+  margin-left: 0.25em;
+  font-size: 0.85em;
+}
+
 /* Action wrapper to maintain space */
 .v2-action-wrapper {
   width: 100%;

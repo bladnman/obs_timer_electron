@@ -27,6 +27,7 @@ const TimeDisplay: React.FC<TimeDisplayProps> = ({
   const segmentRefs = useRef<Array<HTMLSpanElement | null>>([]);
   // Keep DOM focus aligned with the selected segment and clear on deselect
   useSegmentFocus(containerRef, segmentRefs, focusIndex);
+
   const getStateClass = () => {
     switch (state) {
       case "recording":
@@ -55,9 +56,17 @@ const TimeDisplay: React.FC<TimeDisplayProps> = ({
               onSegmentClick(index);
             }
           }}
-          role={clickable ? "button" : undefined}
-          aria-label={clickable ? "Edit time" : undefined}
-          tabIndex={clickable ? 0 : -1}
+          onKeyDown={(e) => {
+            if (!onSegmentClick) return;
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              e.stopPropagation();
+              onSegmentClick(index);
+            }
+          }}
+          role={onSegmentClick ? "button" : undefined}
+          aria-label={onSegmentClick ? `Edit ${part}` : undefined}
+          tabIndex={onSegmentClick ? 0 : -1}
         >
           {part}
         </span>
@@ -108,13 +117,6 @@ function useSegmentFocus(
       el.focus();
     }
   }, [index, container, segments]);
-}
-
-// Patch above component to call the hook
-// We can't export a second component, so re-open the file context with a side-effect hook call.
-// eslint-disable-next-line no-unused-vars
-function __useFocusPatch(container: any, segments: any, index: any) {
-  // no-op placeholder to satisfy bundlers if needed
 }
 
 export default TimeDisplay;

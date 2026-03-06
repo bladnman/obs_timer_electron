@@ -1,0 +1,58 @@
+.error-boundary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  padding: 2em;
+  box-sizing: border-box;
+  background: var(--v2-bg-body, #1b1b1b);
+  color: var(--v2-text-primary, #fff);
+}
+
+.error-boundary__panel {
+  width: 100%;
+  max-width: 45em;
+  padding: 1.5em;
+  border: 0.0625em solid rgba(255, 255, 255, 0.12);
+  border-radius: 0.5em;
+  background: rgba(0, 0, 0, 0.2);
+  box-shadow: 0 0.375em 1.5em rgba(0, 0, 0, 0.4);
+}
+
+.error-boundary__title {
+  margin-bottom: 0.5em;
+  font-size: 1.125em;
+  font-weight: 600;
+}
+
+.error-boundary__description {
+  margin-bottom: 1em;
+  opacity: 0.85;
+}
+
+.error-boundary__details {
+  margin-bottom: 1em;
+  padding: 0.75em;
+  border: 0.0625em solid rgba(255, 255, 255, 0.08);
+  border-radius: 0.375em;
+  background: rgba(0, 0, 0, 0.24);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
+  font-size: 0.875em;
+  white-space: pre-wrap;
+}
+
+.error-boundary__stack {
+  margin-top: 0.5em;
+  opacity: 0.7;
+}
+
+.error-boundary__reload {
+  border: 0;
+  border-radius: 0.375em;
+  padding: 0.5em 0.9em;
+  background: var(--v2-color-error, #e53935);
+  color: var(--v2-text-primary, #fff);
+  font-size: 0.95em;
+  cursor: pointer;
+}

@@ -8,6 +8,7 @@ import { useTimeAdjustment } from "../../obs_mode/hooks/use_time_adjustment";
 import { TimeSegment } from "../../../contexts/AppContext";
 import { computeAdjustment } from "../shared/utils/timeAdjustment";
 import StatusBarClock from "../shared/components/StatusBarClock";
+import {CAPTURE_EVENT_OPTIONS, isSpaceKey} from "../../../utils/keyboard";
 
 interface TimerV2ModeProps {
   formattedTime: string;
@@ -85,16 +86,14 @@ const TimerV2Mode: React.FC<TimerV2ModeProps> = ({
       window.removeEventListener("keydown", handleKeyDown);
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, []);
+  }, [onSelectTimeSegment]);
 
   useEffect(() => { if (isRunning) onSelectTimeSegment(null); }, [isRunning, onSelectTimeSegment]);
 
   // Space bar toggles start/pause when not editing or in setup
   useEffect(() => {
     const handleSpaceToggle = (e: KeyboardEvent) => {
-      // Normalize detection of Space key
-      const isSpace = e.code === 'Space' || e.key === ' ' || (e as any).key === 'Spacebar';
-      if (!isSpace) return;
+      if (!isSpaceKey(e)) return;
       // Don't hijack when focused inside inputs/buttons or when editing timer segments
       const target = e.target as HTMLElement | null;
       const tag = target?.tagName?.toLowerCase();
@@ -102,11 +101,12 @@ const TimerV2Mode: React.FC<TimerV2ModeProps> = ({
       if (isSetupMode) return;
       if (selectedTimeSegment !== null) return;
       e.preventDefault();
-      (e as any).stopImmediatePropagation?.();
+      e.stopImmediatePropagation();
       onToggle();
     };
-    window.addEventListener('keydown', handleSpaceToggle, { capture: true });
-    return () => window.removeEventListener('keydown', handleSpaceToggle, { capture: true } as any);
+    window.addEventListener("keydown", handleSpaceToggle, CAPTURE_EVENT_OPTIONS);
+    return () =>
+      window.removeEventListener("keydown", handleSpaceToggle, CAPTURE_EVENT_OPTIONS);
   }, [onToggle, isSetupMode, selectedTimeSegment]);
 
   // Keyboard adjustment and navigation when a segment is selected
@@ -116,7 +116,7 @@ const TimerV2Mode: React.FC<TimerV2ModeProps> = ({
       // Left/Right move selection across segments
       if (e.key === "ArrowLeft" || e.key === "h" || e.key === "H") {
         e.preventDefault();
-        (e as any).stopImmediatePropagation?.();
+        e.stopImmediatePropagation();
         const order: Segment[] = ["hours", "minutes", "seconds"];
         const idx = order.indexOf(selectedTimeSegment);
         const next = order[(idx + order.length - 1) % order.length];
@@ -126,7 +126,7 @@ const TimerV2Mode: React.FC<TimerV2ModeProps> = ({
       }
       if (e.key === "ArrowRight" || e.key === "l" || e.key === "L") {
         e.preventDefault();
-        (e as any).stopImmediatePropagation?.();
+        e.stopImmediatePropagation();
         const order: Segment[] = ["hours", "minutes", "seconds"];
         const idx = order.indexOf(selectedTimeSegment);
         const next = order[(idx + 1) % order.length];
@@ -144,7 +144,7 @@ const TimerV2Mode: React.FC<TimerV2ModeProps> = ({
           : null;
       if (dir === null) return;
       e.preventDefault();
-      (e as any).stopImmediatePropagation?.();
+      e.stopImmediatePropagation();
       const shift = e.shiftKey === true;
       const seg = selectedTimeSegment as Exclude<Segment, null>;
       startKeyHold(dir, () => {
@@ -166,11 +166,11 @@ const TimerV2Mode: React.FC<TimerV2ModeProps> = ({
       }
     };
 
-    window.addEventListener("keydown", handleKeyDown, { capture: true });
-    window.addEventListener("keyup", handleKeyUp, { capture: true });
+    window.addEventListener("keydown", handleKeyDown, CAPTURE_EVENT_OPTIONS);
+    window.addEventListener("keyup", handleKeyUp, CAPTURE_EVENT_OPTIONS);
     return () => {
-      window.removeEventListener("keydown", handleKeyDown, { capture: true } as any);
-      window.removeEventListener("keyup", handleKeyUp, { capture: true } as any);
+      window.removeEventListener("keydown", handleKeyDown, CAPTURE_EVENT_OPTIONS);
+      window.removeEventListener("keyup", handleKeyUp, CAPTURE_EVENT_OPTIONS);
       stopKeyHold();
     };
   }, [selectedTimeSegment, isRunning, startKeyHold, stopKeyHold, onAdjustTimerBy, onSelectTimeSegment]);

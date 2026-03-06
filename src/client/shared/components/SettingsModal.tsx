@@ -1,5 +1,6 @@
 import React, {useEffect, useState} from "react";
 import { useWindowDimensions } from "../../hooks/useWindowDimensions";
+import {CAPTURE_EVENT_OPTIONS} from "../../utils/keyboard";
 
 // Note: This component could be simplified if App.tsx passes down more props from context,
 // or it can consume context directly if it's deeply nested.
@@ -55,8 +56,8 @@ const SettingsModal: React.FC<{
         onClose();
       }
     };
-    window.addEventListener("keydown", onKey, { capture: true });
-    return () => window.removeEventListener("keydown", onKey, { capture: true } as any);
+    window.addEventListener("keydown", onKey, CAPTURE_EVENT_OPTIONS);
+    return () => window.removeEventListener("keydown", onKey, CAPTURE_EVENT_OPTIONS);
   }, [isOpen, onClose]);
 
   if (!isOpen) {

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import "./App.css";
 import "./AppV2.css";
 import { useAppContext } from "./contexts/AppContext";
@@ -17,10 +17,48 @@ import TimerV2Mode from "./features/v2/timer/TimerV2Mode";
 import StopwatchV2Mode from "./features/v2/stopwatch/StopwatchV2Mode";
 import ClockV2Mode from "./features/v2/clock/ClockV2Mode";
 import { modeOrder } from "./constants/modes";
+import { CAPTURE_EVENT_OPTIONS } from "./utils/keyboard";
+
+const USE_V2_LAYOUT = true;
+
+const isArrowNavigationKey = (key: string) =>
+  key === "ArrowRight" ||
+  key === "ArrowLeft" ||
+  key === "ArrowUp" ||
+  key === "ArrowDown";
+
+const getObsDisplayStatus = (
+  obsConnection: ReturnType<typeof useAppContext>["obsConnection"]
+) => {
+  if (obsConnection.isConnecting) {
+    return {statusMessage: "Connecting to OBS...", statusType: "connecting" as const};
+  }
+  if (obsConnection.error) {
+    return {statusMessage: obsConnection.error, statusType: "error" as const};
+  }
+  if (!obsConnection.isConnected) {
+    return {statusMessage: "OBS unavailable", statusType: "disconnected" as const};
+  }
+  return {statusMessage: "", statusType: "hidden" as const};
+};
+
+const getRecordingState = (
+  obsConnection: ReturnType<typeof useAppContext>["obsConnection"],
+  currentStatusIconClass: string
+) => {
+  if (obsConnection.error || !obsConnection.isConnected) {
+    return {recordingState: "error" as const, errorMessage: "OBS NOT FOUND"};
+  }
+  if (currentStatusIconClass === "recording") {
+    return {recordingState: "recording" as const, errorMessage: undefined};
+  }
+  if (currentStatusIconClass === "paused") {
+    return {recordingState: "paused" as const, errorMessage: undefined};
+  }
+  return {recordingState: "stopped" as const, errorMessage: undefined};
+};
 
 function App() {
-  const [useV2Layout] = useState(true); // Toggle this to switch between v1 and v2
-  
   const {
     // State
     settings,
@@ -66,10 +104,9 @@ function App() {
   // Global keyboard navigation for V2 modes with edit gating
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (!useV2Layout) return;
+      if (!USE_V2_LAYOUT) return;
       if (isSettingsModalOpen || showSettings) return;
-      const isArrow = e.key === "ArrowRight" || e.key === "ArrowLeft" || e.key === "ArrowUp" || e.key === "ArrowDown";
-      if (!isArrow) return;
+      if (!isArrowNavigationKey(e.key)) return;
 
       // Edit gating: if editing a time segment (OBS or Timer) or timer setup, do not navigate
       const isObsEditing = currentMode === "obs" && selectedTimeSegment !== null;
@@ -90,37 +127,33 @@ function App() {
       setMode(modeOrder[newIndex]);
     };
 
-    window.addEventListener("keydown", handleKeyDown, { capture: true });
+    window.addEventListener("keydown", handleKeyDown, CAPTURE_EVENT_OPTIONS);
     return () => {
-      window.removeEventListener("keydown", handleKeyDown, { capture: true } as any);
+      window.removeEventListener("keydown", handleKeyDown, CAPTURE_EVENT_OPTIONS);
     };
-  }, [useV2Layout, isSettingsModalOpen, showSettings, currentMode, selectedTimeSegment, timer.isSetupMode, setMode]);
+  }, [isSettingsModalOpen, showSettings, currentMode, selectedTimeSegment, timer.isSetupMode, setMode]);
 
   // Determine connection status for OBS mode
-  let statusMessage = "";
-  let statusType:
-    | "connecting"
-    | "connected"
-    | "disconnected"
-    | "error"
-    | "hidden" = "hidden";
+  const {statusMessage, statusType} = getObsDisplayStatus(obsConnection);
   let onRetry: (() => void) | undefined;
 
-  if (obsConnection.isConnecting) {
-    statusMessage = "Connecting to OBS...";
-    statusType = "connecting";
-  } else if (obsConnection.error) {
-    statusMessage = obsConnection.error;
-    statusType = "error";
+  if (statusType === "error" || statusType === "disconnected") {
     onRetry = connectToOBS;
-  } else if (!obsConnection.isConnected) {
-    statusMessage = "OBS unavailable";
-    statusType = "disconnected";
-    onRetry = connectToOBS;
-  } else if (obsConnection.isConnected && !obsConnection.error) {
-    statusMessage = "";
-    statusType = "hidden";
   }
+
+  const settingsModal = isSettingsModalOpen ? (
+    <SettingsModal
+      isOpen={isSettingsModalOpen}
+      onClose={closeSettingsModal}
+      onSave={saveSettings}
+      onTestConnection={testOBSConnection}
+      initialHost={settings.host}
+      initialPort={settings.port}
+      initialPassword={settings.password}
+      connectionResult={connectionTestResult}
+      isTestingConnection={isTestingConnection}
+    />
+  ) : null;
 
   const renderCurrentMode = () => {
     if (showSettings) {
@@ -194,21 +227,11 @@ function App() {
   };
 
   // V2 Layout - New design system
-  if (useV2Layout && (currentMode === "obs" || currentMode === "timer" || currentMode === "stopwatch" || currentMode === "clock")) {
-    // Determine recording state
-    let recordingState: "recording" | "paused" | "stopped" | "error" = "stopped";
-    let errorMsg: string | undefined;
-    
-    if (obsConnection.error || !obsConnection.isConnected) {
-      recordingState = "error";
-      errorMsg = "OBS NOT FOUND";
-    } else if (currentStatusIconClass === "recording") {
-      recordingState = "recording";
-    } else if (currentStatusIconClass === "paused") {
-      recordingState = "paused";
-    } else {
-      recordingState = "stopped";
-    }
+  if (USE_V2_LAYOUT && (currentMode === "obs" || currentMode === "timer" || currentMode === "stopwatch" || currentMode === "clock")) {
+    const {recordingState, errorMessage} = getRecordingState(
+      obsConnection,
+      currentStatusIconClass
+    );
 
     return (
       <AspectRatioContainer>
@@ -218,7 +241,7 @@ function App() {
               state={recordingState}
               currentTime={formattedCurrentTime}
               totalTime={formattedTotalTime}
-              errorMessage={errorMsg}
+              errorMessage={errorMessage}
               onReset={resetTotalTime}
               onSettingsClick={openSettingsModal}
               isDimmed={isDimmed}
@@ -258,20 +281,8 @@ function App() {
               isDimmed={isDimmed}
             />
           )}
-          
-          {isSettingsModalOpen && (
-            <SettingsModal
-              isOpen={isSettingsModalOpen}
-              onClose={closeSettingsModal}
-              onSave={saveSettings}
-              onTestConnection={testOBSConnection}
-              initialHost={settings.host}
-              initialPort={settings.port}
-              initialPassword={settings.password}
-              connectionResult={connectionTestResult}
-              isTestingConnection={isTestingConnection}
-            />
-          )}
+
+          {settingsModal}
         </div>
       </AspectRatioContainer>
     );
@@ -300,19 +311,7 @@ function App() {
 
           <div className="timer-container-wrapper">{renderCurrentMode()}</div>
 
-          {isSettingsModalOpen && (
-            <SettingsModal
-              isOpen={isSettingsModalOpen}
-              onClose={closeSettingsModal}
-              onSave={saveSettings}
-              onTestConnection={testOBSConnection}
-              initialHost={settings.host}
-              initialPort={settings.port}
-              initialPassword={settings.password}
-              connectionResult={connectionTestResult}
-              isTestingConnection={isTestingConnection}
-            />
-          )}
+          {settingsModal}
         </div>
       </ModeNavigator>
     </AspectRatioContainer>

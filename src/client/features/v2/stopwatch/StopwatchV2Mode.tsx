@@ -4,6 +4,7 @@ import { IoReloadOutline } from "react-icons/io5";
 import AppLayout from "../layout/AppLayout";
 import TimeDisplay from "../shared/components/TimeDisplay";
 import StatusBarClock from "../shared/components/StatusBarClock";
+import {CAPTURE_EVENT_OPTIONS, isSpaceKey} from "../../../utils/keyboard";
 
 interface StopwatchV2ModeProps {
   formattedTime: string;
@@ -71,17 +72,17 @@ const StopwatchV2Mode: React.FC<StopwatchV2ModeProps> = ({
   // Space bar toggles start/pause for Stopwatch
   useEffect(() => {
     const handleSpaceToggle = (e: KeyboardEvent) => {
-      const isSpace = e.code === 'Space' || e.key === ' ' || (e as any).key === 'Spacebar';
-      if (!isSpace) return;
+      if (!isSpaceKey(e)) return;
       const target = e.target as HTMLElement | null;
       const tag = target?.tagName?.toLowerCase();
       if (tag && ['input','textarea','select','button'].includes(tag)) return;
       e.preventDefault();
-      (e as any).stopImmediatePropagation?.();
+      e.stopImmediatePropagation();
       onToggle();
     };
-    window.addEventListener('keydown', handleSpaceToggle, { capture: true });
-    return () => window.removeEventListener('keydown', handleSpaceToggle, { capture: true } as any);
+    window.addEventListener("keydown", handleSpaceToggle, CAPTURE_EVENT_OPTIONS);
+    return () =>
+      window.removeEventListener("keydown", handleSpaceToggle, CAPTURE_EVENT_OPTIONS);
   }, [onToggle]);
 
   return (

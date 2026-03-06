@@ -1,13 +1,17 @@
 import "@testing-library/jest-dom";
-import {render, screen, waitFor} from "@testing-library/react";
+import {fireEvent, render, screen, waitFor} from "@testing-library/react";
 import React from "react";
 import App from "../src/client/App";
 import {AppProvider} from "../src/client/contexts/AppContext";
+import {LOCAL_STORAGE_KEYS} from "../src/client/contexts/app_context_types";
 import obsService from "../src/client/services/obsService";
 
 // Helper to render with provider
-const renderWithProvider = (ui: React.ReactElement) => {
-  return render(<AppProvider>{ui}</AppProvider>);
+const renderWithProvider = (
+  ui: React.ReactElement,
+  providerProps: React.ComponentProps<typeof AppProvider> = {}
+) => {
+  return render(<AppProvider {...providerProps}>{ui}</AppProvider>);
 };
 
 // Mock obsService for tests that might trigger its usage through AppProvider effects
@@ -36,6 +40,8 @@ describe("<App />", () => {
     jest.clearAllMocks();
     // Reset localStorage if AppProvider depends on it for initial state
     localStorage.clear();
+    window.history.replaceState({}, "", "/");
+    delete (window as Window & {electronAPI?: unknown}).electronAPI;
   });
 
   test("renders main application structure", async () => {
@@ -62,14 +68,18 @@ describe("<App />", () => {
 
     // Check for Settings button in status bar
     expect(screen.getByTitle("Settings")).toBeInTheDocument();
+    expect(screen.getByRole("button", {name: "OBS Timer"})).toBeInTheDocument();
+    expect(screen.getByRole("button", {name: "Clock"})).toBeInTheDocument();
+    expect(screen.getByRole("button", {name: "OBS/Clock"})).toBeInTheDocument();
+    expect(screen.getByRole("button", {name: "Timer"})).toBeInTheDocument();
+    expect(screen.getByRole("button", {name: "Stopwatch"})).toBeInTheDocument();
     
     // Check that we have time displays in v2 format
     const timeSegments = document.querySelectorAll(".v2-time-segment");
     expect(timeSegments.length).toBeGreaterThanOrEqual(1); // At least one time segment
 
-    // Check that a status icon is present (v2 class)
-    const statusIcons = document.querySelectorAll(".v2-status-icon");
-    expect(statusIcons.length).toBeGreaterThanOrEqual(1);
+    // OBS availability now lives on the persistent rail
+    expect(document.querySelector(".v2-mode-rail-obs-dot")).toBeInTheDocument();
     
     // Verify layout structure follows design spec
     const content = document.querySelector(".app-layout-content");
@@ -97,9 +107,91 @@ describe("<App />", () => {
       expect(screen.getByText("OBS NOT FOUND")).toBeInTheDocument();
     });
     
-    // Check that error icon is displayed
-    const errorIcon = screen.getByText("×");
-    expect(errorIcon).toBeInTheDocument();
+    expect(
+      document.querySelector(".v2-mode-rail-obs-dot.unavailable")
+    ).toBeInTheDocument();
+  });
+
+  test("shows clock fallback in OBS/Clock mode when OBS is unavailable", async () => {
+    localStorage.setItem("obsTimerCurrentMode", "obs-clock");
+    (obsService.connect as jest.Mock).mockRejectedValueOnce(new Error("fail"));
+
+    renderWithProvider(<App />);
+
+    await waitFor(() => {
+      expect(document.querySelector(".v2-clock-display")).toBeInTheDocument();
+    });
+
+    expect(screen.getByRole("button", {name: "OBS/Clock"})).toHaveAttribute(
+      "aria-pressed",
+      "true"
+    );
+    expect(screen.getAllByText(/OBS unavailable/i).length).toBeGreaterThan(0);
+    expect(screen.queryByText("Total:")).not.toBeInTheDocument();
+  });
+
+  test("stays on clock fallback while OBS is still connecting", async () => {
+    localStorage.setItem("obsTimerCurrentMode", "obs-clock");
+    (obsService.connect as jest.Mock).mockImplementationOnce(
+      () => new Promise(() => {})
+    );
+
+    renderWithProvider(<App />);
+
+    await waitFor(() => {
+      expect(document.querySelector(".v2-clock-display")).toBeInTheDocument();
+    });
+
+    expect(screen.queryByText("OBS NOT FOUND")).not.toBeInTheDocument();
+    expect(document.querySelector(".v2-mode-rail-obs-dot.connecting")).toBeInTheDocument();
+  });
+
+  test("opens the Electron settings window when available", async () => {
+    const openSettingsWindow = jest.fn().mockResolvedValue(undefined);
+    window.electronAPI = {openSettingsWindow};
+
+    renderWithProvider(<App />);
+
+    await waitFor(() => {
+      expect(screen.getByTitle("Settings")).toBeInTheDocument();
+    });
+
+    screen.getByTitle("Settings").click();
+
+    await waitFor(() => {
+      expect(openSettingsWindow).toHaveBeenCalledTimes(1);
+    });
+
+    expect(document.querySelector(".modal-overlay")).not.toBeInTheDocument();
+  });
+
+  test("renders the dedicated settings view as an embedded page", async () => {
+    window.history.replaceState({}, "", "/?view=settings");
+
+    renderWithProvider(<App />, {autoConnectObs: false});
+
+    expect(document.querySelector(".settings-window-root")).toBeInTheDocument();
+    expect(document.querySelector(".settings-page-shell")).toBeInTheDocument();
+    expect(document.querySelector(".modal-overlay")).not.toBeInTheDocument();
+    expect(screen.getByLabelText("OBS Host:")).toBeInTheDocument();
+    expect(screen.getByLabelText("Port:")).toBeInTheDocument();
+    expect(screen.getByLabelText("Password:")).toBeInTheDocument();
+    expect(screen.queryByRole("button", {name: /save & connect/i})).not.toBeInTheDocument();
+    expect(screen.getByText("Changes save automatically")).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText("OBS Host:"), {
+      target: {value: "obs-box.local"},
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText("Saving...")).toBeInTheDocument();
+    });
+
+    await waitFor(() => {
+      expect(
+        localStorage.getItem(LOCAL_STORAGE_KEYS.settings)
+      ).toContain("obs-box.local");
+    });
   });
 
   // Add more tests:

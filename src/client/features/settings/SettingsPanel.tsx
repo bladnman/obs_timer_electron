@@ -29,6 +29,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
   const renderSettings = () => {
     switch (currentMode) {
       case "obs":
+      case "obs-clock":
         return (
           <OBSSettings
             isDimmed={isDimmed}

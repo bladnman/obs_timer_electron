@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, {useEffect, useRef, useState} from "react";
 import "./App.css";
 import "./AppV2.css";
 import { useAppContext } from "./contexts/AppContext";
@@ -16,8 +16,11 @@ import RecordingTimerMode from "./features/v2/recording_timer/RecordingTimerMode
 import TimerV2Mode from "./features/v2/timer/TimerV2Mode";
 import StopwatchV2Mode from "./features/v2/stopwatch/StopwatchV2Mode";
 import ClockV2Mode from "./features/v2/clock/ClockV2Mode";
-import { modeOrder } from "./constants/modes";
+import {modeLabels, modeOrder} from "./constants/modes";
 import { CAPTURE_EVENT_OPTIONS } from "./utils/keyboard";
+import ModeDock from "./features/v2/mode_navigation/ModeDock";
+import ModeChangeOverlay from "./features/v2/mode_navigation/ModeChangeOverlay";
+import { useWindowDimensions } from "./hooks/useWindowDimensions";
 
 const USE_V2_LAYOUT = true;
 
@@ -56,6 +59,24 @@ const getRecordingState = (
     return {recordingState: "paused" as const, errorMessage: undefined};
   }
   return {recordingState: "stopped" as const, errorMessage: undefined};
+};
+
+const MODE_OVERLAY_DURATION_MS = 1200;
+const TIGHT_WINDOW_WIDTH = 260;
+const TIGHT_WINDOW_HEIGHT = 80;
+const VERY_TIGHT_WINDOW_WIDTH = 230;
+const VERY_TIGHT_WINDOW_HEIGHT = 68;
+const COMPACT_STATUS_DOCK_WIDTH = 360;
+const COMPACT_STATUS_DOCK_HEIGHT = 120;
+const SETTINGS_VIEW = "settings";
+
+const getWindowView = () => {
+  try {
+    return new URLSearchParams(window.location.search).get("view");
+  } catch (error) {
+    void error;
+    return null;
+  }
 };
 
 function App() {
@@ -100,6 +121,15 @@ function App() {
     selectTimeSegment,
     adjustTotalTime,
   } = useAppContext();
+  const {width, height} = useWindowDimensions();
+  const currentView = getWindowView();
+  const isSettingsView = currentView === SETTINGS_VIEW;
+  const shouldUseElectronSettingsWindow =
+    !!window.electronAPI?.openSettingsWindow && !isSettingsView;
+  const [isModeOverlayVisible, setIsModeOverlayVisible] = useState(false);
+  const overlayTimerRef = useRef<number | null>(null);
+  const lastOverlayKeyRef = useRef<string | null>(null);
+  const hasMountedOverlayRef = useRef(false);
 
   // Global keyboard navigation for V2 modes with edit gating
   useEffect(() => {
@@ -109,7 +139,10 @@ function App() {
       if (!isArrowNavigationKey(e.key)) return;
 
       // Edit gating: if editing a time segment (OBS or Timer) or timer setup, do not navigate
-      const isObsEditing = currentMode === "obs" && selectedTimeSegment !== null;
+      const isObsEditing =
+        (currentMode === "obs" ||
+          (currentMode === "obs-clock" && obsConnection.isConnected)) &&
+        selectedTimeSegment !== null;
       const isTimerEditing = currentMode === "timer" && (timer.isSetupMode || selectedTimeSegment !== null);
       if (isObsEditing || isTimerEditing) return;
 
@@ -131,7 +164,15 @@ function App() {
     return () => {
       window.removeEventListener("keydown", handleKeyDown, CAPTURE_EVENT_OPTIONS);
     };
-  }, [isSettingsModalOpen, showSettings, currentMode, selectedTimeSegment, timer.isSetupMode, setMode]);
+  }, [
+    isSettingsModalOpen,
+    showSettings,
+    currentMode,
+    selectedTimeSegment,
+    timer.isSetupMode,
+    setMode,
+    obsConnection.isConnected,
+  ]);
 
   // Determine connection status for OBS mode
   const {statusMessage, statusType} = getObsDisplayStatus(obsConnection);
@@ -140,6 +181,25 @@ function App() {
   if (statusType === "error" || statusType === "disconnected") {
     onRetry = connectToOBS;
   }
+
+  const handleOpenSettings = () => {
+    if (shouldUseElectronSettingsWindow) {
+      void window.electronAPI?.openSettingsWindow?.();
+      return;
+    }
+    openSettingsModal();
+  };
+
+  const handleCloseSettingsView = () => {
+    if (window.navigator.userAgent.toLowerCase().includes("electron")) {
+      window.close();
+      return;
+    }
+
+    const url = new URL(window.location.href);
+    url.searchParams.delete("view");
+    window.location.href = url.toString();
+  };
 
   const settingsModal = isSettingsModalOpen ? (
     <SettingsModal
@@ -162,7 +222,7 @@ function App() {
           currentMode={currentMode}
           isDimmed={isDimmed}
           clock={clock}
-          onOpenModal={openSettingsModal}
+          onOpenModal={handleOpenSettings}
           onToggleBrightness={toggleBrightness}
           onResetTotal={resetTotalTime}
           onEnterTimerSetup={enterTimerSetup}
@@ -173,21 +233,30 @@ function App() {
 
     switch (currentMode) {
       case "obs":
+      case "obs-clock":
         return (
-          <OBSMode
-            currentStatusIcon={currentStatusIcon}
-            currentStatusIconClass={currentStatusIconClass}
-            formattedCurrentTime={formattedCurrentTime}
-            formattedTotalTime={formattedTotalTime}
-            statusMessage={statusMessage}
-            statusType={statusType}
-            isDimmed={isDimmed}
-            onResetTotal={resetTotalTime}
-            onRetry={onRetry}
-            selectedTimeSegment={selectedTimeSegment}
-            onSelectTimeSegment={selectTimeSegment}
-            onAdjustTotalTime={adjustTotalTime}
-          />
+          currentMode === "obs-clock" && !obsConnection.isConnected ? (
+            <ClockMode
+              isDimmed={isDimmed}
+              is24Hour={clock.is24Hour}
+              onToggleFormat={toggleClockFormat}
+            />
+          ) : (
+            <OBSMode
+              currentStatusIcon={currentStatusIcon}
+              currentStatusIconClass={currentStatusIconClass}
+              formattedCurrentTime={formattedCurrentTime}
+              formattedTotalTime={formattedTotalTime}
+              statusMessage={statusMessage}
+              statusType={statusType}
+              isDimmed={isDimmed}
+              onResetTotal={resetTotalTime}
+              onRetry={onRetry}
+              selectedTimeSegment={selectedTimeSegment}
+              onSelectTimeSegment={selectTimeSegment}
+              onAdjustTotalTime={adjustTotalTime}
+            />
+          )
         );
       case "stopwatch":
         return (
@@ -226,8 +295,116 @@ function App() {
     }
   };
 
+  const isV2Mode =
+    currentMode === "obs" ||
+    currentMode === "obs-clock" ||
+    currentMode === "timer" ||
+    currentMode === "stopwatch" ||
+    currentMode === "clock";
+  const isObsUnavailable =
+    !obsConnection.isConnected && !obsConnection.isConnecting;
+  const isObsClockMode = currentMode === "obs-clock";
+  const shouldUseObsClockFallback = isObsClockMode && !obsConnection.isConnected;
+  const isTightWindow =
+    width <= TIGHT_WINDOW_WIDTH || height <= TIGHT_WINDOW_HEIGHT;
+  const isVeryTightWindow =
+    width <= VERY_TIGHT_WINDOW_WIDTH || height <= VERY_TIGHT_WINDOW_HEIGHT;
+  const useCompactStatusDock =
+    width <= COMPACT_STATUS_DOCK_WIDTH || height <= COMPACT_STATUS_DOCK_HEIGHT;
+  const obsAvailabilityState =
+    obsConnection.isConnecting
+      ? "connecting"
+      : isObsUnavailable
+      ? "unavailable"
+      : currentStatusIconClass === "recording"
+      ? "recording"
+      : currentStatusIconClass === "paused"
+      ? "paused"
+      : "ready";
+  const overlayLabel = modeLabels[currentMode];
+  const overlayDetail = isObsClockMode
+    ? shouldUseObsClockFallback
+      ? "Clock fallback"
+      : "OBS live"
+    : currentMode === "obs" && isObsUnavailable
+    ? "OBS unavailable"
+    : undefined;
+  const overlayKey = `${currentMode}:${shouldUseObsClockFallback ? "clock" : "primary"}`;
+  const statusModeDock = (
+    <ModeDock
+      currentMode={currentMode}
+      onModeChange={setMode}
+      obsAvailabilityState={obsAvailabilityState}
+      compact={useCompactStatusDock}
+    />
+  );
+  const showObsClockStatusInline = !useCompactStatusDock && !isTightWindow;
+  const obsClockFallbackInfo = shouldUseObsClockFallback ? (
+    <div className="v2-mode-status">
+      <span className="v2-mode-status-label">OBS/CLOCK</span>
+      <span className="v2-mode-status-separator">•</span>
+      <span className="v2-mode-status-detail">
+        {obsConnection.isConnecting ? "Connecting to OBS..." : "OBS unavailable"}
+      </span>
+    </div>
+  ) : isObsClockMode && showObsClockStatusInline ? (
+    <div className="v2-mode-status">
+      <span className="v2-mode-status-label">OBS/CLOCK</span>
+    </div>
+  ) : undefined;
+
+  useEffect(() => {
+    if (!USE_V2_LAYOUT || !isV2Mode || isTightWindow) {
+      setIsModeOverlayVisible(false);
+      return;
+    }
+    if (!hasMountedOverlayRef.current) {
+      hasMountedOverlayRef.current = true;
+      lastOverlayKeyRef.current = overlayKey;
+      return;
+    }
+    if (lastOverlayKeyRef.current === overlayKey) {
+      return;
+    }
+    lastOverlayKeyRef.current = overlayKey;
+    setIsModeOverlayVisible(true);
+    if (overlayTimerRef.current !== null) {
+      window.clearTimeout(overlayTimerRef.current);
+    }
+    overlayTimerRef.current = window.setTimeout(() => {
+      setIsModeOverlayVisible(false);
+    }, MODE_OVERLAY_DURATION_MS);
+  }, [isV2Mode, overlayKey, isTightWindow]);
+
+  useEffect(() => {
+    return () => {
+      if (overlayTimerRef.current !== null) {
+        window.clearTimeout(overlayTimerRef.current);
+      }
+    };
+  }, []);
+
+  if (isSettingsView) {
+    return (
+      <div className="settings-window-root">
+        <SettingsModal
+          isOpen
+          embedded
+          onClose={handleCloseSettingsView}
+          onSave={saveSettings}
+          onTestConnection={testOBSConnection}
+          initialHost={settings.host}
+          initialPort={settings.port}
+          initialPassword={settings.password}
+          connectionResult={connectionTestResult}
+          isTestingConnection={isTestingConnection}
+        />
+      </div>
+    );
+  }
+
   // V2 Layout - New design system
-  if (USE_V2_LAYOUT && (currentMode === "obs" || currentMode === "timer" || currentMode === "stopwatch" || currentMode === "clock")) {
+  if (USE_V2_LAYOUT && isV2Mode) {
     const {recordingState, errorMessage} = getRecordingState(
       obsConnection,
       currentStatusIconClass
@@ -235,19 +412,35 @@ function App() {
 
     return (
       <AspectRatioContainer>
-        <div className="AppV2">
-          {currentMode === "obs" ? (
+        <div
+          className={`AppV2 ${isTightWindow ? "app-v2-tight" : ""} ${
+            isVeryTightWindow ? "app-v2-very-tight" : ""
+          }`}
+        >
+          {(currentMode === "obs" || currentMode === "obs-clock") &&
+          !shouldUseObsClockFallback ? (
             <RecordingTimerMode
               state={recordingState}
               currentTime={formattedCurrentTime}
               totalTime={formattedTotalTime}
               errorMessage={errorMessage}
               onReset={resetTotalTime}
-              onSettingsClick={openSettingsModal}
+              onSettingsClick={handleOpenSettings}
               isDimmed={isDimmed}
               selectedTimeSegment={selectedTimeSegment}
               onSelectTimeSegment={selectTimeSegment}
               onAdjustTotalTime={adjustTotalTime}
+              statusNavigation={statusModeDock}
+              extraInfo={isObsClockMode && showObsClockStatusInline ? obsClockFallbackInfo : undefined}
+            />
+          ) : currentMode === "obs-clock" ? (
+            <ClockV2Mode
+              is24Hour={clock.is24Hour}
+              onToggleFormat={toggleClockFormat}
+              onSettingsClick={handleOpenSettings}
+              isDimmed={isDimmed}
+              statusNavigation={statusModeDock}
+              extraInfo={showObsClockStatusInline ? obsClockFallbackInfo : undefined}
             />
           ) : currentMode === "timer" ? (
             <TimerV2Mode
@@ -263,6 +456,8 @@ function App() {
               onSelectTimeSegment={selectTimeSegment}
               onAdjustTimerBy={adjustTimerBy}
               isDimmed={isDimmed}
+              statusNavigation={statusModeDock}
+              compactStatusBar={useCompactStatusDock}
             />
           ) : currentMode === "stopwatch" ? (
             <StopwatchV2Mode
@@ -270,18 +465,28 @@ function App() {
               isRunning={stopwatch.isRunning}
               onToggle={toggleStopwatch}
               onReset={resetStopwatch}
-              onSettingsClick={openSettingsModal}
+              onSettingsClick={handleOpenSettings}
               isDimmed={isDimmed}
+              statusNavigation={statusModeDock}
+              compactStatusBar={useCompactStatusDock}
             />
           ) : (
             <ClockV2Mode
               is24Hour={clock.is24Hour}
               onToggleFormat={toggleClockFormat}
-              onSettingsClick={openSettingsModal}
+              onSettingsClick={handleOpenSettings}
               isDimmed={isDimmed}
+              statusNavigation={statusModeDock}
             />
           )}
 
+          {!isTightWindow ? (
+            <ModeChangeOverlay
+              label={overlayLabel}
+              detail={overlayDetail}
+              isVisible={isModeOverlayVisible}
+            />
+          ) : null}
           {settingsModal}
         </div>
       </AspectRatioContainer>
@@ -299,7 +504,7 @@ function App() {
         <div className="App">
           <div className="left-sidebar">
             <MenuBar
-              onSettingsClick={openSettingsModal}
+              onSettingsClick={handleOpenSettings}
               onResetClick={currentMode === "obs" ? resetTotalTime : undefined}
               onBrightnessToggle={toggleBrightness}
               onSettingsToggle={toggleSettings}

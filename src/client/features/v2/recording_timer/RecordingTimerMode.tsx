@@ -79,6 +79,9 @@ interface RecordingTimerModeProps {
   selectedTimeSegment?: TimeSegment;
   onSelectTimeSegment?: (segment: TimeSegment) => void;
   onAdjustTotalTime?: (amount: number) => void;
+  leftRail?: React.ReactNode;
+  statusNavigation?: React.ReactNode;
+  extraInfo?: React.ReactNode;
 }
 
 const RecordingTimerMode: React.FC<RecordingTimerModeProps> = ({
@@ -92,6 +95,9 @@ const RecordingTimerMode: React.FC<RecordingTimerModeProps> = ({
   selectedTimeSegment = null,
   onSelectTimeSegment = () => {},
   onAdjustTotalTime = () => {},
+  leftRail,
+  statusNavigation,
+  extraInfo,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const {startKeyHold, stopKeyHold} = useTimeAdjustment();
@@ -221,7 +227,7 @@ const RecordingTimerMode: React.FC<RecordingTimerModeProps> = ({
   const titleComponent = null;
 
   // Icon component (status indicator)
-  const iconComponent = <StatusIcon state={state} />;
+  const iconComponent = leftRail ?? <StatusIcon state={state} />;
 
   // Main display component - always show time display
   const displayComponent = (
@@ -248,17 +254,20 @@ const RecordingTimerMode: React.FC<RecordingTimerModeProps> = ({
 
   // Settings component
   const settingsComponent = (
-    <button
-      onClick={onSettingsClick}
-      className="v2-settings-button"
-      title="Settings"
-    >
-      <BsGearFill />
-    </button>
+    <div className="v2-status-leading">
+      <button
+        onClick={onSettingsClick}
+        className="v2-settings-button"
+        title="Settings"
+      >
+        <BsGearFill />
+      </button>
+      {statusNavigation}
+    </div>
   );
 
   // Extra info component (total time)
-  const extraInfoComponent = (
+  const defaultExtraInfoComponent = (
     <span className="v2-total-time">
       <span className="v2-total-label">Total:</span>
       <EditableTotalTime
@@ -291,7 +300,7 @@ const RecordingTimerMode: React.FC<RecordingTimerModeProps> = ({
         subDisplay={subDisplayComponent}
         action={actionComponent}
         settings={settingsComponent}
-        extraInfo={extraInfoComponent}
+        extraInfo={extraInfo ?? defaultExtraInfoComponent}
         clock={clockComponent}
         bodyOverlay={bodyOverlay}
       />

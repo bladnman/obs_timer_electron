@@ -1,5 +1,5 @@
 import "@testing-library/jest-dom";
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import React from "react";
 import App from "../src/client/App";
 import { AppProvider, useAppContext } from "../src/client/contexts/AppContext";
@@ -32,7 +32,7 @@ describe("V2 Arrow Navigation", () => {
     localStorage.clear();
   });
 
-  test("Right advances obs -> timer when not editing", async () => {
+  test("Right advances obs -> clock when not editing", async () => {
     localStorage.setItem("obsTimerCurrentMode", "obs");
     renderApp();
 
@@ -42,12 +42,12 @@ describe("V2 Arrow Navigation", () => {
     });
 
     // Simulate ArrowRight
-    window.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight" }));
+    fireEvent.keyDown(window, { key: "ArrowRight" });
 
     await waitFor(() => {
-      // Landing on Timer shows the v2 time display (default 05:00)
-      const segments = document.querySelectorAll('.v2-time-segment');
-      expect(segments.length).toBeGreaterThanOrEqual(3);
+      expect(
+        screen.getByRole("button", {name: "Clock"})
+      ).toHaveAttribute("aria-pressed", "true");
     });
   });
 
@@ -62,9 +62,9 @@ describe("V2 Arrow Navigation", () => {
     // Select minutes segment by clicking the middle segment
     const total = document.querySelectorAll('.v2-total-segment');
     expect(total.length).toBeGreaterThan(0);
-    (total[1] as HTMLElement).click();
+    fireEvent.click(total[1] as HTMLElement);
 
-    window.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight" }));
+    fireEvent.keyDown(window, { key: "ArrowRight" });
 
     // Still on recording timer (verify by status bar total label)
     await waitFor(() => {
@@ -83,11 +83,11 @@ describe("V2 Arrow Navigation", () => {
 
     // Click minutes to enter edit mode
     const segments = document.querySelectorAll('.v2-time-segment');
-    (segments[1] as HTMLElement).click();
+    fireEvent.click(segments[1] as HTMLElement);
     await waitFor(() => expect(segments[1]).toHaveClass('selected'));
 
     // ArrowRight should move segment selection, not change mode
-    window.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight" }));
+    fireEvent.keyDown(window, { key: "ArrowRight" });
 
     await waitFor(() => {
       // Still in TIMER mode
@@ -96,5 +96,38 @@ describe("V2 Arrow Navigation", () => {
       const segs = document.querySelectorAll('.v2-time-segment');
       expect(segs[2]).toHaveClass('selected');
     });
+  });
+
+  test("Mode rail buttons change modes directly", async () => {
+    localStorage.setItem("obsTimerCurrentMode", "obs");
+    renderApp();
+
+    await waitFor(() => {
+      expect(screen.getByText("Total:")).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole("button", {name: "Timer"}));
+
+    await waitFor(() => {
+      expect(screen.getByText("TIMER")).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", {name: "Timer"})
+      ).toHaveAttribute("aria-pressed", "true");
+    });
+  });
+
+  test("OBS/Clock mode falls back to clock when OBS is unavailable", async () => {
+    localStorage.setItem("obsTimerCurrentMode", "obs-clock");
+    (obsService.connect as jest.Mock).mockRejectedValueOnce(new Error("fail"));
+    renderApp();
+
+    await waitFor(() => {
+      expect(document.querySelector(".v2-clock-display")).toBeInTheDocument();
+    });
+
+    expect(screen.getByRole("button", {name: "OBS/Clock"})).toHaveAttribute(
+      "aria-pressed",
+      "true"
+    );
   });
 });

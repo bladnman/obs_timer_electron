@@ -13,6 +13,8 @@ interface StopwatchV2ModeProps {
   onReset: () => void;
   onSettingsClick: () => void;
   isDimmed?: boolean;
+  statusNavigation?: React.ReactNode;
+  compactStatusBar?: boolean;
 }
 
 const StopwatchV2Mode: React.FC<StopwatchV2ModeProps> = ({
@@ -22,18 +24,23 @@ const StopwatchV2Mode: React.FC<StopwatchV2ModeProps> = ({
   onReset,
   onSettingsClick,
   isDimmed = false,
+  statusNavigation,
+  compactStatusBar = false,
 }) => {
   const modeLabel = <div className="v2-mode-title">STOPWATCH</div>;
 
   const settingsComponent = (
-    <button
-      onClick={onSettingsClick}
-      className="v2-settings-button"
-      title="Settings"
-      aria-label="Settings"
-    >
-      <BsGearFill />
-    </button>
+    <div className="v2-status-leading">
+      <button
+        onClick={onSettingsClick}
+        className="v2-settings-button"
+        title="Settings"
+        aria-label="Settings"
+      >
+        <BsGearFill />
+      </button>
+      {statusNavigation}
+    </div>
   );
 
   const clockComponent = <StatusBarClock />;
@@ -88,11 +95,12 @@ const StopwatchV2Mode: React.FC<StopwatchV2ModeProps> = ({
   return (
     <div className={`v2-recording-timer-mode ${isDimmed ? "dimmed" : ""}`}>
       <AppLayout
-        className={"app-layout-compact-when-empty"}
+        className={"app-layout-compact-when-empty app-layout-collapse-empty-icon"}
+        icon={undefined}
         title={null}
         display={displayComponent}
         settings={settingsComponent}
-        extraInfo={modeLabel}
+        extraInfo={compactStatusBar ? undefined : modeLabel}
         clock={clockComponent}
         action={actionComponent}
       />

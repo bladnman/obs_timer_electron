@@ -1,5 +1,5 @@
 import OBSWebSocket, {OBSEventTypes} from "obs-websocket-js";
-import {useEffect, useRef, useState} from "react";
+import {useCallback, useEffect, useRef, useState} from "react";
 import obsService, {
   OBSConnectionOptions,
   OBSServiceCallbacks,
@@ -19,7 +19,7 @@ const persistTotalTime = (value: number) => {
   localStorage.setItem(LOCAL_STORAGE_KEYS.totalSeconds, value.toString());
 };
 
-export function useObsRuntime() {
+export function useObsRuntime(autoConnect = true) {
   const [settings, setSettings] = useState<OBSSettings>(initialSettings);
   const [obsConnection, setObsConnection] = useState<OBSConnectionState>(
     initialOBSConnectionState
@@ -51,14 +51,14 @@ export function useObsRuntime() {
     currentSessionSecondsRef.current = obsRecording.currentSessionSeconds;
   }, [obsRecording.currentSessionSeconds]);
 
-  const addSessionTimeToTotal = (sessionSeconds: number) => {
+  const addSessionTimeToTotal = useCallback((sessionSeconds: number) => {
     if (sessionSeconds <= 0) return;
     setTotalTimeSeconds((prevTotal) => {
       const next = prevTotal + sessionSeconds;
       persistTotalTime(next);
       return next;
     });
-  };
+  }, []);
 
   const updateObsRecordingState = (data: Partial<OBSRecordingState>) => {
     setObsRecording((prev) => ({...prev, ...data}));
@@ -81,7 +81,7 @@ export function useObsRuntime() {
     }
   };
 
-  const connectToOBS = async (currentSettingsParam?: OBSSettings) => {
+  const connectToOBS = useCallback(async (currentSettingsParam?: OBSSettings) => {
     const activeSettings = currentSettingsParam || settingsRef.current;
     console.log(
       "AppProvider: connectToOBS called with activeSettings:",
@@ -133,9 +133,9 @@ export function useObsRuntime() {
         }));
       }
     }
-  };
+  }, []);
 
-  const disconnectFromOBS = async () => {
+  const disconnectFromOBS = useCallback(async () => {
     if (obsService.isConnected) {
       await obsService.disconnect();
     } else {
@@ -152,11 +152,14 @@ export function useObsRuntime() {
     }
     setObsRecording(initialOBSRecordingState);
     prevOutputActiveRef.current = false;
-  };
+  }, [addSessionTimeToTotal]);
 
   const saveSettings = async (newSettings: OBSSettings) => {
     setSettings(newSettings);
     localStorage.setItem(LOCAL_STORAGE_KEYS.settings, JSON.stringify(newSettings));
+    if (!autoConnect) {
+      return;
+    }
     if (obsConnection.isConnected || obsConnection.isConnecting) {
       await disconnectFromOBS();
     }
@@ -189,20 +192,19 @@ export function useObsRuntime() {
   };
 
   useEffect(() => {
-    console.log("AppProvider: Initial useEffect (settings load) START");
     const storedSettings = localStorage.getItem(LOCAL_STORAGE_KEYS.settings);
-    console.log("AppProvider: storedSettings from localStorage:", storedSettings);
     if (storedSettings) {
       try {
         const parsedSettings = JSON.parse(storedSettings) as OBSSettings;
-        console.log("AppProvider: parsedSettings:", parsedSettings);
         setSettings(parsedSettings);
-        connectToOBS(parsedSettings);
+        if (autoConnect) {
+          connectToOBS(parsedSettings);
+        }
       } catch (error) {
         console.error("Failed to parse stored settings:", error);
         localStorage.removeItem(LOCAL_STORAGE_KEYS.settings);
       }
-    } else {
+    } else if (autoConnect) {
       console.log(
         "AppProvider: No stored settings, using initialSettings:",
         initialSettings
@@ -214,7 +216,35 @@ export function useObsRuntime() {
     if (storedTotalTime) {
       setTotalTimeSeconds(parseInt(storedTotalTime, 10) || 0);
     }
-  }, []);
+  }, [autoConnect]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const handleStorage = async (event: StorageEvent) => {
+      if (event.key !== LOCAL_STORAGE_KEYS.settings || event.newValue === null) {
+        return;
+      }
+      try {
+        const parsedSettings = JSON.parse(event.newValue) as OBSSettings;
+        setSettings(parsedSettings);
+        if (!autoConnect) return;
+        if (obsConnection.isConnected || obsConnection.isConnecting) {
+          await disconnectFromOBS();
+        }
+        setTimeout(() => connectToOBS(parsedSettings), 100);
+      } catch (error) {
+        console.error("Failed to sync stored settings:", error);
+      }
+    };
+    window.addEventListener("storage", handleStorage);
+    return () => window.removeEventListener("storage", handleStorage);
+  }, [
+    autoConnect,
+    connectToOBS,
+    disconnectFromOBS,
+    obsConnection.isConnected,
+    obsConnection.isConnecting,
+  ]);
 
   useEffect(() => {
     console.log("AppProvider: Callback registration useEffect START");
@@ -394,6 +424,14 @@ export function useObsRuntime() {
   }, []);
 
   useEffect(() => {
+    if (!autoConnect) {
+      if (autoReconnectInterval.current) {
+        clearInterval(autoReconnectInterval.current);
+        autoReconnectInterval.current = null;
+      }
+      return undefined;
+    }
+
     if (!obsConnection.isConnected && !obsConnection.isConnecting) {
       if (!autoReconnectInterval.current) {
         autoReconnectInterval.current = setInterval(() => {
@@ -412,7 +450,7 @@ export function useObsRuntime() {
         autoReconnectInterval.current = null;
       }
     };
-  }, [obsConnection.isConnected, obsConnection.isConnecting]);
+  }, [autoConnect, obsConnection.isConnected, obsConnection.isConnecting]);
 
   let currentStatusIcon = "■";
   let currentStatusIconClass = "stopped";

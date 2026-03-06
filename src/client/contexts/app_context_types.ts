@@ -21,7 +21,7 @@ export interface OBSRecordingState {
   currentSessionSeconds: number;
 }
 
-export type AppMode = "obs" | "stopwatch" | "timer" | "clock";
+export type AppMode = "obs" | "obs-clock" | "stopwatch" | "timer" | "clock";
 
 export interface StopwatchState {
   isRunning: boolean;

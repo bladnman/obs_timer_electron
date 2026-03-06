@@ -82,13 +82,17 @@ export const useAppContext = () => useContext(AppContext);
 
 interface AppProviderProps {
   children: ReactNode;
+  autoConnectObs?: boolean;
 }
 
-export const AppProvider: React.FC<AppProviderProps> = ({children}) => {
+export const AppProvider: React.FC<AppProviderProps> = ({
+  children,
+  autoConnectObs = true,
+}) => {
   console.log("AppProvider: Mounting");
 
   const uiState = useAppUiState();
-  const obsRuntime = useObsRuntime();
+  const obsRuntime = useObsRuntime(autoConnectObs);
   const stopwatchRuntime = useStopwatchRuntime();
   const timerRuntime = useTimerRuntime();
 

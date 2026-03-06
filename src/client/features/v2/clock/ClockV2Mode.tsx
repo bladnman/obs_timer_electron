@@ -8,6 +8,8 @@ interface ClockV2ModeProps {
   onToggleFormat: () => void;
   onSettingsClick: () => void;
   isDimmed?: boolean;
+  statusNavigation?: React.ReactNode;
+  extraInfo?: React.ReactNode;
 }
 
 function formatClock(is24: boolean) {
@@ -29,6 +31,8 @@ const ClockV2Mode: React.FC<ClockV2ModeProps> = ({
   onToggleFormat,
   onSettingsClick,
   isDimmed = false,
+  statusNavigation,
+  extraInfo,
 }) => {
   const [, setTick] = useState(0);
   // Periodic tick to keep minutes fresh; 1s to align with separator blink
@@ -54,44 +58,47 @@ const ClockV2Mode: React.FC<ClockV2ModeProps> = ({
           if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onToggleFormat(); }
         }}
       >
-        <TimeDisplay
-          time={time}
-          state={"recording"}
-          isDimmed={isDimmed}
-          className="v2-clock-display"
-        />
+        <div className="v2-clock-display-wrap">
+          <TimeDisplay
+            time={time}
+            state={"recording"}
+            isDimmed={isDimmed}
+            className="v2-clock-display"
+          />
+          {ampm ? <div className="v2-clock-ampm-floating">{ampm}</div> : null}
+        </div>
       </div>
     </div>
   );
 
   // Only the gear is present in the status bar for clock mode
   const settingsComponent = (
-    <button
-      onClick={onSettingsClick}
-      className="v2-settings-button"
-      title="Settings"
-      aria-label="Settings"
-    >
-      <BsGearFill />
-    </button>
+    <div className="v2-status-leading">
+      <button
+        onClick={onSettingsClick}
+        className="v2-settings-button"
+        title="Settings"
+        aria-label="Settings"
+      >
+        <BsGearFill />
+      </button>
+      {statusNavigation}
+    </div>
   );
 
   return (
     <div className={`v2-recording-timer-mode ${isDimmed ? "dimmed" : ""}`}>
       <AppLayout
-        className={"app-layout-compact-when-empty"}
+        className={
+          "app-layout-compact-when-empty app-layout-collapse-empty-icon app-layout-collapse-empty-action"
+        }
+        icon={undefined}
         title={null}
         display={displayComponent}
         settings={settingsComponent}
-        extraInfo={undefined}
+        extraInfo={extraInfo}
         clock={<div />}
-        action={
-          ampm ? (
-            <div className="v2-action-wrapper">
-              <div className="v2-clock-ampm-action">{ampm}</div>
-            </div>
-          ) : undefined
-        }
+        action={undefined}
       />
     </div>
   );

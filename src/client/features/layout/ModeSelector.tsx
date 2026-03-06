@@ -16,9 +16,10 @@ const ModeSelector: React.FC<ModeSelectorProps> = ({
   
   const modes = [
     { id: 'obs' as AppMode, icon: <BiVideo />, title: 'OBS Timer' },
-    { id: 'stopwatch' as AppMode, icon: <BiStopwatch />, title: 'Stopwatch' },
-    { id: 'timer' as AppMode, icon: <BiTimer />, title: 'Timer' },
     { id: 'clock' as AppMode, icon: <BiTime />, title: 'Clock' },
+    { id: 'obs-clock' as AppMode, icon: <span className="mode-combo-icon"><BiVideo /><BiTime /></span>, title: 'OBS/Clock' },
+    { id: 'timer' as AppMode, icon: <BiTimer />, title: 'Timer' },
+    { id: 'stopwatch' as AppMode, icon: <BiStopwatch />, title: 'Stopwatch' },
   ];
 
   const currentModeData = modes.find(mode => mode.id === currentMode);

@@ -23,6 +23,8 @@ interface TimerV2ModeProps {
   selectedTimeSegment?: TimeSegment;
   onSelectTimeSegment?: (segment: TimeSegment) => void;
   isDimmed?: boolean;
+  statusNavigation?: React.ReactNode;
+  compactStatusBar?: boolean;
 }
 
 // Simple local hook reused from v1 setup behavior
@@ -61,6 +63,8 @@ const TimerV2Mode: React.FC<TimerV2ModeProps> = ({
   selectedTimeSegment = null,
   onSelectTimeSegment = () => {},
   isDimmed = false,
+  statusNavigation,
+  compactStatusBar = false,
 }) => {
   // Always initialize local setup state to keep hooks order stable
   const { hours, minutes, seconds, adjustValue, handleInputChange } = useLocalTimerSetupDefaults();
@@ -181,9 +185,12 @@ const TimerV2Mode: React.FC<TimerV2ModeProps> = ({
   const modeLabel = <div className="v2-mode-title">TIMER</div>;
 
   const settingsComponent = (
-    <button className="v2-settings-button" onClick={onEnterSetup} title="Set Duration">
-      <BsGearFill />
-    </button>
+    <div className="v2-status-leading">
+      <button className="v2-settings-button" onClick={onEnterSetup} title="Set Duration">
+        <BsGearFill />
+      </button>
+      {statusNavigation}
+    </div>
   );
 
   const clockComponent = <StatusBarClock />;
@@ -197,11 +204,12 @@ const TimerV2Mode: React.FC<TimerV2ModeProps> = ({
         <AppLayout
           // Timer mode: keep title/sub-display as potential regions.
           // Collapse reserved space only if both are empty (compact class below).
-          className={"app-layout-compact-when-empty"}
+          className={"app-layout-compact-when-empty app-layout-collapse-empty-icon"}
+          icon={undefined}
           title={null}
           display={<div />}
           settings={settingsComponent}
-          extraInfo={modeLabel}
+          extraInfo={compactStatusBar ? undefined : modeLabel}
           clock={clockComponent}
           contentOverride={
             <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "10em" }}>
@@ -285,11 +293,12 @@ const TimerV2Mode: React.FC<TimerV2ModeProps> = ({
     <div className={`v2-recording-timer-mode ${isDimmed ? "dimmed" : ""}`} ref={containerRef}>
       <AppLayout
         // Timer mode: keep regions but move label to status bar center
-        className={isCompact ? "app-layout-compact-when-empty" : undefined}
+        className={`${isCompact ? "app-layout-compact-when-empty " : ""}app-layout-collapse-empty-icon`}
+        icon={undefined}
         title={titleContent}
         display={displayComponent}
         settings={settingsComponent}
-        extraInfo={modeLabel}
+        extraInfo={compactStatusBar ? undefined : modeLabel}
         clock={clockComponent}
         action={actionComponent}
       />

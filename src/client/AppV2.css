@@ -18,6 +18,12 @@
   --v2-text-label: #5a5a5a;       /* Dimmed gray for labels */
   --v2-text-dimmed: #d9d9d9;      /* For gear/clock */
   --v2-text-secondary: #8a8a8a;   /* For total time */
+  --v2-mode-rail-bg: rgba(255, 255, 255, 0.04);
+  --v2-mode-rail-border: rgba(255, 255, 255, 0.08);
+  --v2-mode-rail-active-bg: rgba(255, 255, 255, 0.12);
+  --v2-mode-rail-active-border: rgba(255, 255, 255, 0.22);
+  --v2-overlay-bg: rgba(11, 14, 17, 0.82);
+  --v2-overlay-border: rgba(255, 255, 255, 0.1);
 
   /* Status bar minimum legibility dial
      Change this to set a hard floor for status text
@@ -46,6 +52,31 @@
   display: flex;
   flex-direction: column;
   transition: font-size 0.15s ease-out; /* Smooth scaling during resize */
+}
+
+.AppV2.app-v2-tight {
+  --rail-width: 2.2em;
+  --status-height: 1.85em;
+  --v2-status-font-min: 10px;
+}
+
+.AppV2.app-v2-very-tight {
+  --rail-width: 1.85em;
+}
+
+.AppV2.app-v2-tight .v2-status-leading {
+  gap: 0.28em;
+}
+
+.AppV2.app-v2-tight .v2-mode-dock-button,
+.AppV2.app-v2-tight .v2-mode-dock-step,
+.AppV2.app-v2-tight .v2-mode-dock-current {
+  width: 1.38em;
+  height: 1.38em;
+}
+
+.AppV2.app-v2-tight .v2-mode-dock-icon {
+  font-size: 0.84em;
 }
 
 /* Reset margins/padding globally */
@@ -145,6 +176,223 @@
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.v2-status-leading {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45em;
+  min-width: 0;
+}
+
+.v2-mode-dock {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.22em;
+  min-width: 0;
+  -webkit-app-region: no-drag;
+}
+
+.v2-mode-dock-button,
+.v2-mode-dock-step,
+.v2-mode-dock-current {
+  position: relative;
+  width: 1.5em;
+  height: 1.5em;
+  border-radius: 0.52em;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.v2-mode-dock-button,
+.v2-mode-dock-step {
+  border: 0.0625em solid transparent;
+  background: transparent;
+  color: var(--v2-text-secondary);
+  cursor: pointer;
+  transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+}
+
+.v2-mode-dock-button:hover,
+.v2-mode-dock-step:hover {
+  color: var(--v2-text-primary);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.v2-mode-dock-button.active {
+  color: var(--v2-text-primary);
+  background: var(--v2-mode-rail-active-bg);
+  border-color: var(--v2-mode-rail-active-border);
+}
+
+.v2-mode-dock-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.92em;
+}
+
+.v2-mode-dock.compact {
+  gap: 0.16em;
+}
+
+.v2-mode-dock-current {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--v2-text-primary);
+}
+
+.v2-mode-dock-pips {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.12em;
+  margin-left: 0.08em;
+}
+
+.v2-mode-dock-pip {
+  width: 0.18em;
+  height: 0.18em;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.v2-mode-dock-pip.active {
+  width: 0.26em;
+  height: 0.26em;
+  background: rgba(255, 255, 255, 0.78);
+}
+
+.v2-mode-rail {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45em;
+  padding: 0.45em 0.3em;
+  border-radius: 0.9em;
+  background: var(--v2-mode-rail-bg);
+  border: 0.0625em solid var(--v2-mode-rail-border);
+  -webkit-app-region: no-drag;
+}
+
+.v2-mode-rail.compact {
+  gap: 0.28em;
+  padding: 0.28em 0.18em;
+  border-radius: 0.7em;
+}
+
+.v2-mode-rail-button {
+  position: relative;
+  width: 2.2em;
+  height: 2.2em;
+  border: 0.0625em solid transparent;
+  border-radius: 0.75em;
+  background: transparent;
+  color: var(--v2-text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease, transform 0.18s ease;
+}
+
+.v2-mode-rail-button.compact {
+  width: 1.6em;
+  height: 1.6em;
+  border-radius: 0.55em;
+  transform: none;
+}
+
+.v2-mode-rail-button:hover {
+  color: var(--v2-text-primary);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.v2-mode-rail-button.active {
+  color: var(--v2-text-primary);
+  background: var(--v2-mode-rail-active-bg);
+  border-color: var(--v2-mode-rail-active-border);
+  transform: translateX(0.08em);
+}
+
+.v2-mode-rail-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1em;
+}
+
+.v2-mode-rail-combo-icon {
+  position: relative;
+  width: 1.2em;
+  height: 1.2em;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.v2-mode-rail-combo-icon svg:first-child {
+  font-size: 0.95em;
+}
+
+.v2-mode-rail-combo-icon svg:last-child {
+  position: absolute;
+  right: -0.1em;
+  bottom: -0.12em;
+  font-size: 0.6em;
+  background: var(--v2-bg-body);
+  border-radius: 50%;
+}
+
+.v2-mode-rail-pips {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.18em;
+}
+
+.v2-mode-rail-pip {
+  width: 0.22em;
+  height: 0.22em;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.v2-mode-rail-pip.active {
+  width: 0.3em;
+  height: 0.3em;
+  background: rgba(255, 255, 255, 0.75);
+}
+
+.v2-mode-rail-obs-dot {
+  position: absolute;
+  top: 0.35em;
+  right: 0.35em;
+  width: 0.42em;
+  height: 0.42em;
+  border-radius: 50%;
+  border: 0.08em solid var(--v2-bg-body);
+  background: var(--v2-text-secondary);
+}
+
+.v2-mode-rail-obs-dot.recording {
+  background: var(--v2-color-recording);
+}
+
+.v2-mode-rail-obs-dot.paused {
+  background: var(--v2-color-paused);
+}
+
+.v2-mode-rail-obs-dot.ready {
+  background: var(--v2-text-secondary);
+}
+
+.v2-mode-rail-obs-dot.unavailable {
+  background: var(--v2-color-error);
+}
+
+.v2-mode-rail-obs-dot.connecting {
+  background: #7cc8ff;
+  animation: subtle-pulse 1.2s ease-in-out infinite;
 }
 
 .v2-status-icon {
@@ -495,18 +743,29 @@
   -webkit-app-region: no-drag;
 }
 
+.v2-clock-display-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .v2-clock-ampm {
   font-size: 0.8em;
   color: var(--v2-text-dimmed);
   letter-spacing: 0.06em;
 }
 
-/* AM/PM shown in the action rail for Clock mode */
-.v2-clock-ampm-action {
+.v2-clock-ampm-floating {
+  position: absolute;
+  left: calc(100% + 0.8em);
+  top: 50%;
+  transform: translateY(-50%);
   font-size: 0.8em;
   color: var(--v2-text-dimmed);
   letter-spacing: 0.08em;
   text-transform: uppercase;
+  white-space: nowrap;
   -webkit-app-region: no-drag;
 }
 
@@ -547,9 +806,74 @@
   font-size: clamp(var(--v2-status-font-min), 1em, var(--v2-status-font-max));
 }
 
+.v2-mode-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35em;
+  font-size: clamp(var(--v2-status-font-min), 0.8125em, var(--v2-status-font-max));
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.v2-mode-status-label {
+  color: var(--v2-text-primary);
+  font-weight: 600;
+}
+
+.v2-mode-status-separator,
+.v2-mode-status-detail {
+  color: var(--v2-text-label);
+}
+
+.v2-mode-change-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.96);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 80;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3em;
+  min-width: 10em;
+  padding: 0.8em 1.2em;
+  border-radius: 1em;
+  background: var(--v2-overlay-bg);
+  border: 0.0625em solid var(--v2-overlay-border);
+  box-shadow: 0 0.6em 2em rgba(0, 0, 0, 0.28);
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.v2-mode-change-overlay.visible {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.AppV2.app-v2-tight .v2-mode-change-overlay {
+  display: none;
+}
+
+.v2-mode-change-overlay-label {
+  color: var(--v2-text-primary);
+  font-size: 1.05em;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.v2-mode-change-overlay-detail {
+  color: var(--v2-text-dimmed);
+  font-size: 0.72em;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 /* Ensure React Icons scale with EM units */
 .v2-action-button svg,
-.v2-settings-button svg {
+.v2-settings-button svg,
+.v2-mode-rail-icon svg {
   width: 1em;
   height: 1em;
 }

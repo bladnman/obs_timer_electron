@@ -9,6 +9,7 @@ import {
 
 const isAppMode = (value: string | null): value is AppMode =>
   value === "obs" ||
+  value === "obs-clock" ||
   value === "stopwatch" ||
   value === "timer" ||
   value === "clock";

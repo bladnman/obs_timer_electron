@@ -137,6 +137,18 @@
   min-height: 0;
 }
 
+.app-layout-window.app-layout-collapse-empty-icon .app-layout-icon:empty {
+  width: 0;
+}
+
+.app-layout-window.app-layout-collapse-empty-icon .app-layout-body {
+  gap: var(--space-sm);
+}
+
+.app-layout-window.app-layout-collapse-empty-action .app-layout-action:empty {
+  width: 0;
+}
+
 /* Status bar (always visible, fixed height) */
 .app-layout-status-bar {
   height: var(--status-height);
@@ -164,10 +176,15 @@
 
 .app-layout-extra-info {
   flex: 1;
+  min-width: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   text-align: center;
+  padding: 0 0.5em;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .app-layout-clock {

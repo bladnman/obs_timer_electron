@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Menu } = require('electron'); // Added Menu
+const { app, BrowserWindow, Menu, ipcMain } = require('electron'); // Added Menu
 const path = require('path');
 const Store = require('electron-store');
 const { ASPECT_RATIO, calculateHeight, getDefaultDimensions, getMinimumDimensions } = require('./config/dimensions');
@@ -7,12 +7,76 @@ const store = new Store();
 
 const defaultDimensions = getDefaultDimensions();
 const minDimensions = getMinimumDimensions();
+let mainWindow = null;
+let settingsWindow = null;
+
+function loadRenderer(window, query = {}) {
+  const viteDevServerUrl = process.env.VITE_DEV_SERVER_URL;
+
+  if (viteDevServerUrl) {
+    const url = new URL(viteDevServerUrl);
+    Object.entries(query).forEach(([key, value]) => {
+      url.searchParams.set(key, value);
+    });
+    console.log(`Loading from Vite dev server: ${url.toString()}`);
+    window.loadURL(url.toString());
+    return;
+  }
+
+  let indexPath;
+  if (app.isPackaged) {
+    indexPath = path.join(__dirname, '..', 'dist', 'client', 'index.html');
+  } else {
+    indexPath = path.join(__dirname, '..', 'dist', 'client', 'index.html');
+  }
+  console.log(`Loading from production build: ${indexPath}`);
+  window.loadFile(indexPath, { query }).catch((error) => {
+    console.error('Failed to load index.html:', error);
+  });
+}
+
+function createSettingsWindow() {
+  if (settingsWindow && !settingsWindow.isDestroyed()) {
+    settingsWindow.focus();
+    return settingsWindow;
+  }
+
+  settingsWindow = new BrowserWindow({
+    width: 520,
+    height: 420,
+    minWidth: 420,
+    minHeight: 320,
+    parent: mainWindow || undefined,
+    modal: false,
+    show: false,
+    frame: true,
+    title: 'OBS Timer Settings',
+    backgroundColor: '#171717',
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js'),
+      contextIsolation: true,
+      nodeIntegration: false,
+    },
+  });
+
+  settingsWindow.once('ready-to-show', () => {
+    settingsWindow.show();
+    settingsWindow.focus();
+  });
+
+  settingsWindow.on('closed', () => {
+    settingsWindow = null;
+  });
+
+  loadRenderer(settingsWindow, { view: 'settings' });
+  return settingsWindow;
+}
 
 function createWindow() {
   const { width: savedWidth, x, y } = store.get('windowBounds', { width: defaultDimensions.width });
   const height = calculateHeight(savedWidth);
 
-  const mainWindow = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: savedWidth,
     height: height,
     x,
@@ -54,6 +118,9 @@ function createWindow() {
 
   // Ensure app quits when window is closed
   mainWindow.on('close', () => {
+    if (settingsWindow && !settingsWindow.isDestroyed()) {
+      settingsWindow.close();
+    }
     app.quit();
   });
 
@@ -142,30 +209,7 @@ function createWindow() {
   const menu = Menu.buildFromTemplate(menuTemplate);
   Menu.setApplicationMenu(menu);
 
-
-  const viteDevServerUrl = process.env.VITE_DEV_SERVER_URL;
-
-  if (viteDevServerUrl) {
-    console.log(`Loading from Vite dev server: ${viteDevServerUrl}`);
-    mainWindow.loadURL(viteDevServerUrl);
-    // Optionally open DevTools if VITE_DEV_SERVER_URL is set (implies development)
-    // mainWindow.webContents.openDevTools();
-  } else {
-    // In packaged app, files are relative to the app directory
-    // In development, files are in dist/client relative to the project root
-    let indexPath;
-    if (app.isPackaged) {
-      // In packaged app, the dist/client directory is at the root level of app.asar
-      indexPath = path.join(__dirname, '..', 'dist', 'client', 'index.html');
-    } else {
-      // In development, look relative to the src directory
-      indexPath = path.join(__dirname, '..', 'dist', 'client', 'index.html');
-    }
-    console.log(`Loading from production build: ${indexPath}`);
-    mainWindow.loadFile(indexPath).catch((error) => {
-      console.error('Failed to load index.html:', error);
-    });
-  }
+  loadRenderer(mainWindow);
 
   // Add error handling for renderer process
   mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription, validatedURL) => {
@@ -204,9 +248,11 @@ function createWindow() {
     `);
   });
   
-  // IPC handlers removed as settings are client-side
-
 } // End of createWindow
+
+ipcMain.handle('settings-window:open', () => {
+  createSettingsWindow();
+});
 
 app.whenReady().then(() => {
   createWindow();

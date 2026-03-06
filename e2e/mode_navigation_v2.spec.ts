@@ -19,7 +19,7 @@ test.afterAll(async () => {
   await server?.close();
 });
 
-test('V2 arrow navigation: obs -> timer with Right', async ({ page }) => {
+test('V2 arrow navigation: obs -> clock with Right', async ({ page }) => {
   await page.goto(`${serverUrl}/?mode=obs`);
   // Verify we are on Recording Timer V2: status bar shows Total label
   await expect(page.getByText('Total:')).toBeVisible();
@@ -29,11 +29,10 @@ test('V2 arrow navigation: obs -> timer with Right', async ({ page }) => {
     localStorage.setItem('obsTimerCurrentMode', 'obs');
   });
 
-  // Press Right to go to next mode (Timer)
+  // Press Right to go to next mode (Clock)
   await page.keyboard.press('ArrowRight');
 
-  // Expect Timer display (not setup) to be visible by default
-  await expect(page.locator('.v2-display-container')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Clock' })).toHaveAttribute('aria-pressed', 'true');
 });
 
 test('V2 gating: obs selection prevents mode change with Right', async ({ page }) => {

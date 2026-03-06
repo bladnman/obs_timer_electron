@@ -13,8 +13,10 @@ const ClockDisplay: React.FC<ClockDisplayProps> = ({
 }) => {
   return (
     <div className="clock-time-container" onClick={onToggleFormat}>
-      <div className="time-text recording">{currentTime}</div>
-      {ampm && <span className="clock-ampm">{ampm}</span>}
+      <div className="clock-time-value">
+        <div className="time-text recording">{currentTime}</div>
+      </div>
+      {ampm && <span className="clock-ampm clock-ampm-floating">{ampm}</span>}
     </div>
   );
 };

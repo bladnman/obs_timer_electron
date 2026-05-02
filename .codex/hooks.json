@@ -1,0 +1,14 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "afplay -v 0.3 \"/Users/mmaher/code/obs_timer_electron/sounds/tick_tock_dude.mp3\""
+          }
+        ]
+      }
+    ]
+  }
+}

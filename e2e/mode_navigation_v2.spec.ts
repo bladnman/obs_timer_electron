@@ -32,7 +32,7 @@ test('V2 arrow navigation: obs -> clock with Right', async ({ page }) => {
   // Press Right to go to next mode (Clock)
   await page.keyboard.press('ArrowRight');
 
-  await expect(page.getByRole('button', { name: 'Clock' })).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByRole('button', { name: 'Clock', exact: true })).toHaveAttribute('aria-pressed', 'true');
 });
 
 test('V2 gating: obs selection prevents mode change with Right', async ({ page }) => {

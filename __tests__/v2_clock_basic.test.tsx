@@ -46,14 +46,14 @@ describe("V2 Clock Mode", () => {
     expect(document.querySelector('.v2-clock-time')).not.toBeInTheDocument();
 
     // AM/PM not shown in 24-hour mode
-    expect(document.querySelector('.v2-clock-ampm-action')).not.toBeInTheDocument();
+    expect(document.querySelector('.v2-clock-ampm-floating')).not.toBeInTheDocument();
 
     // Click the clock to toggle to 12-hour; AM/PM should appear
     const clockContainer = document.querySelector('.v2-clock-container') as HTMLElement;
     clockContainer.click();
 
     await waitFor(() => {
-      expect(document.querySelector('.v2-clock-ampm-action')).toBeInTheDocument();
+      expect(document.querySelector('.v2-clock-ampm-floating')).toBeInTheDocument();
     });
   });
 });

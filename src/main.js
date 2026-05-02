@@ -1,7 +1,9 @@
-const { app, BrowserWindow, Menu, ipcMain } = require('electron'); // Added Menu
+const { app, BrowserWindow, Menu, ipcMain, screen } = require('electron'); // Added Menu
+const fs = require('fs');
 const path = require('path');
 const Store = require('electron-store');
 const { ASPECT_RATIO, calculateHeight, getDefaultDimensions, getMinimumDimensions } = require('./config/dimensions');
+const { createWindowPlacement, resolveWindowBounds } = require('./window_placement');
 
 const store = new Store();
 
@@ -9,6 +11,124 @@ const defaultDimensions = getDefaultDimensions();
 const minDimensions = getMinimumDimensions();
 let mainWindow = null;
 let settingsWindow = null;
+let placementLogPath = null;
+let isRestoringInitialBounds = false;
+
+function getPlacementLogPath() {
+  if (!placementLogPath) {
+    placementLogPath = path.join(app.getPath('userData'), 'window-placement.log');
+  }
+
+  return placementLogPath;
+}
+
+function appendPlacementLog(eventName, details = {}) {
+  try {
+    const entry = {
+      timestamp: new Date().toISOString(),
+      event: eventName,
+      pid: process.pid,
+      ...details,
+    };
+
+    fs.appendFileSync(getPlacementLogPath(), `${JSON.stringify(entry)}\n`);
+  } catch (error) {
+    console.error('Failed to write window placement log:', error);
+  }
+}
+
+function getDisplaySnapshot() {
+  return screen.getAllDisplays().map((display) => ({
+    id: display.id,
+    label: display.label,
+    bounds: display.bounds,
+    workArea: display.workArea,
+    scaleFactor: display.scaleFactor,
+    rotation: display.rotation,
+  }));
+}
+
+function getWindowSnapshot() {
+  if (!mainWindow || mainWindow.isDestroyed()) {
+    return null;
+  }
+
+  const bounds = mainWindow.getBounds();
+  return {
+    bounds,
+    contentBounds: mainWindow.getContentBounds(),
+    size: mainWindow.getSize(),
+    contentSize: mainWindow.getContentSize(),
+    displayMatchingBounds: screen.getDisplayMatching(bounds),
+  };
+}
+
+function getInitialWindowBounds() {
+  const savedBounds = store.get('windowBounds');
+  const savedPlacement = store.get('windowPlacement');
+  const displays = screen.getAllDisplays();
+  const resolvedBounds = resolveWindowBounds({
+    savedBounds,
+    savedPlacement,
+    displays,
+    defaultWidth: defaultDimensions.width,
+    calculateHeight,
+  });
+
+  appendPlacementLog('resolve-initial-window-bounds', {
+    savedBounds,
+    savedPlacement,
+    resolvedBounds,
+    displays: getDisplaySnapshot(),
+  });
+
+  return resolvedBounds;
+}
+
+function saveWindowPlacement(bounds, reason = 'unknown') {
+  if (isRestoringInitialBounds) {
+    appendPlacementLog('skip-save-during-initial-restore', {
+      reason,
+      bounds,
+      window: getWindowSnapshot(),
+    });
+    return;
+  }
+
+  const display = screen.getDisplayMatching(bounds);
+  const placement = createWindowPlacement(bounds, display);
+
+  store.set('windowBounds', bounds);
+  store.set('windowPlacement', placement);
+
+  appendPlacementLog('save-window-placement', {
+    reason,
+    bounds,
+    placement,
+    window: getWindowSnapshot(),
+  });
+}
+
+function saveMainWindowPlacement(reason = 'unknown') {
+  if (!mainWindow || mainWindow.isDestroyed()) {
+    return;
+  }
+
+  saveWindowPlacement(mainWindow.getBounds(), reason);
+}
+
+function forceMainWindowBounds(bounds, reason) {
+  if (!mainWindow || mainWindow.isDestroyed()) {
+    return;
+  }
+
+  mainWindow.setBounds(bounds, false);
+  appendPlacementLog('force-main-window-bounds', {
+    reason,
+    requestedBounds: bounds,
+    window: getWindowSnapshot(),
+  });
+}
 
 function loadRenderer(window, query = {}) {
   const viteDevServerUrl = process.env.VITE_DEV_SERVER_URL;
@@ -73,14 +193,10 @@ function createSettingsWindow() {
 }
 
 function createWindow() {
-  const { width: savedWidth, x, y } = store.get('windowBounds', { width: defaultDimensions.width });
-  const height = calculateHeight(savedWidth);
+  const initialBounds = getInitialWindowBounds();
 
   mainWindow = new BrowserWindow({
-    width: savedWidth,
-    height: height,
-    x,
-    y,
+    ...initialBounds,
     frame: false,      // Frameless window
     transparent: true, // Transparent background
     alwaysOnTop: true, // Always on top
@@ -98,6 +214,32 @@ function createWindow() {
     aspectRatio: 1 / ASPECT_RATIO.HEIGHT_RATIO, // Electron expects width/height ratio
   });
 
+  appendPlacementLog('created-main-window', {
+    initialBounds,
+    window: getWindowSnapshot(),
+  });
+
+  isRestoringInitialBounds = true;
+  [0, 100, 500].forEach((delayMs) => {
+    setTimeout(() => {
+      forceMainWindowBounds(initialBounds, `initial-restore-${delayMs}ms`);
+    }, delayMs);
+  });
+
+  setTimeout(() => {
+    isRestoringInitialBounds = false;
+    saveMainWindowPlacement('initial-restore-complete');
+  }, 750);
+
+  [100, 500, 1500].forEach((delayMs) => {
+    setTimeout(() => {
+      appendPlacementLog('post-create-window-snapshot', {
+        delayMs,
+        window: getWindowSnapshot(),
+      });
+    }, delayMs);
+  });
+
   mainWindow.on('resize', () => {
     const [width, height] = mainWindow.getSize();
     const newHeight = calculateHeight(width);
@@ -107,17 +249,25 @@ function createWindow() {
       mainWindow.setSize(width, newHeight, false); // `false` for not animating
     }
 
-    const bounds = mainWindow.getBounds();
-    store.set('windowBounds', bounds);
+    saveMainWindowPlacement('resize');
   });
 
   mainWindow.on('move', () => {
-    const bounds = mainWindow.getBounds();
-    store.set('windowBounds', bounds);
+    saveMainWindowPlacement('move');
+  });
+
+  mainWindow.on('will-move', (_event, newBounds) => {
+    saveWindowPlacement(newBounds, 'will-move');
+  });
+
+  mainWindow.on('resized', () => {
+    saveMainWindowPlacement('resized');
   });
 
   // Ensure app quits when window is closed
   mainWindow.on('close', () => {
+    saveMainWindowPlacement('close');
+
     if (settingsWindow && !settingsWindow.isDestroyed()) {
       settingsWindow.close();
     }

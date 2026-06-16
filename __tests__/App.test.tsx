@@ -176,6 +176,7 @@ describe("<App />", () => {
     expect(screen.getByLabelText("OBS Host:")).toBeInTheDocument();
     expect(screen.getByLabelText("Port:")).toBeInTheDocument();
     expect(screen.getByLabelText("Password:")).toBeInTheDocument();
+    expect(screen.getByLabelText("Reset total time on launch")).toBeChecked();
     expect(screen.queryByRole("button", {name: /save & connect/i})).not.toBeInTheDocument();
     expect(screen.getByText("Changes save automatically")).toBeInTheDocument();
 
@@ -192,6 +193,38 @@ describe("<App />", () => {
         localStorage.getItem(LOCAL_STORAGE_KEYS.settings)
       ).toContain("obs-box.local");
     });
+  });
+
+  test("resets stored OBS total time on launch by default", async () => {
+    localStorage.setItem(LOCAL_STORAGE_KEYS.totalSeconds, "3661");
+
+    renderWithProvider(<App />, {autoConnectObs: false});
+
+    await waitFor(() => {
+      expect(localStorage.getItem(LOCAL_STORAGE_KEYS.totalSeconds)).toBe("0");
+    });
+  });
+
+  test("keeps stored OBS total time when reset on launch is disabled", async () => {
+    localStorage.setItem(
+      LOCAL_STORAGE_KEYS.settings,
+      JSON.stringify({
+        host: "localhost",
+        port: "4455",
+        password: "",
+        resetTimeOnLaunch: false,
+      })
+    );
+    localStorage.setItem(LOCAL_STORAGE_KEYS.totalSeconds, "3661");
+
+    renderWithProvider(<App />, {autoConnectObs: false});
+
+    await waitFor(() => {
+      expect(document.querySelector(".v2-total-value")?.textContent).toBe(
+        "01:01:01"
+      );
+    });
+    expect(localStorage.getItem(LOCAL_STORAGE_KEYS.totalSeconds)).toBe("3661");
   });
 
   // Add more tests:

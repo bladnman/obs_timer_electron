@@ -2,6 +2,7 @@ export interface OBSSettings {
   host: string;
   port: string;
   password?: string;
+  resetTimeOnLaunch: boolean;
 }
 
 export interface OBSConnectionState {
@@ -74,7 +75,18 @@ export const initialSettings: OBSSettings = {
   host: "localhost",
   port: "4455",
   password: "",
+  resetTimeOnLaunch: true,
 };
+
+export const normalizeOBSSettings = (
+  settings: Partial<OBSSettings> | null | undefined
+): OBSSettings => ({
+  host: settings?.host ?? initialSettings.host,
+  port: settings?.port ?? initialSettings.port,
+  password: settings?.password ?? initialSettings.password,
+  resetTimeOnLaunch:
+    settings?.resetTimeOnLaunch ?? initialSettings.resetTimeOnLaunch,
+});
 
 export const initialOBSConnectionState: OBSConnectionState = {
   isConnected: false,

@@ -210,6 +210,7 @@ function App() {
       initialHost={settings.host}
       initialPort={settings.port}
       initialPassword={settings.password}
+      initialResetTimeOnLaunch={settings.resetTimeOnLaunch}
       connectionResult={connectionTestResult}
       isTestingConnection={isTestingConnection}
     />
@@ -396,6 +397,7 @@ function App() {
           initialHost={settings.host}
           initialPort={settings.port}
           initialPassword={settings.password}
+          initialResetTimeOnLaunch={settings.resetTimeOnLaunch}
           connectionResult={connectionTestResult}
           isTestingConnection={isTestingConnection}
         />

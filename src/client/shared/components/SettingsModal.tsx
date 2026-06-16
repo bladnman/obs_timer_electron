@@ -1,4 +1,5 @@
 import React, {useEffect, useState} from "react";
+import type {OBSSettings} from "../../contexts/app_context_types";
 import { useWindowDimensions } from "../../hooks/useWindowDimensions";
 import {CAPTURE_EVENT_OPTIONS} from "../../utils/keyboard";
 
@@ -12,15 +13,12 @@ import {CAPTURE_EVENT_OPTIONS} from "../../utils/keyboard";
 const SettingsModal: React.FC<{
   isOpen: boolean;
   onClose: () => void;
-  onSave: (settings: {host: string; port: string; password?: string}) => void;
-  onTestConnection: (settings: {
-    host: string;
-    port: string;
-    password?: string;
-  }) => void; // Modified to pass settings
+  onSave: (settings: OBSSettings) => void;
+  onTestConnection: (settings: OBSSettings) => void; // Modified to pass settings
   initialHost: string;
   initialPort: string;
   initialPassword?: string;
+  initialResetTimeOnLaunch: boolean;
   connectionResult?: string | null;
   isTestingConnection?: boolean;
   embedded?: boolean;
@@ -32,6 +30,7 @@ const SettingsModal: React.FC<{
   initialHost,
   initialPort,
   initialPassword,
+  initialResetTimeOnLaunch,
   connectionResult,
   isTestingConnection,
   embedded = false,
@@ -39,6 +38,9 @@ const SettingsModal: React.FC<{
   const [host, setHost] = useState(initialHost);
   const [port, setPort] = useState(initialPort);
   const [password, setPassword] = useState(initialPassword || "");
+  const [resetTimeOnLaunch, setResetTimeOnLaunch] = useState(
+    initialResetTimeOnLaunch
+  );
   const [hasPendingAutoSave, setHasPendingAutoSave] = useState(false);
   const { width, height } = useWindowDimensions();
   const MIN_HEIGHT = 300; // threshold for showing full settings
@@ -52,8 +54,15 @@ const SettingsModal: React.FC<{
     setHost(initialHost);
     setPort(initialPort);
     setPassword(initialPassword || "");
+    setResetTimeOnLaunch(initialResetTimeOnLaunch);
     setHasPendingAutoSave(false);
-  }, [initialHost, initialPort, initialPassword, isOpen]); // Update when modal opens or initial values change
+  }, [
+    initialHost,
+    initialPort,
+    initialPassword,
+    initialResetTimeOnLaunch,
+    isOpen,
+  ]); // Update when modal opens or initial values change
 
   useEffect(() => {
     if (!embedded || !hasPendingAutoSave) {
@@ -61,12 +70,20 @@ const SettingsModal: React.FC<{
     }
 
     const saveTimer = window.setTimeout(() => {
-      onSave({host, port, password});
+      onSave({host, port, password, resetTimeOnLaunch});
       setHasPendingAutoSave(false);
     }, 400);
 
     return () => window.clearTimeout(saveTimer);
-  }, [embedded, hasPendingAutoSave, host, onSave, password, port]);
+  }, [
+    embedded,
+    hasPendingAutoSave,
+    host,
+    onSave,
+    password,
+    port,
+    resetTimeOnLaunch,
+  ]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -85,11 +102,11 @@ const SettingsModal: React.FC<{
   }
 
   const handleSave = () => {
-    onSave({host, port, password});
+    onSave({host, port, password, resetTimeOnLaunch});
   };
 
   const handleTest = () => {
-    onTestConnection({host, port, password});
+    onTestConnection({host, port, password, resetTimeOnLaunch});
   };
 
   const updateField =
@@ -100,6 +117,13 @@ const SettingsModal: React.FC<{
         setHasPendingAutoSave(true);
       }
     };
+
+  const updateResetTimeOnLaunch = (value: boolean) => {
+    setResetTimeOnLaunch(value);
+    if (embedded) {
+      setHasPendingAutoSave(true);
+    }
+  };
 
   if (shouldShowCompactNotice) {
     const compactNotice = (
@@ -193,6 +217,18 @@ const SettingsModal: React.FC<{
                 placeholder="Enter OBS WebSocket password"
               />
             </div>
+            <label
+              className="form-checkbox grid-span-all"
+              htmlFor="obs-reset-time-on-launch"
+            >
+              <input
+                type="checkbox"
+                id="obs-reset-time-on-launch"
+                checked={resetTimeOnLaunch}
+                onChange={(e) => updateResetTimeOnLaunch(e.target.checked)}
+              />
+              <span>Reset total time on launch</span>
+            </label>
             <div className="form-actions grid-span-all">
               {!embedded ? (
                 <button onClick={handleSave} className="save-button">

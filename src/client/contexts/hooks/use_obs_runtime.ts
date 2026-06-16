@@ -13,10 +13,28 @@ import {
   initialOBSConnectionState,
   initialOBSRecordingState,
   initialSettings,
+  normalizeOBSSettings,
 } from "../app_context_types";
 
 const persistTotalTime = (value: number) => {
   localStorage.setItem(LOCAL_STORAGE_KEYS.totalSeconds, value.toString());
+};
+
+const didConnectionSettingsChange = (
+  currentSettings: OBSSettings,
+  nextSettings: OBSSettings
+) =>
+  currentSettings.host !== nextSettings.host ||
+  currentSettings.port !== nextSettings.port ||
+  (currentSettings.password ?? "") !== (nextSettings.password ?? "");
+
+const isSettingsWindowView = () => {
+  try {
+    return new URLSearchParams(window.location.search).get("view") === "settings";
+  } catch (error) {
+    void error;
+    return false;
+  }
 };
 
 export function useObsRuntime(autoConnect = true) {
@@ -155,15 +173,27 @@ export function useObsRuntime(autoConnect = true) {
   }, [addSessionTimeToTotal]);
 
   const saveSettings = async (newSettings: OBSSettings) => {
-    setSettings(newSettings);
-    localStorage.setItem(LOCAL_STORAGE_KEYS.settings, JSON.stringify(newSettings));
+    const normalizedSettings = normalizeOBSSettings(newSettings);
+    const shouldReconnect = didConnectionSettingsChange(
+      settingsRef.current,
+      normalizedSettings
+    );
+
+    setSettings(normalizedSettings);
+    localStorage.setItem(
+      LOCAL_STORAGE_KEYS.settings,
+      JSON.stringify(normalizedSettings)
+    );
     if (!autoConnect) {
+      return;
+    }
+    if (!shouldReconnect) {
       return;
     }
     if (obsConnection.isConnected || obsConnection.isConnecting) {
       await disconnectFromOBS();
     }
-    setTimeout(() => connectToOBS(newSettings), 500);
+    setTimeout(() => connectToOBS(normalizedSettings), 500);
   };
 
   const testOBSConnection = async (testSettings: OBSSettings) => {
@@ -193,9 +223,12 @@ export function useObsRuntime(autoConnect = true) {
 
   useEffect(() => {
     const storedSettings = localStorage.getItem(LOCAL_STORAGE_KEYS.settings);
+    let launchSettings = initialSettings;
+
     if (storedSettings) {
       try {
-        const parsedSettings = JSON.parse(storedSettings) as OBSSettings;
+        const parsedSettings = normalizeOBSSettings(JSON.parse(storedSettings));
+        launchSettings = parsedSettings;
         setSettings(parsedSettings);
         if (autoConnect) {
           connectToOBS(parsedSettings);
@@ -212,11 +245,17 @@ export function useObsRuntime(autoConnect = true) {
       connectToOBS(initialSettings);
     }
 
+    if (!isSettingsWindowView() && launchSettings.resetTimeOnLaunch) {
+      setTotalTimeSeconds(0);
+      persistTotalTime(0);
+      return;
+    }
+
     const storedTotalTime = localStorage.getItem(LOCAL_STORAGE_KEYS.totalSeconds);
     if (storedTotalTime) {
       setTotalTimeSeconds(parseInt(storedTotalTime, 10) || 0);
     }
-  }, [autoConnect]);
+  }, [autoConnect, connectToOBS]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -225,9 +264,14 @@ export function useObsRuntime(autoConnect = true) {
         return;
       }
       try {
-        const parsedSettings = JSON.parse(event.newValue) as OBSSettings;
+        const parsedSettings = normalizeOBSSettings(JSON.parse(event.newValue));
+        const shouldReconnect = didConnectionSettingsChange(
+          settingsRef.current,
+          parsedSettings
+        );
         setSettings(parsedSettings);
         if (!autoConnect) return;
+        if (!shouldReconnect) return;
         if (obsConnection.isConnected || obsConnection.isConnecting) {
           await disconnectFromOBS();
         }
@@ -421,7 +465,7 @@ export function useObsRuntime(autoConnect = true) {
         autoReconnectInterval.current = null;
       }
     };
-  }, []);
+  }, [addSessionTimeToTotal]);
 
   useEffect(() => {
     if (!autoConnect) {
@@ -450,7 +494,12 @@ export function useObsRuntime(autoConnect = true) {
         autoReconnectInterval.current = null;
       }
     };
-  }, [autoConnect, obsConnection.isConnected, obsConnection.isConnecting]);
+  }, [
+    autoConnect,
+    connectToOBS,
+    obsConnection.isConnected,
+    obsConnection.isConnecting,
+  ]);
 
   let currentStatusIcon = "■";
   let currentStatusIconClass = "stopped";
